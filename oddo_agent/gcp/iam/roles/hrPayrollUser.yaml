@@ -1,0 +1,29 @@
+# Custom IAM Role: HR Payroll User
+# All HR Manager permissions plus Create, Read and Update access to Payruns and
+# Payslips. Read-only access to Salary Structures and Salary Rules.
+#
+# Apply with:
+#   gcloud iam roles create hrPayrollUser \
+#     --project=PROJECT_ID \
+#     --file=gcp/iam/roles/hrPayrollUser.yaml
+#
+# The application-level permission matrix in src/services/iamService.js is the
+# authoritative fine-grained enforcer for HR & Payroll modules. These GCP
+# permissions gate the underlying GCP resources (Cloud Run, Firestore, etc.).
+
+title: "HR Payroll User"
+description: >-
+  All HR Manager permissions plus Create, Read and Update access to Payruns
+  and Payslips. Read-only access to Salary Structures and Salary Rules.
+stage: GA
+includedPermissions:
+  - resourcemanager.projects.get
+  - iam.roles.get
+  - run.services.invoke
+  - cloudfunctions.functions.invoke
+  - secretmanager.versions.access
+  - firestore.databases.get
+  - firestore.documents.get
+  - firestore.documents.list
+  - firestore.documents.create
+  - firestore.documents.update
