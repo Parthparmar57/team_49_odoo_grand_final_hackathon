@@ -329,15 +329,6 @@ export const LandingPage: React.FC = () => {
                 <ArrowRightIcon />
               </div>
             </Link>
-            <Link
-              to="/auth/login"
-              className="group inline-flex items-center justify-center px-5 py-2 text-xs font-bold text-white bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-500 hover:to-amber-600 rounded-full transition shadow-md shadow-orange-500/25"
-            >
-              <span>Get Started</span>
-              <div className="w-4 h-4 ml-1.5 rounded-full bg-white/20 flex items-center justify-center group-hover:translate-x-0.5 transition-transform">
-                <ArrowRightIcon />
-              </div>
-            </Link>
           </div>
         </nav>
       </motion.header>
@@ -362,7 +353,7 @@ export const LandingPage: React.FC = () => {
 
             {/* Main Headline */}
             <motion.h1 variants={fadeInUpVariants} className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-950 leading-[1.12]">
-              <span className="gradient-text-brand">PeoplePay360</span> — Transform Employee Emails Into <span>Automated Workflows</span>
+              <span className="gradient-text-brand">PeoplePay360</span> — One Platform. <span>Smarter People Operations.</span>
             </motion.h1>
 
             {/* Subtitle */}

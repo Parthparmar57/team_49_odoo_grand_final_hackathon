@@ -34,7 +34,7 @@ export const UserManagementPage: React.FC = () => {
     setError('');
     try {
       const [usersRes, empRes] = await Promise.all([
-        api.getAdminUsers({ limit: 100 }),
+        api.getAdminUsers({ limit: 500 }),
         api.getEmployees(),
       ]);
 
@@ -209,9 +209,8 @@ export const UserManagementPage: React.FC = () => {
         ].map((item) => (
           <Card
             key={item.role}
-            className={`p-3.5 border text-center cursor-pointer transition-all ${item.color} ${
-              roleFilter === item.role ? 'ring-2 ring-[#FF5E1E] shadow-sm' : ''
-            }`}
+            className={`p-3.5 border text-center cursor-pointer transition-all ${item.color} ${roleFilter === item.role ? 'ring-2 ring-[#FF5E1E] shadow-sm' : ''
+              }`}
             onClick={() => setRoleFilter(item.role)}
           >
             <p className="text-[10px] font-extrabold uppercase tracking-wider opacity-80">{item.label}</p>
