@@ -102,15 +102,18 @@ export default function EmployeeForm() {
       return;
     }
 
-    if (form.phone && !/^\+?[0-9\s-]{8,15}$/.test(form.phone.trim())) {
-      const msg = 'Phone number must be valid (8 to 15 digits)';
-      setError(msg);
-      toast.error(msg);
-      return;
+    if (form.phone) {
+      const cleanPhone = form.phone.replace(/[\s\-\+\(\)]/g, '');
+      if (!/^[6-9]\d{9}$/.test(cleanPhone) && !/^\d{10}$/.test(cleanPhone)) {
+        const msg = 'Phone number must contain exactly 10 digits (e.g. 9876543210)';
+        setError(msg);
+        toast.error(msg);
+        return;
+      }
     }
 
     if (form.taxId && !/^[A-Z0-9]{5,15}$/i.test(form.taxId.trim())) {
-      const msg = 'Tax ID / PAN must be 5 to 15 alphanumeric characters';
+      const msg = 'Tax ID / PAN must be 5 to 15 alphanumeric characters (e.g. ABCDE1234F)';
       setError(msg);
       toast.error(msg);
       return;
@@ -143,7 +146,8 @@ export default function EmployeeForm() {
   const emailErr = form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim()) ? 'Must be a valid email address (e.g. alex@company.com)' : '';
   const accountNoErr = form.accountNumber && !/^\d{9,18}$/.test(form.accountNumber.trim()) ? 'Digits only (9-18 numbers). No letters allowed' : '';
   const ifscErr = form.ifscCode && !/^[A-Z]{4}0[A-Z0-9]{6}$/i.test(form.ifscCode.trim()) ? '11-character IFSC format required (e.g. SBIN0001234)' : '';
-  const phoneErr = form.phone && !/^\+?[0-9\s-]{8,15}$/.test(form.phone.trim()) ? 'Must be 8 to 15 digits' : '';
+  const phoneClean = form.phone ? form.phone.replace(/[\s\-\+\(\)]/g, '') : '';
+  const phoneErr = form.phone && (!/^[6-9]\d{9}$/.test(phoneClean) && !/^\d{10}$/.test(phoneClean)) ? 'Must be exactly 10 digits (e.g. 9876543210)' : '';
   const taxIdErr = form.taxId && !/^[A-Z0-9]{5,15}$/i.test(form.taxId.trim()) ? '5 to 15 uppercase alphanumeric characters' : '';
   const empNumErr = form.employeeNumber && !/^[a-zA-Z0-9_-]{2,30}$/.test(form.employeeNumber.trim()) ? '2 to 30 alphanumeric characters' : '';
 

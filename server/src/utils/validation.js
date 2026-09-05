@@ -21,14 +21,26 @@ export class Validator {
 
     static isPhone(phone) {
         if (!phone) return true;
-        const re = /^\+?[0-9\s-]{8,15}$/;
-        return re.test(String(phone).trim());
+        // Indian 10-digit mobile number format or standard 10-digit mobile number
+        const cleanPhone = String(phone).replace(/[\s\-\+\(\)]/g, '');
+        const re = /^[6-9]\d{9}$/;
+        const reGenericTen = /^\d{10}$/;
+        return re.test(cleanPhone) || reGenericTen.test(cleanPhone);
+    }
+
+    static isPinCode(pinCode) {
+        if (!pinCode) return true;
+        const re = /^\d{6}$/;
+        return re.test(String(pinCode).trim());
     }
 
     static isTaxId(taxId) {
         if (!taxId) return true;
-        const re = /^[A-Z0-9]{5,15}$/;
-        return re.test(String(taxId).trim().toUpperCase());
+        // Indian PAN format: 5 letters + 4 digits + 1 letter, or 5-15 alphanumeric
+        const cleanTax = String(taxId).trim().toUpperCase();
+        const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
+        const genericTaxRegex = /^[A-Z0-9]{5,15}$/;
+        return panRegex.test(cleanTax) || genericTaxRegex.test(cleanTax);
     }
 
     static isEmployeeNumber(empNo) {
@@ -74,10 +86,13 @@ export class Validator {
             errors.push('IFSC Code must be an 11-character code (e.g. SBIN0001234)');
         }
         if (data.phone && !this.isPhone(data.phone)) {
-            errors.push('Phone number must be 8 to 15 digits');
+            errors.push('Phone number must contain exactly 10 digits (e.g. 9876543210)');
+        }
+        if (data.pinCode && !this.isPinCode(data.pinCode)) {
+            errors.push('PIN code must contain exactly 6 digits (e.g. 380001)');
         }
         if (data.taxId && !this.isTaxId(data.taxId)) {
-            errors.push('Tax ID / PAN must be 5 to 15 alphanumeric characters');
+            errors.push('Tax ID / PAN must be a valid 10-character PAN (e.g. ABCDE1234F)');
         }
 
         if (errors.length > 0) {

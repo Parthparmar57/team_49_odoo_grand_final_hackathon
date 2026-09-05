@@ -45,6 +45,20 @@ export default function SchedulesPage() {
   }, [dailyHours, activeDaysCount]);
 
   const handleSave = async () => {
+    if (!form.name || !form.name.trim()) {
+      const msg = 'Schedule name is required.';
+      setError(msg);
+      toast.error(msg);
+      return;
+    }
+
+    if (activeDaysCount === 0) {
+      const msg = 'Please select at least one working day for the schedule.';
+      setError(msg);
+      toast.error(msg);
+      return;
+    }
+
     // Validation 1: End time <= Start time check
     if (form.startTime && form.endTime && form.endTime <= form.startTime) {
       const msg = 'End time must be strictly after start time.';
@@ -209,11 +223,10 @@ export default function SchedulesPage() {
                   key={d}
                   type="button"
                   onClick={() => setForm({ ...form, [d]: !form[d] })}
-                  className={`py-2 px-1 rounded-xl text-xs font-extrabold capitalize transition-all border flex flex-col items-center justify-center gap-1 ${
-                    form[d]
+                  className={`py-2 px-1 rounded-xl text-xs font-extrabold capitalize transition-all border flex flex-col items-center justify-center gap-1 ${form[d]
                       ? 'bg-orange-50 text-[#FF5E1E] border-orange-300 shadow-xs'
                       : 'bg-slate-50/70 text-slate-400 border-slate-200 hover:bg-slate-100'
-                  }`}
+                    }`}
                 >
                   <span>{d.slice(0, 3)}</span>
                   {form[d] && <Check size={12} className="stroke-[3]" />}
