@@ -176,93 +176,68 @@ export class PayrollService {
         await prisma.payrollWarning.deleteMany({ where: { payrunId } });
         await prisma.payslipLine.deleteMany({ where: { payslip: { payrunId } } });
         await prisma.payslip.deleteMany({ where: { payrunId } });
-        await prisma.payrollWarning.deleteMany({ where: { payrunId } });
-        await prisma.payslipLine.deleteMany({ where: { payslip: { payrunId } } });
-        await prisma.payslip.deleteMany({ where: { payrunId } });
 
         const employees = await prisma.employee.findMany({
-            const employees = await prisma.employee.findMany({
-                where: { status: 'ACTIVE' },
-                include: { schedule: true },
-            });
+            where: { status: 'ACTIVE' },
+            include: { schedule: true },
+        });
 
-            const warnings = [];
-            let totalGross = 0;
-            let totalDeductions = 0;
-            let totalNet = 0;
-            let employeeCount = 0;
+        const warnings = [];
+        let totalGross = 0;
+        let totalDeductions = 0;
+        let totalNet = 0;
+        let employeeCount = 0;
 
-            for(const employee of employees) {
-                try {
-                    const contract = await ContractsService.findApplicableContract(employee.id, payrun.periodStart, payrun.periodEnd);
+        for (const employee of employees) {
+            try {
+                const contract = await ContractsService.findApplicableContract(employee.id, payrun.periodStart, payrun.periodEnd);
 
-                    // Use payrun's salary structure if set, otherwise contract's
-                    let salaryStructure = payrun.salaryStructure;
-                    if (!salaryStructure) {
-                        salaryStructure = contract.salaryStructure;
+                // Use payrun's salary structure if set, otherwise contract's
+                let salaryStructure = payrun.salaryStructure;
+                if (!salaryStructure) {
+                    salaryStructure = contract.salaryStructure;
+                }
+
+                if (!salaryStructure) {
+                    warnings.push({
+                        employeeId: employee.id,
+                        employeeName: `${employee.firstName} ${employee.lastName}`,
+                        issue: 'Missing salary structure on contract and payrun',
+                    });
+                    continue;
+                }
+
+                const rules = salaryStructure.rules || [];
+                const lines = [];
+                const categoryTotals = { BASIC: 0, ALLOWANCE: 0, GROSS: 0, DEDUCTION: 0, NET: 0 };
+                const wage = Number(contract.wage || 0);
+
+                for (const rule of rules) {
+                    let amount = 0;
+
+                    if (rule.computationMethod === 'FIXED') {
+                        amount = Number(rule.amount || 0);
+                    } else if (rule.computationMethod === 'PERCENTAGE') {
+                        const baseCode = rule.percentageBasedOn || 'BASIC';
+                        const baseAmount = categoryTotals[baseCode] ?? wage;
+                        amount = baseAmount * (Number(rule.percentage || 0) / 100);
+                    } else if (rule.computationMethod === 'FORMULA') {
+                        amount = wage;
                     }
 
-                    if (!salaryStructure) {
-                        warnings.push({
-                            employeeId: employee.id,
-                            employeeName: `${employee.firstName} ${employee.lastName}`,
-                            issue: 'Missing salary structure on contract and payrun',
-                        });
-                        continue;
-                    }
-
-                    const rules = salaryStructure.rules || [];
-                    const lines = [];
-                    const categoryTotals = { BASIC: 0, ALLOWANCE: 0, GROSS: 0, DEDUCTION: 0, NET: 0 };
-                    const wage = Number(contract.wage || 0);
-                    let basic = 0;
-                    let totalAllowances = 0;
-                    let totalDeductionsEmp = 0;
-                    const ruleValues = {};
-                    const wage = Number(contract.wage);
-                    const ruleValues = {};
-
-                    for (const rule of rules) {
-                        let amount = 0;
-
-                        if (rule.computationMethod === 'FIXED') {
-                            amount = Number(rule.amount || 0);
-                        } else if (rule.computationMethod === 'PERCENTAGE') {
-                            const baseCode = rule.percentageBasedOn || 'BASIC';
-                            const baseAmount = categoryTotals[baseCode] ?? wage;
-                            amount = baseAmount * (Number(rule.percentage || 0) / 100);
-                        } else if (rule.computationMethod === 'FORMULA') {
-                            amount = wage;
-                        }
-
-                        amount = Math.round(amount * 100) / 100;
-                        ruleValues[rule.code] = amount;
-
-                        if (rule.category === 'BASIC') basic += amount;
-                        else if (rule.category === 'ALLOWANCE') totalAllowances += amount;
-                        else if (rule.category === 'DEDUCTION') totalDeductionsEmp += amount;
-
-                        lines.push({
-                            code: rule.code,
-                            name: rule.name,
-                            category: rule.category,
-                            sequence: rule.sequence,
-                            amount,
-                        });
-                    }
-
-                    const gross = basic + totalAllowances;
-                    const net = gross - totalDeductionsEmp;
-
-                    categoryTotals.BASIC = basic;
-                    categoryTotals.ALLOWANCE = totalAllowances;
-                    categoryTotals.DEDUCTION = totalDeductionsEmp;
-                    categoryTotals.GROSS = gross;
-                    categoryTotals.NET = net;
+                    amount = Math.round(amount * 100) / 100;
 
                     if (rule.category === 'BASIC') categoryTotals.BASIC += amount;
                     else if (rule.category === 'ALLOWANCE') categoryTotals.ALLOWANCE += amount;
                     else if (rule.category === 'DEDUCTION') categoryTotals.DEDUCTION += amount;
+
+                    lines.push({
+                        code: rule.code,
+                        name: rule.name,
+                        category: rule.category,
+                        sequence: rule.sequence,
+                        amount,
+                    });
                 }
 
                 categoryTotals.GROSS = categoryTotals.BASIC + categoryTotals.ALLOWANCE;
@@ -293,7 +268,7 @@ export class PayrollService {
                 totalDeductions += categoryTotals.DEDUCTION;
                 totalNet += categoryTotals.NET;
                 employeeCount++;
-            } catch(err) {
+            } catch (err) {
                 warnings.push({
                     employeeId: employee.id,
                     employeeName: `${employee.firstName} ${employee.lastName}`,
@@ -301,6 +276,7 @@ export class PayrollService {
                 });
             }
         }
+
 
         // Record warnings if any
         if (warnings.length > 0) {

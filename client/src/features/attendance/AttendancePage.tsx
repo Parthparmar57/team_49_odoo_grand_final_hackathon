@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import api from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 import { PageHeader, Table, Tr, Td, Button, Badge, LoadingPage, Alert, Modal, Input } from '../../components/ui';
-import { Edit, Loader2 } from 'lucide-react';
+import { Edit, Loader2, LogIn, LogOut } from 'lucide-react';
 import { useToast } from '../../context/ToastContext';
 
 export default function AttendancePage() {
@@ -18,6 +18,7 @@ export default function AttendancePage() {
   const [correctForm, setCorrectForm] = useState({ checkIn: '', checkOut: '', correctionReason: '' });
   const [correcting, setSaving] = useState(false);
   const [filterStatus, setFilterStatus] = useState('');
+  const [actionLoading, setActionLoading] = useState(false);
 
   const load = async () => {
     const params: Record<string, string> = {};
@@ -35,6 +36,42 @@ export default function AttendancePage() {
   };
 
   useEffect(() => { load(); }, [filterStatus]);
+
+  const handleCheckIn = async () => {
+    setActionLoading(true);
+    try {
+      const res = await api.attendance.checkIn();
+      if (res.success) {
+        toast.success('Successfully checked in for today!');
+        load();
+      } else {
+        const msg = res.error?.message || 'Check-in failed';
+        toast.error(msg);
+      }
+    } catch (err: any) {
+      toast.error(err?.message || 'Check-in error');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleCheckOut = async () => {
+    setActionLoading(true);
+    try {
+      const res = await api.attendance.checkOut();
+      if (res.success) {
+        toast.success('Successfully checked out for today!');
+        load();
+      } else {
+        const msg = res.error?.message || 'Check-out failed';
+        toast.error(msg);
+      }
+    } catch (err: any) {
+      toast.error(err?.message || 'Check-out error');
+    } finally {
+      setActionLoading(false);
+    }
+  };
 
   const handleCorrect = async () => {
     setSaving(true);
@@ -56,16 +93,29 @@ export default function AttendancePage() {
     }
   };
 
-
   return (
     <div className="space-y-6">
       <PageHeader title="Attendance Logs" subtitle={`${records.length} biometric daily logs and exception records`}>
-        <div className="flex items-center gap-2">
-          <span className="px-3.5 py-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200/80 rounded-full text-xs font-bold flex items-center gap-1.5 shadow-2xs">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" /> Biometric Kiosk Synced
-          </span>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleCheckIn}
+            disabled={actionLoading}
+            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-sm transition-all disabled:opacity-50 cursor-pointer"
+          >
+            {actionLoading ? <Loader2 size={14} className="animate-spin" /> : <LogIn size={14} />}
+            Check In
+          </button>
+          <button
+            onClick={handleCheckOut}
+            disabled={actionLoading}
+            className="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-sm transition-all disabled:opacity-50 cursor-pointer"
+          >
+            {actionLoading ? <Loader2 size={14} className="animate-spin" /> : <LogOut size={14} />}
+            Check Out
+          </button>
         </div>
       </PageHeader>
+
 
       {actionMsg && <Alert message={actionMsg} variant={actionMsg.includes('✅') ? 'success' : 'error'} />}
       {error && <Alert message={error} />}
