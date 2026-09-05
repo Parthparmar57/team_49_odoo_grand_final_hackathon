@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
 import { apiClient } from '../../api/client';
 import {
@@ -276,13 +277,10 @@ export const LandingPage: React.FC = () => {
         <nav className="bg-white/90 backdrop-blur-md border border-slate-200/80 rounded-full px-6 py-3 shadow-sm flex items-center justify-between transition-all duration-300 hover:shadow-md">
           
           {/* Logo */}
-          <div className="flex items-center gap-2">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-orange-600 to-amber-500 flex items-center justify-center text-white font-bold shadow-md shadow-orange-500/20">
-              <ZapIcon className="w-5 h-5 text-white" />
-            </div>
-            <span className="font-extrabold text-xl tracking-tight text-slate-900">
-              PeoplePay<span className="text-orange-600">360</span>
-            </span>
+          <div className="flex items-center">
+            <a href="#home">
+              <img src="/logo.webp" alt="PeoplePay360" className="h-9 w-auto object-contain" />
+            </a>
           </div>
 
           {/* Navigation Links */}
@@ -297,15 +295,21 @@ export const LandingPage: React.FC = () => {
 
           {/* Action Buttons */}
           <div className="flex items-center gap-3">
-            <a href="#demo" className="hidden sm:inline-flex items-center justify-center px-4 py-2 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-full transition border border-slate-200">
-              Book A Demo
-            </a>
-            <a href="#pricing" className="group inline-flex items-center justify-center px-5 py-2 text-xs font-bold text-white bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-500 hover:to-amber-600 rounded-full transition shadow-md shadow-orange-500/25">
+            <Link
+              to="/auth/login"
+              className="inline-flex items-center justify-center px-4.5 py-2 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-full transition border border-slate-200"
+            >
+              Sign In
+            </Link>
+            <Link
+              to="/auth/login"
+              className="group inline-flex items-center justify-center px-5 py-2 text-xs font-bold text-white bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-500 hover:to-amber-600 rounded-full transition shadow-md shadow-orange-500/25"
+            >
               <span>Get Started</span>
               <div className="w-4 h-4 ml-1.5 rounded-full bg-white/20 flex items-center justify-center group-hover:translate-x-0.5 transition-transform">
                 <ArrowRightIcon />
               </div>
-            </a>
+            </Link>
           </div>
         </nav>
       </motion.header>
@@ -340,10 +344,13 @@ export const LandingPage: React.FC = () => {
 
             {/* CTA Buttons */}
             <motion.div variants={fadeInUpVariants} className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
-              <a href="#pricing" className="w-full sm:w-auto group inline-flex items-center justify-center px-7 py-3.5 text-sm font-bold text-white bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-500 hover:to-amber-600 rounded-full shadow-lg shadow-orange-500/30 hover:shadow-xl hover:shadow-orange-500/40 transition duration-200">
-                <span>Get Started Free</span>
+              <Link
+                to="/auth/login"
+                className="w-full sm:w-auto group inline-flex items-center justify-center px-7 py-3.5 text-sm font-bold text-white bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-500 hover:to-amber-600 rounded-full shadow-lg shadow-orange-500/30 hover:shadow-xl hover:shadow-orange-500/40 transition duration-200"
+              >
+                <span>Sign In to Platform</span>
                 <ArrowRightIcon />
-              </a>
+              </Link>
               <a href="#agents" className="w-full sm:w-auto inline-flex items-center justify-center px-7 py-3.5 text-sm font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200/90 rounded-full shadow-sm hover:shadow transition">
                 <SparklesIcon />
                 <span>Explore 5-Agent Architecture</span>
@@ -1584,13 +1591,8 @@ export const LandingPage: React.FC = () => {
             
             {/* Column 1: Brand & Subtitle */}
             <div className="lg:col-span-2 space-y-4">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-orange-600 to-amber-500 flex items-center justify-center text-white font-bold shadow-md">
-                  <ZapIcon className="w-4 h-4 text-white" />
-                </div>
-                <span className="font-extrabold text-xl tracking-tight text-white">
-                  PeoplePay<span className="text-orange-500">360</span>
-                </span>
+              <div className="flex items-center">
+                <img src="/logo-footer.webp" alt="PeoplePay360" className="h-8 w-auto object-contain" />
               </div>
               <p className="text-slate-400 text-xs max-w-sm leading-relaxed font-normal">
                 PeoplePay360. Build your automated HR & Payroll workflow.

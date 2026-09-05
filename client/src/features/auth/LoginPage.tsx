@@ -1,14 +1,26 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { Eye, EyeOff, Lock, Mail, ArrowRight, Loader2, ShieldCheck, Info } from 'lucide-react';
+import {
+  Eye,
+  EyeOff,
+  Loader2,
+  AlertCircle,
+  ArrowRight,
+  Zap,
+  ChevronDown,
+  X,
+} from 'lucide-react';
 
 export const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [keepSignedIn, setKeepSignedIn] = useState(true);
+  const [activePersona, setActivePersona] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showBanner, setShowBanner] = useState(true);
 
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -41,169 +53,270 @@ export const LoginPage: React.FC = () => {
     }
   };
 
+  const setDemoAccount = (personaEmail: string, personaRole: string) => {
+    setEmail(personaEmail);
+    setPassword('Password123!');
+    setActivePersona(personaRole);
+    setError(null);
+  };
+
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden font-sans">
-      {/* Background Mesh Gradients */}
-      <div className="absolute top-0 left-1/4 w-96 h-96 bg-orange-500/15 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-teal-500/15 rounded-full blur-3xl pointer-events-none" />
-
-      <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10">
-        {/* Brand Logo & Name */}
-        <div className="flex flex-col items-center">
-          <div className="w-14 h-14 bg-gradient-to-tr from-orange-500 to-amber-500 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-orange-500/20 mb-4 ring-1 ring-white/20">
-            <ShieldCheck className="w-8 h-8" />
+    <div className="min-h-screen bg-white text-slate-900 font-sans flex flex-col justify-between selection:bg-orange-100 selection:text-orange-600">
+      
+      {/* 1. TOP ANNOUNCEMENT BANNER */}
+      {showBanner && (
+        <div className="bg-[#0B0F19] text-white text-xs py-2 px-4 flex items-center justify-between font-sans border-b border-slate-900">
+          <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
+            <div className="flex items-center gap-2.5 mx-auto sm:mx-0">
+              <span className="bg-[#FF5E1E] text-white font-bold px-2.5 py-0.5 rounded-full text-[10px] uppercase tracking-wider flex items-center gap-1">
+                <Zap className="w-3 h-3 fill-current" /> EVENT
+              </span>
+              <span className="text-slate-300 font-medium">
+                We're presenting <strong>PeoplePay360</strong> at Odoo Grand Final Hackathon 2026! Learn how to automate HR & Payroll workflows.
+              </span>
+            </div>
+            <button
+              onClick={() => setShowBanner(false)}
+              className="text-slate-400 hover:text-white hidden sm:block focus:outline-none"
+            >
+              <X className="w-4 h-4" />
+            </button>
           </div>
-          <h2 className="text-center text-3xl font-extrabold text-white tracking-tight">
-            PeoplePay<span className="text-orange-500">360</span>
-          </h2>
-          <p className="mt-1 text-center text-xs uppercase tracking-widest text-slate-400 font-semibold">
-            HR & Payroll Automation Platform
-          </p>
         </div>
-      </div>
+      )}
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md relative z-10 px-4">
-        {/* Glassmorphism Form Card */}
-        <div className="bg-slate-900/90 backdrop-blur-xl border border-slate-800 py-8 px-6 shadow-2xl rounded-3xl sm:px-10">
-          <div className="mb-6 border-b border-slate-800 pb-4">
-            <h3 className="text-xl font-bold text-white">Welcome Back</h3>
-            <p className="text-slate-400 text-xs mt-1">
-              Sign in to access your HR & Payroll workspace.
-            </p>
+      {/* 2. TOP NAVIGATION HEADER */}
+      <header className="border-b border-slate-100 bg-white sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          {/* Logo */}
+          <Link to="/" className="flex items-center">
+            <img src="/logo.webp" alt="PeoplePay360" className="h-9 w-auto object-contain" />
+          </Link>
+
+          {/* Center Links */}
+          <nav className="hidden md:flex items-center gap-8 text-xs font-bold text-[#334155]">
+            <Link to="/" className="hover:text-[#FF5E1E] transition">Home</Link>
+            <a href="#about" className="hover:text-[#FF5E1E] transition">About</a>
+            <a href="#pricing" className="hover:text-[#FF5E1E] transition">Pricing</a>
+            <a href="#features" className="hover:text-[#FF5E1E] transition">Features</a>
+            <a href="#more" className="hover:text-[#FF5E1E] transition flex items-center gap-1">
+              More <ChevronDown className="w-3 h-3" />
+            </a>
+          </nav>
+
+          {/* Right Action Buttons */}
+          <div className="flex items-center gap-3">
+            <a
+              href="#demo"
+              className="hidden sm:inline-flex items-center justify-center px-4 py-2 text-xs font-bold text-slate-700 bg-white border border-slate-200 rounded-full hover:bg-slate-50 transition"
+            >
+              Book A Demo
+            </a>
+            <Link
+              to="/auth/login"
+              className="group inline-flex items-center justify-center px-5 py-2.5 text-xs font-bold text-white bg-[#FF5E1E] hover:bg-[#E0480C] rounded-full transition shadow-md shadow-orange-500/25"
+            >
+              <span>Get Started</span>
+              <div className="w-4 h-4 ml-1.5 rounded-full bg-white/20 flex items-center justify-center group-hover:translate-x-0.5 transition-transform">
+                <ArrowRight className="w-3 h-3 text-white" />
+              </div>
+            </Link>
+          </div>
+        </div>
+      </header>
+
+      {/* 3. CENTERED LOGIN CONTAINER */}
+      <main className="flex-1 flex flex-col justify-center items-center py-12 px-4 bg-white">
+        <div className="max-w-[460px] w-full mx-auto">
+          
+          {/* Card Container */}
+          <div className="bg-[#F4F6F6] border border-slate-200/80 rounded-[32px] shadow-sm overflow-hidden relative">
+            
+            {/* Top Multi-Gradient Border Strip */}
+            <div className="h-[5px] bg-gradient-to-r from-[#2DD4BF] via-[#F59E0B] to-[#FF5E1E] w-full" />
+
+            <div className="p-8 sm:p-10 space-y-6">
+              
+              {/* Header */}
+              <div className="text-center space-y-1">
+                <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0F172A] tracking-tight">
+                  Welcome back
+                </h1>
+                <p className="text-xs text-[#64748B] font-medium">
+                  Sign in to your PeoplePay360 account.
+                </p>
+              </div>
+
+              {/* Error Banner */}
+              {error && (
+                <div className="p-3.5 bg-red-50 border border-red-200 rounded-2xl flex items-start gap-3 text-red-600 text-xs leading-relaxed animate-shake">
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-red-500" />
+                  <div className="flex-1">{error}</div>
+                </div>
+              )}
+
+              {/* Main Form */}
+              <form onSubmit={handleSubmit} className="space-y-4">
+                {/* Work email */}
+                <div className="text-left">
+                  <label htmlFor="email" className="block text-xs font-bold text-[#334155] mb-1.5">
+                    Work email
+                  </label>
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Enter your email"
+                    className="w-full px-5 py-3 rounded-full bg-white border border-slate-200 text-[#0F172A] placeholder:text-slate-400 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-500 transition-all shadow-2xs font-medium"
+                  />
+                </div>
+
+                {/* Password */}
+                <div className="text-left">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label htmlFor="password" className="block text-xs font-bold text-[#334155]">
+                      Password
+                    </label>
+                    <Link
+                      to="/auth/forgot-password"
+                      className="text-xs font-semibold text-[#FF5E1E] hover:underline transition-all"
+                    >
+                      Forgot password?
+                    </Link>
+                  </div>
+                  <div className="relative">
+                    <input
+                      id="password"
+                      name="password"
+                      type={showPassword ? 'text' : 'password'}
+                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Enter your password"
+                      className="w-full pl-5 pr-11 py-3 rounded-full bg-white border border-slate-200 text-[#0F172A] placeholder:text-slate-400 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-500 transition-all shadow-2xs font-medium"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 focus:outline-none"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Keep me signed in */}
+                <div className="flex items-center justify-start text-left pt-1">
+                  <label className="flex items-center gap-2 text-xs text-[#475569] font-medium cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={keepSignedIn}
+                      onChange={(e) => setKeepSignedIn(e.target.checked)}
+                      className="w-4 h-4 rounded border-slate-300 text-[#FF5E1E] focus:ring-orange-500 accent-[#FF5E1E] cursor-pointer"
+                    />
+                    <span>Keep me signed in for 30 days</span>
+                  </label>
+                </div>
+
+                {/* Sign in Button */}
+                <div className="pt-2">
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="w-full py-3.5 px-6 bg-[#FF5E1E] hover:bg-[#E0480C] text-white font-bold text-sm rounded-full shadow-md shadow-orange-500/25 transition-all disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2 active:scale-[0.99]"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" /> Authenticating...
+                      </>
+                    ) : (
+                      'Sign in'
+                    )}
+                  </button>
+                </div>
+              </form>
+
+              {/* Bottom Note */}
+              <div className="pt-2 text-center text-xs text-[#64748B]">
+                Don't have an account?{' '}
+                <span className="font-bold text-[#FF5E1E] hover:underline cursor-pointer">
+                  Contact Admin
+                </span>
+              </div>
+            </div>
           </div>
 
-          {error && (
-            <div className="mb-5 p-3.5 bg-red-500/10 border border-red-500/30 rounded-xl flex items-start gap-3 text-red-400 text-sm animate-shake">
-              <Info className="w-5 h-5 shrink-0 mt-0.5" />
-              <div className="flex-1">{error}</div>
-            </div>
-          )}
-
-          <form className="space-y-5" onSubmit={handleSubmit}>
-            {/* Work Email Input */}
-            <div>
-              <label htmlFor="email" className="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wider">
-                Work Email Address
-              </label>
-              <div className="relative rounded-xl shadow-sm">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
-                  <Mail className="h-5 w-5" />
-                </div>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="name@company.com"
-                  className="block w-full pl-10 pr-3 py-3 bg-slate-950/80 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm transition-all"
-                />
-              </div>
-            </div>
-
-            {/* Password Input */}
-            <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label htmlFor="password" className="block text-xs font-semibold text-slate-300 uppercase tracking-wider">
-                  Password
-                </label>
-                <Link
-                  to="/auth/forgot-password"
-                  className="text-xs font-medium text-orange-400 hover:text-orange-300 transition-colors"
-                >
-                  Forgot Password?
-                </Link>
-              </div>
-              <div className="relative rounded-xl shadow-sm">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
-                  <Lock className="h-5 w-5" />
-                </div>
-                <input
-                  id="password"
-                  name="password"
-                  type={showPassword ? 'text' : 'password'}
-                  autoComplete="current-password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••••••"
-                  className="block w-full pl-10 pr-10 py-3 bg-slate-950/80 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm transition-all"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-500 hover:text-slate-300 focus:outline-none"
-                >
-                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                </button>
-              </div>
-            </div>
-
-            {/* Submit Button */}
-            <div>
+          {/* Quick Demo Live Database Account Presets */}
+          <div className="mt-6 p-4 bg-[#F8FAF9] border border-slate-200/80 rounded-2xl text-center">
+            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+              Seeded Live Database Presets
+            </p>
+            <div className="flex flex-wrap justify-center gap-2 text-xs font-bold">
               <button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full flex justify-center items-center gap-2 py-3.5 px-4 border border-transparent rounded-xl text-sm font-bold text-white bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 focus:ring-offset-slate-900 shadow-lg shadow-orange-500/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                type="button"
+                onClick={() => setDemoAccount('admin@peoplepay360.com', 'ADMIN')}
+                className={`px-3 py-1 bg-white border border-slate-200 rounded-full transition-all cursor-pointer shadow-2xs ${
+                  activePersona === 'ADMIN' ? 'text-[#FF5E1E] border-orange-500' : 'text-slate-700 hover:text-[#FF5E1E]'
+                }`}
               >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    Authenticating...
-                  </>
-                ) : (
-                  <>
-                    Sign In
-                    <ArrowRight className="w-4 h-4" />
-                  </>
-                )}
+                Admin
+              </button>
+              <button
+                type="button"
+                onClick={() => setDemoAccount('hr.manager@peoplepay360.com', 'HR_MANAGER')}
+                className={`px-3 py-1 bg-white border border-slate-200 rounded-full transition-all cursor-pointer shadow-2xs ${
+                  activePersona === 'HR_MANAGER' ? 'text-teal-600 border-teal-500' : 'text-slate-700 hover:text-teal-600'
+                }`}
+              >
+                HR Manager
+              </button>
+              <button
+                type="button"
+                onClick={() => setDemoAccount('payroll.manager@peoplepay360.com', 'HR_PAYROLL_MANAGER')}
+                className={`px-3 py-1 bg-white border border-slate-200 rounded-full transition-all cursor-pointer shadow-2xs ${
+                  activePersona === 'HR_PAYROLL_MANAGER' ? 'text-purple-600 border-purple-500' : 'text-slate-700 hover:text-purple-600'
+                }`}
+              >
+                Payroll Manager
+              </button>
+              <button
+                type="button"
+                onClick={() => setDemoAccount('rahul@example.com', 'EMPLOYEE')}
+                className={`px-3 py-1 bg-white border border-slate-200 rounded-full transition-all cursor-pointer shadow-2xs ${
+                  activePersona === 'EMPLOYEE' ? 'text-indigo-600 border-indigo-500' : 'text-slate-700 hover:text-indigo-600'
+                }`}
+              >
+                Employee
               </button>
             </div>
-          </form>
+          </div>
 
-          {/* Admin Created Account Note */}
-          <div className="mt-6 pt-5 border-t border-slate-800/80 text-center">
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Accounts are created by an administrator. Don't have an account?{' '}
-              <span className="font-semibold text-slate-200">Contact your Admin</span>.
-            </p>
+        </div>
+      </main>
+
+      {/* 4. FOOTER */}
+      <footer className="bg-[#0B0F19] text-slate-400 py-8 px-6 text-xs font-sans border-t border-slate-900">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center">
+            <img src="/logo-footer.webp" alt="PeoplePay360" className="h-7 w-auto object-contain" />
+          </div>
+
+          <div className="flex items-center gap-6 text-slate-400 text-xs font-medium">
+            <Link to="/" className="hover:text-white transition">Home</Link>
+            <a href="#about" className="hover:text-white transition">Company</a>
+            <a href="#resources" className="hover:text-white transition">Resources</a>
+            <a href="#industries" className="hover:text-white transition">Industries</a>
+            <a href="#compare" className="hover:text-white transition">Compare</a>
+          </div>
+
+          <div className="text-slate-500 text-[11px]">
+            &copy; 2026 PeoplePay360. All rights reserved.
           </div>
         </div>
-
-        {/* Demo Quick Logins Footer */}
-        <div className="mt-6 p-4 bg-slate-900/40 border border-slate-800/60 rounded-2xl text-center">
-          <p className="text-xs font-semibold text-slate-400 mb-2 uppercase tracking-wider">Seeded Database Presets (Live PostgreSQL)</p>
-          <div className="flex flex-wrap justify-center gap-2 text-xs">
-            <button
-              onClick={() => { setEmail('admin@peoplepay360.com'); setPassword('Password123!'); }}
-              className="px-2.5 py-1 bg-orange-500/10 border border-orange-500/20 text-orange-400 hover:bg-orange-500/20 rounded-lg font-medium transition-all cursor-pointer"
-            >
-              Admin
-            </button>
-            <button
-              onClick={() => { setEmail('hr.manager@peoplepay360.com'); setPassword('Password123!'); }}
-              className="px-2.5 py-1 bg-teal-500/10 border border-teal-500/20 text-teal-400 hover:bg-teal-500/20 rounded-lg font-medium transition-all cursor-pointer"
-            >
-              HR Manager
-            </button>
-            <button
-              onClick={() => { setEmail('payroll.manager@peoplepay360.com'); setPassword('Password123!'); }}
-              className="px-2.5 py-1 bg-purple-500/10 border border-purple-500/20 text-purple-400 hover:bg-purple-500/20 rounded-lg font-medium transition-all cursor-pointer"
-            >
-              Payroll Manager
-            </button>
-            <button
-              onClick={() => { setEmail('rahul@example.com'); setPassword('Password123!'); }}
-              className="px-2.5 py-1 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 hover:bg-indigo-500/20 rounded-lg font-medium transition-all cursor-pointer"
-            >
-              Employee
-            </button>
-          </div>
-        </div>
-
-      </div>
+      </footer>
     </div>
   );
 };

@@ -5,6 +5,7 @@ import { PublicOnlyRoute } from '../components/auth/PublicOnlyRoute';
 import { RoleGuard } from '../components/auth/RoleGuard';
 import { AppLayout } from '../components/layout/AppLayout';
 
+import LandingPage from '../pages/LandingPage';
 import { LoginPage } from '../features/auth/LoginPage';
 import { ForgotPasswordPage } from '../features/auth/ForgotPasswordPage';
 import { ResetPasswordPage } from '../features/auth/ResetPasswordPage';
@@ -14,6 +15,9 @@ import { DashboardPage } from '../features/dashboard/DashboardPage';
 export const AppRoutes: React.FC = () => {
   return (
     <Routes>
+      {/* Public Landing Page at Root (/) */}
+      <Route path="/" element={<LandingPage />} />
+
       {/* Public Authentication Routes */}
       <Route
         path="/auth/login"
@@ -67,9 +71,8 @@ export const AppRoutes: React.FC = () => {
         <Route path="/email-logs" element={<DashboardPage />} />
       </Route>
 
-      {/* Root redirect */}
-      <Route path="/" element={<Navigate to="/dashboard" replace />} />
-      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      {/* Catch-all redirect */}
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 };
