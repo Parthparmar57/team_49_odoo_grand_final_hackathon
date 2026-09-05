@@ -4,7 +4,6 @@ import { useAuth } from '../../context/AuthContext';
 import { UserRole } from '../../types/auth';
 import {
   LayoutDashboard,
-  UserPlus,
   Users,
   Calendar,
   CreditCard,
@@ -14,7 +13,6 @@ import {
   ChevronDown,
   Menu,
   X,
-  Mail,
   UserCheck,
 } from 'lucide-react';
 
@@ -66,18 +64,6 @@ const navItems: NavItem[] = [
     path: '/payroll',
     icon: CreditCard,
     roles: ['ADMIN', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER'],
-  },
-  {
-    label: 'Email AI Ingestion',
-    path: '/email-logs',
-    icon: Mail,
-    roles: ['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER'],
-  },
-  {
-    label: 'User Management',
-    path: '/admin/users',
-    icon: UserPlus,
-    roles: ['ADMIN'],
   },
 ];
 
@@ -190,14 +176,7 @@ export const AppLayout: React.FC = () => {
                     </div>
                   </div>
 
-                  {user?.role === 'ADMIN' && (
-                    <Link
-                      to="/admin/users"
-                      className="flex items-center gap-2 px-4 py-2.5 text-xs text-[#FF5E1E] hover:bg-orange-50 font-bold transition-colors"
-                    >
-                      <UserPlus className="w-4 h-4" /> Admin User Provisioning
-                    </Link>
-                  )}
+
 
                   <button
                     onClick={handleLogout}

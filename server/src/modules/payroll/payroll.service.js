@@ -191,7 +191,6 @@ export class PayrollService {
                     });
                     continue;
                 }
-
                 const rules = salaryStructure.rules || [];
                 const lines = [];
                 const categoryTotals = { BASIC: 0, ALLOWANCE: 0, GROSS: 0, DEDUCTION: 0, NET: 0 };
@@ -204,7 +203,10 @@ export class PayrollService {
                         amount = Number(rule.amount || 0);
                     } else if (rule.computationMethod === 'PERCENTAGE') {
                         const baseCode = rule.percentageBasedOn || 'BASIC';
-                        const baseAmount = categoryTotals[baseCode] ?? wage;
+                        let baseAmount = categoryTotals[baseCode] || 0;
+                        if (!baseAmount || baseAmount === 0 || rule.category === 'BASIC' || rule.code === 'BASIC') {
+                            baseAmount = wage;
+                        }
                         amount = baseAmount * (Number(rule.percentage || 0) / 100);
                     } else if (rule.computationMethod === 'FORMULA') {
                         amount = wage;
@@ -367,12 +369,12 @@ export class PayrollService {
         const where = {};
         if (query.employeeId) where.employeeId = query.employeeId;
         if (query.payrunId) where.payrunId = query.payrunId;
-
         return prisma.payslip.findMany({
             where,
             include: {
+                payrun: { select: { id: true, name: true, periodStart: true, periodEnd: true, status: true } },
                 employee: { select: { id: true, firstName: true, lastName: true, email: true, employeeNumber: true, designation: true } },
-                contract: true,
+                contract: { select: { id: true, wage: true, contractRef: true } },
                 salaryStructure: true,
                 lines: { orderBy: { sequence: 'asc' } },
             },
@@ -439,3 +441,4 @@ export class PayrollService {
         };
     }
 }
+

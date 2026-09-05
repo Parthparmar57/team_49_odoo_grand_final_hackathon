@@ -89,6 +89,10 @@ export class AttendanceService {
     }
 
     static async getAttendanceRecords(params = {}) {
+        const page = parseInt(params.page || '1', 10);
+        const limit = Math.min(parseInt(params.limit || '100', 10), 500);
+        const skip = (page - 1) * limit;
+
         const where = {};
         if (params.employeeId) where.employeeId = params.employeeId;
         if (params.status) where.status = params.status;
@@ -98,15 +102,30 @@ export class AttendanceService {
             if (params.endDate) where.date.lte = new Date(params.endDate);
         }
 
-        return prisma.attendance.findMany({
-            where,
-            include: {
-                employee: {
-                    select: { id: true, firstName: true, lastName: true, email: true, employeeNumber: true },
+        const [records, total] = await Promise.all([
+            prisma.attendance.findMany({
+                where,
+                skip,
+                take: limit,
+                include: {
+                    employee: {
+                        select: { id: true, firstName: true, lastName: true, email: true, employeeNumber: true },
+                    },
                 },
+                orderBy: { date: 'desc' },
+            }),
+            prisma.attendance.count({ where }),
+        ]);
+
+        return {
+            records,
+            pagination: {
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit) || 1,
             },
-            orderBy: { date: 'desc' },
-        });
+        };
     }
 
     static async getAttendanceById(id) {

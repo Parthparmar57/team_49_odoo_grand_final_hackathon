@@ -10,12 +10,12 @@ router.use(authenticate);
 
 // ==========================================
 // SALARY STRUCTURES & RULES (RBAC ENFORCED)
-// Read: ADMIN, HR_MANAGER, HR_PAYROLL_USER, HR_PAYROLL_MANAGER
+// Read: ADMIN, HR_PAYROLL_USER, HR_PAYROLL_MANAGER
 // Write/Edit: ADMIN, HR_PAYROLL_MANAGER (HR_MANAGER & HR_PAYROLL_USER restricted)
 // ==========================================
-router.get('/structures', authorize(['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER']), structuresController.getStructures);
+router.get('/structures', authorize(['ADMIN', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER']), structuresController.getStructures);
 router.post('/structures', authorize(['ADMIN', 'HR_PAYROLL_MANAGER']), structuresController.createStructure);
-router.get('/structures/:id', authorize(['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER']), structuresController.getStructureById);
+router.get('/structures/:id', authorize(['ADMIN', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER']), structuresController.getStructureById);
 router.patch('/structures/:id', authorize(['ADMIN', 'HR_PAYROLL_MANAGER']), structuresController.updateStructure);
 router.delete('/structures/:id', authorize(['ADMIN', 'HR_PAYROLL_MANAGER']), structuresController.deleteStructure);
 
@@ -26,13 +26,13 @@ router.delete('/structures/:id/rules/:ruleId', authorize(['ADMIN', 'HR_PAYROLL_M
 
 // ==========================================
 // PAYRUNS (RBAC ENFORCED)
-// Read: ADMIN, HR_MANAGER, HR_PAYROLL_USER, HR_PAYROLL_MANAGER
+// Read: ADMIN, HR_PAYROLL_USER, HR_PAYROLL_MANAGER
 // Write (Create/Compute): ADMIN, HR_PAYROLL_MANAGER, HR_PAYROLL_USER (HR_MANAGER restricted)
 // Validate / Mark Paid: ADMIN, HR_PAYROLL_MANAGER
 // ==========================================
-router.get('/payruns', authorize(['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER']), payrollController.getPayruns);
+router.get('/payruns', authorize(['ADMIN', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER']), payrollController.getPayruns);
 router.post('/payruns', authorize(['ADMIN', 'HR_PAYROLL_MANAGER', 'HR_PAYROLL_USER']), payrollController.createPayrun);
-router.get('/payruns/:id', authorize(['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER']), payrollController.getPayrunById);
+router.get('/payruns/:id', authorize(['ADMIN', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER']), payrollController.getPayrunById);
 router.post('/payruns/:id/compute', authorize(['ADMIN', 'HR_PAYROLL_MANAGER', 'HR_PAYROLL_USER']), payrollController.computePayrun);
 router.post('/payruns/:id/validate', authorize(['ADMIN', 'HR_PAYROLL_MANAGER']), payrollController.validatePayrun);
 router.post('/payruns/:id/pay', authorize(['ADMIN', 'HR_PAYROLL_MANAGER']), payrollController.markPayrunPaid);

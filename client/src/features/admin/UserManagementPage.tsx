@@ -39,13 +39,24 @@ export const UserManagementPage: React.FC = () => {
       ]);
 
       if (usersRes.success && usersRes.data) {
-        setUsers(usersRes.data);
+        const list = Array.isArray(usersRes.data)
+          ? usersRes.data
+          : Array.isArray(usersRes.data.users)
+          ? usersRes.data.users
+          : [];
+        setUsers(list);
       } else {
+        setUsers([]);
         setError(usersRes.error?.message || 'Failed to load users');
       }
 
       if (empRes.success && empRes.data) {
-        setEmployees(empRes.data);
+        const empList = Array.isArray(empRes.data)
+          ? empRes.data
+          : Array.isArray(empRes.data.employees)
+          ? empRes.data.employees
+          : [];
+        setEmployees(empList);
       }
     } catch (err: any) {
       setError(err?.message || 'Error fetching user data');
@@ -174,7 +185,7 @@ export const UserManagementPage: React.FC = () => {
     }
   };
 
-  const filteredUsers = users.filter((u) => {
+  const filteredUsers = (Array.isArray(users) ? users : []).filter((u) => {
     const empName = u.employee
       ? `${u.employee.firstName} ${u.employee.lastName}`
       : '';

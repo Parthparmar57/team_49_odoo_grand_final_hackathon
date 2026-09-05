@@ -190,7 +190,7 @@ class ApiClient {
   // --- TIME OFF ---
   timeOff = {
     types: () => this.request('/time-off/types'),
-    allocations: () => this.request('/time-off/allocations'),
+    allocations: (params?: Record<string, string>) => this.request('/time-off/allocations', { params }),
     requests: (params?: Record<string, string>) => this.request('/time-off/requests', { params }),
     createRequest: (data: any) => this.request('/time-off/requests', { method: 'POST', body: JSON.stringify(data) }),
     approve: (id: string) => this.request(`/time-off/requests/${id}/approve`, { method: 'PATCH' }),
@@ -226,18 +226,6 @@ class ApiClient {
   };
 
 
-  // --- INBOUND EMAIL AI PROCESSING ---
-  async sendInboundEmail(emailData: {
-    senderEmail: string;
-    subject: string;
-    body: string;
-  }): Promise<ApiResponse<any>> {
-    return this.request('/email/inbound', {
-      method: 'POST',
-      body: JSON.stringify(emailData),
-    });
-  }
-
   // --- GENERIC REQUEST HELPERS ---
   get<T = any>(endpoint: string, params?: Record<string, string>): Promise<ApiResponse<T>> {
     return this.request<T>(endpoint, { method: 'GET', params });
@@ -247,11 +235,6 @@ class ApiClient {
     return this.request<T>(endpoint, { method: 'POST', body: JSON.stringify(body) });
   }
 
-  // --- EMAIL LOGS & AI INGESTION ---
-  email = {
-    logs: (params?: Record<string, string>) => this.request('/email/logs', { params }),
-    inbound: (data: any) => this.request('/email/inbound', { method: 'POST', body: JSON.stringify(data) }),
-  };
 
   // --- DASHBOARD ---
   dashboard = {

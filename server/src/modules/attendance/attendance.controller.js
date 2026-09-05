@@ -39,8 +39,8 @@ export const getAttendanceRecords = async (req, res, next) => {
         if (req.user.role === 'EMPLOYEE') {
             query.employeeId = req.user.employeeId;
         }
-        const records = await AttendanceService.getAttendanceRecords(query);
-        return ApiResponse.success(res, records);
+        const result = await AttendanceService.getAttendanceRecords(query);
+        return ApiResponse.success(res, result.records, 200, result.pagination);
     } catch (error) {
         next(error);
     }

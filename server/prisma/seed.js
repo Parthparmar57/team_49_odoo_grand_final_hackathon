@@ -541,10 +541,10 @@ async function main() {
     // 10. Generate 4 Consecutive Monthly Payruns and Payslips
     console.log('💳 Seeding 4 Consecutive Monthly Payruns & Payslips...');
     const payrunsData = [
-        { ref: 'PR-2026-05', name: 'May 2026 Regular Payroll', start: new Date('2026-05-01'), end: new Date('2026-05-31'), status: PayrunStatus.PAID, paidAt: new Date('2026-06-01') },
-        { ref: 'PR-2026-06', name: 'June 2026 Regular Payroll', start: new Date('2026-06-01'), end: new Date('2026-06-30'), status: PayrunStatus.PAID, paidAt: new Date('2026-07-01') },
-        { ref: 'PR-2026-07', name: 'July 2026 Regular Payroll', start: new Date('2026-07-01'), end: new Date('2026-07-31'), status: PayrunStatus.VALIDATED, validatedAt: new Date('2026-08-01') },
-        { ref: 'PR-2026-08', name: 'August 2026 Regular Payroll', start: new Date('2026-08-01'), end: new Date('2026-08-31'), status: PayrunStatus.COMPUTED, computedAt: new Date('2026-09-01') },
+        { ref: 'PR-2026-05', name: 'May 2026 Regular Payroll', start: new Date('2026-05-01'), end: new Date('2026-05-31'), status: PayrunStatus.PAID, paidAt: new Date('2026-06-01'), factor: 0.86 },
+        { ref: 'PR-2026-06', name: 'June 2026 Regular Payroll', start: new Date('2026-06-01'), end: new Date('2026-06-30'), status: PayrunStatus.PAID, paidAt: new Date('2026-07-01'), factor: 0.91 },
+        { ref: 'PR-2026-07', name: 'July 2026 Regular Payroll', start: new Date('2026-07-01'), end: new Date('2026-07-31'), status: PayrunStatus.VALIDATED, validatedAt: new Date('2026-08-01'), factor: 0.96 },
+        { ref: 'PR-2026-08', name: 'August 2026 Regular Payroll', start: new Date('2026-08-01'), end: new Date('2026-08-31'), status: PayrunStatus.COMPUTED, computedAt: new Date('2026-09-01'), factor: 1.00 },
     ];
 
     for (const prData of payrunsData) {
@@ -567,6 +567,8 @@ async function main() {
         let payrunNet = 0;
         let empCount = 0;
 
+        const factor = prData.factor || 1.0;
+
         // Generate payslips for active contracts
         for (let i = 0; i < createdContracts.length; i++) {
             const contract = createdContracts[i];
@@ -575,7 +577,7 @@ async function main() {
             const emp = createdEmployees.find(e => e.id === contract.employeeId);
             if (!emp) continue;
 
-            const wage = contract.wage;
+            const wage = Math.round(contract.wage * factor);
             const basic = Math.round(wage * 0.45 * 100) / 100;
             const hra = Math.round(basic * 0.40 * 100) / 100;
             const ta = 5000;

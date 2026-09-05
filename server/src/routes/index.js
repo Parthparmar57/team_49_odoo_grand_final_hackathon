@@ -8,7 +8,6 @@ import attendanceRouter from '../modules/attendance/attendance.routes.js';
 import timeOffRouter from '../modules/timeOff/timeOff.routes.js';
 import payrollRouter from '../modules/payroll/payroll.routes.js';
 import dashboardRouter from '../modules/dashboard/dashboard.routes.js';
-import emailRouter from '../modules/email/email.routes.js';
 
 const router = Router();
 
@@ -21,7 +20,6 @@ router.use('/attendance', attendanceRouter);
 router.use('/time-off', timeOffRouter);
 router.use('/payroll', payrollRouter);
 router.use('/dashboard', dashboardRouter);
-router.use('/email', emailRouter);
 
 export {
     authRouter,
@@ -33,7 +31,6 @@ export {
     timeOffRouter,
     payrollRouter,
     dashboardRouter,
-    emailRouter,
 };
 
 export default router;

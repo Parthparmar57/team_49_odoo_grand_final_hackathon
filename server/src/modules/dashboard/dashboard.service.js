@@ -15,6 +15,9 @@ export class DashboardService {
         } else if (period === 'PREVIOUS_MONTH') {
             startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
             endDate = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
+        } else if (period === 'ALL_TIME') {
+            startDate = new Date('2020-01-01');
+            endDate = new Date('2030-12-31');
         } else if (period === 'CURRENT_YEAR') {
             startDate = new Date(now.getFullYear(), 0, 1);
             endDate = new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999);
@@ -142,43 +145,58 @@ export class DashboardService {
             deptCostMap[deptName] = (deptCostMap[deptName] || 0) + Number(ps.netSalary || 0);
         });
 
-        const departmentSalaryCost = departmentsList.map((d) => ({
+        let departmentSalaryCost = departmentsList.map((d) => ({
             departmentId: d.id,
             departmentName: d.name,
-            salaryCost: deptCostMap[d.name] || 0,
+            salaryCost: Math.round(deptCostMap[d.name] || 0),
         }));
 
-        // Include unassigned if any
         if (deptCostMap['Unassigned']) {
             departmentSalaryCost.push({
                 departmentId: 'unassigned',
                 departmentName: 'Unassigned',
-                salaryCost: deptCostMap['Unassigned'],
+                salaryCost: Math.round(deptCostMap['Unassigned']),
             });
         }
 
-        // 8. Monthly Net Salary Trend (Last 6 Months)
-        const monthlyTrendMap = {};
-        for (let i = 5; i >= 0; i--) {
-            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-            const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-            monthlyTrendMap[key] = 0;
+        // Filter out zero-cost departments if a department filter is selected
+        if (departmentId) {
+            departmentSalaryCost = departmentSalaryCost.filter((d) => d.departmentId === departmentId);
         }
 
+        // 8. Dynamic Monthly Net Salary Trend
+        const monthlyTrendMap = {};
         allPayslipsInPeriod.forEach((ps) => {
             if (ps.periodStart) {
                 const d = new Date(ps.periodStart);
-                const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-                if (monthlyTrendMap[key] !== undefined) {
-                    monthlyTrendMap[key] += Number(ps.netSalary || 0);
-                }
+                const year = d.getFullYear();
+                const monthNum = d.getMonth() + 1;
+                const key = `${year}-${String(monthNum).padStart(2, '0')}`;
+                monthlyTrendMap[key] = (monthlyTrendMap[key] || 0) + Number(ps.netSalary || 0);
             }
         });
 
-        const monthlyNetSalaryTrend = Object.entries(monthlyTrendMap).map(([month, netSalary]) => ({
-            month,
-            netSalary,
-        }));
+        let trendEntries = Object.entries(monthlyTrendMap);
+        if (trendEntries.length === 0) {
+            for (let i = 5; i >= 0; i--) {
+                const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+                monthlyTrendMap[key] = 0;
+            }
+            trendEntries = Object.entries(monthlyTrendMap);
+        }
+
+        const monthlyNetSalaryTrend = trendEntries
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([monthKey, netSalary]) => {
+                const [year, m] = monthKey.split('-');
+                const monthName = new Date(Number(year), Number(m) - 1, 1).toLocaleString('en-US', { month: 'short' });
+                return {
+                    monthKey,
+                    month: `${monthName} ${year}`,
+                    netSalary: Math.round(netSalary),
+                };
+            });
 
         return {
             metrics: {
@@ -203,6 +221,7 @@ export class DashboardService {
                 employeeType: employeeType || null,
             },
         };
+
     }
 
     static async getPayrollMetrics() {
