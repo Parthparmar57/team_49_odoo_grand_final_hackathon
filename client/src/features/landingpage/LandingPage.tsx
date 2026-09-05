@@ -162,6 +162,23 @@ export const LandingPage: React.FC = () => {
   // State for FAQ Accordion
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
+  // Scroll detection for dynamic header shape (rectangle at top, circular pill on scroll)
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 20) {
+        setIsScrolled(true);
+      } else {
+        setIsScrolled(false);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   // Check Backend Health on Mount
   useEffect(() => {
     apiClient.checkHealth()
@@ -267,14 +284,24 @@ export const LandingPage: React.FC = () => {
         </a>
       </div>
 
-      {/* 2. FLOATING NAVIGATION BAR */}
+      {/* 2. DYNAMIC NAVIGATION BAR (Full-screen rectangle at top, Circular pill when scrolled) */}
       <motion.header 
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-        className="sticky top-4 z-50 max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 mt-3 w-full"
+        className={`sticky z-50 transition-all duration-300 w-full ${
+          isScrolled 
+            ? 'top-3 max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 mt-2' 
+            : 'top-0 max-w-full px-0 mt-0'
+        }`}
       >
-        <nav className="bg-white/90 backdrop-blur-md border border-slate-200/80 rounded-full px-6 py-3 shadow-sm flex items-center justify-between transition-all duration-300 hover:shadow-md">
+        <nav 
+          className={`transition-all duration-300 flex items-center justify-between ${
+            isScrolled
+              ? 'bg-white/90 backdrop-blur-md border border-slate-200/80 rounded-full px-6 py-3 shadow-lg hover:shadow-xl'
+              : 'bg-white/95 backdrop-blur-md border-b border-slate-200/80 rounded-none px-6 sm:px-12 py-4 shadow-sm'
+          }`}
+        >
           
           {/* Logo */}
           <div className="flex items-center">
@@ -1683,10 +1710,10 @@ export const LandingPage: React.FC = () => {
 
         </div>
 
-        {/* GIANT STYLIZED TEXT WATERMARK AT BOTTOM OF FOOTER */}
-        <div className="w-full text-center pointer-events-none select-none overflow-hidden leading-none pt-4 opacity-15">
-          <span className="text-[12vw] sm:text-[14vw] font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-slate-400 to-slate-800">
-            PEOPLEPAY360
+        {/* GIANT STYLIZED TEXT WATERMARK AT BOTTOM OF FOOTER MATCHING SCREENSHOT */}
+        <div className="w-full text-center pointer-events-none select-none overflow-hidden leading-none pt-6 mt-4 opacity-90">
+          <span className="text-[13vw] sm:text-[15vw] font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-[#FF5E1E] via-[#EAB308] via-[#2DD4BF] to-[#06B6D4]">
+            PeoplePay360
           </span>
         </div>
 

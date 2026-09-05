@@ -297,24 +297,30 @@ export const LoginPage: React.FC = () => {
         </div>
       </main>
 
-      {/* 4. FOOTER */}
-      <footer className="bg-[#0B0F19] text-slate-400 py-8 px-6 text-xs font-sans border-t border-slate-900">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+      {/* 4. FOOTER MATCHING SCREENSHOT EXACTLY */}
+      <footer className="bg-[#0A0D14] text-slate-400 pt-8 pb-4 px-6 text-xs font-sans border-t border-slate-900 overflow-hidden relative">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 relative z-10">
           <div className="flex items-center">
             <img src="/logo-footer.webp" alt="PeoplePay360" className="h-7 w-auto object-contain" />
           </div>
 
           <div className="flex items-center gap-6 text-slate-400 text-xs font-medium">
             <Link to="/" className="hover:text-white transition">Home</Link>
-            <a href="#about" className="hover:text-white transition">Company</a>
-            <a href="#resources" className="hover:text-white transition">Resources</a>
-            <a href="#industries" className="hover:text-white transition">Industries</a>
-            <a href="#compare" className="hover:text-white transition">Compare</a>
+            <a href="#about" className="hover:text-white transition">Terms of Service</a>
+            <a href="#resources" className="hover:text-white transition">Privacy Policy</a>
+            <a href="#industries" className="hover:text-white transition">Refund Policy</a>
           </div>
 
           <div className="text-slate-500 text-[11px]">
             &copy; 2026 PeoplePay360. All rights reserved.
           </div>
+        </div>
+
+        {/* GIANT GRADIENT TEXT WATERMARK */}
+        <div className="w-full text-center pointer-events-none select-none overflow-hidden leading-none pt-6 mt-2 opacity-90">
+          <span className="text-[13vw] sm:text-[15vw] font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-[#FF5E1E] via-[#EAB308] via-[#2DD4BF] to-[#06B6D4]">
+            PeoplePay360
+          </span>
         </div>
       </footer>
     </div>
