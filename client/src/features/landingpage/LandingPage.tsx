@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion, AnimatePresence, Variants } from 'framer-motion';
 import {
   Sparkle,
   Lightning,
@@ -16,6 +17,46 @@ import {
   Briefcase,
   Robot,
 } from '@phosphor-icons/react';
+
+// --- SILKY CINEMATIC FRAMER MOTION ANIMATION VARIANTS ---
+const fadeInUpVariants: Variants = {
+  hidden: { opacity: 0, y: 40, filter: 'blur(4px)' },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    filter: 'blur(0px)',
+    transition: { 
+      duration: 1.05, 
+      ease: [0.16, 1, 0.3, 1] 
+    }
+  }
+};
+
+const staggerContainerVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.16,
+      delayChildren: 0.12
+    }
+  }
+};
+
+const heroScaleVariants: Variants = {
+  hidden: { opacity: 0, y: 55, scale: 0.94, filter: 'blur(6px)' },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    filter: 'blur(0px)',
+    transition: { 
+      duration: 1.3, 
+      ease: [0.16, 1, 0.3, 1],
+      delay: 0.2
+    }
+  }
+};
 
 // --- PREMIUM PHOSPHOR & HEROICONS (Ultra-sleek duotone & vector enterprise icons) ---
 const ArrowRightIcon = () => (
@@ -195,7 +236,12 @@ export const LandingPage: React.FC = () => {
       </div>
 
       {/* 2. FLOATING NAVIGATION BAR */}
-      <header className="sticky top-4 z-50 max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 mt-3 w-full">
+      <motion.header 
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+        className="sticky top-4 z-50 max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 mt-3 w-full"
+      >
         <nav className="bg-white/90 backdrop-blur-md border border-slate-200/80 rounded-full px-6 py-3 shadow-sm flex items-center justify-between transition-all duration-300 hover:shadow-md">
           
           {/* Logo */}
@@ -231,33 +277,38 @@ export const LandingPage: React.FC = () => {
             </a>
           </div>
         </nav>
-      </header>
+      </motion.header>
 
       {/* MAIN CONTENT AREA */}
       <main className="flex-grow">
         
         {/* 3. HERO SECTION */}
         <section id="home" className="relative pt-12 pb-16 md:pt-16 md:pb-24 overflow-hidden hero-gradient-bg">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+          <motion.div 
+            initial="hidden"
+            animate="visible"
+            variants={staggerContainerVariants}
+            className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10"
+          >
             
             {/* Tag Pill */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-orange-50 border border-orange-200/80 mb-6 text-xs font-semibold text-orange-700 shadow-sm animate-pulse-slow">
+            <motion.div variants={fadeInUpVariants} className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-orange-50 border border-orange-200/80 mb-6 text-xs font-semibold text-orange-700 shadow-sm animate-pulse-slow">
               <span className="bg-orange-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">New</span>
               <span>AI Email-to-Workflow Leave & Payroll Engine</span>
-            </div>
+            </motion.div>
 
             {/* Main Headline */}
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-950 leading-[1.12]">
+            <motion.h1 variants={fadeInUpVariants} className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-950 leading-[1.12]">
               <span className="gradient-text-brand">PeoplePay360</span> — Transform Employee Emails Into <span className="underline decoration-orange-400/60 decoration-wavy">Automated Workflows</span>
-            </h1>
+            </motion.h1>
 
             {/* Subtitle */}
-            <p className="mt-6 text-base sm:text-lg text-slate-600 max-w-3xl mx-auto font-normal leading-relaxed">
+            <motion.p variants={fadeInUpVariants} className="mt-6 text-base sm:text-lg text-slate-600 max-w-3xl mx-auto font-normal leading-relaxed">
               Simulate real-world leave requests from natural-language emails, automate entity extraction, connect period-specific contracts to payroll, and maintain human authorization effortlessly.
-            </p>
+            </motion.p>
 
             {/* CTA Buttons */}
-            <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
+            <motion.div variants={fadeInUpVariants} className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
               <a href="#pricing" className="w-full sm:w-auto group inline-flex items-center justify-center px-7 py-3.5 text-sm font-bold text-white bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-500 hover:to-amber-600 rounded-full shadow-lg shadow-orange-500/30 hover:shadow-xl hover:shadow-orange-500/40 transition duration-200">
                 <span>Get Started Free</span>
                 <ArrowRightIcon />
@@ -266,18 +317,24 @@ export const LandingPage: React.FC = () => {
                 <SparklesIcon />
                 <span>Explore 5-Agent Architecture</span>
               </a>
-            </div>
+            </motion.div>
 
             {/* Trust Highlights */}
-            <div className="mt-8 flex items-center justify-center gap-6 text-xs text-slate-500 font-medium">
+            <motion.div variants={fadeInUpVariants} className="mt-8 flex items-center justify-center gap-6 text-xs text-slate-500 font-medium">
               <span className="flex items-center"><CheckIcon /> 100% Human-in-the-Loop Control</span>
               <span className="flex items-center"><CheckIcon /> Gmail API + MCP Integration</span>
               <span className="flex items-center"><CheckIcon /> BullMQ Async Queues</span>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
 
           {/* 4. LIVE INTERACTIVE DASHBOARD PREVIEW CONTAINER */}
-          <div id="demo" className="mt-12 max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div 
+            id="demo" 
+            initial="hidden"
+            animate="visible"
+            variants={heroScaleVariants}
+            className="mt-12 max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8"
+          >
             <div className="card-hero-glow rounded-3xl p-4 sm:p-6 shadow-2xl relative overflow-hidden border border-slate-200">
               
               {/* Top Preview Control Header */}
@@ -700,15 +757,21 @@ export const LandingPage: React.FC = () => {
               )}
 
             </div>
-          </div>
+          </motion.div>
         </section>
 
         {/* 5. PROBLEM & SOLUTION COMPARISON CARDS (ULTRA-CLEAN & MODERN) */}
         <section id="benefits" className="py-16 md:py-24 bg-gradient-to-b from-[#FAF9F6] via-white to-white">
-          <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
+          <motion.div 
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-60px" }}
+            variants={staggerContainerVariants}
+            className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 space-y-16"
+          >
             
             {/* Header */}
-            <div className="text-center max-w-3xl mx-auto space-y-4">
+            <motion.div variants={fadeInUpVariants} className="text-center max-w-3xl mx-auto space-y-4">
               <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-orange-100/80 text-orange-700 font-bold text-[11px] uppercase tracking-wider border border-orange-200/80">
                 <ShieldCheckIcon className="w-3.5 h-3.5" />
                 <span>THE PAIN POINT</span>
@@ -719,13 +782,17 @@ export const LandingPage: React.FC = () => {
               <p className="text-slate-600 text-sm sm:text-base leading-relaxed max-w-xl mx-auto font-normal">
                 Manual email copying, miscalculated leave balances, and rigid contract dates create endless compliance risk.
               </p>
-            </div>
+            </motion.div>
 
             {/* 2-Column Clean Comparison Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               
               {/* Legacy Manual HR Bottlenecks Card */}
-              <div className="bg-gradient-to-b from-rose-50/70 via-white to-slate-50/40 border border-rose-200/80 p-8 rounded-3xl shadow-sm hover:shadow-md transition space-y-6 text-left relative overflow-hidden group">
+              <motion.div 
+                variants={fadeInUpVariants}
+                whileHover={{ y: -4, transition: { duration: 0.2 } }}
+                className="bg-gradient-to-b from-rose-50/70 via-white to-slate-50/40 border border-rose-200/80 p-8 rounded-3xl shadow-sm hover:shadow-md transition space-y-6 text-left relative overflow-hidden group"
+              >
                 <div className="flex items-center justify-between">
                   <div className="w-11 h-11 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center font-black text-base shadow-2xs">
                     ✕
@@ -754,10 +821,14 @@ export const LandingPage: React.FC = () => {
                     <span>Zero auditable validation between employee leave emails and final payslip deductions.</span>
                   </li>
                 </ul>
-              </div>
+              </motion.div>
 
               {/* The PeoplePay360 Solution Card */}
-              <div className="bg-gradient-to-b from-emerald-50/80 via-white to-slate-50/40 border border-emerald-200/80 p-8 rounded-3xl shadow-md hover:shadow-lg transition space-y-6 text-left relative overflow-hidden group">
+              <motion.div 
+                variants={fadeInUpVariants}
+                whileHover={{ y: -4, transition: { duration: 0.2 } }}
+                className="bg-gradient-to-b from-emerald-50/80 via-white to-slate-50/40 border border-emerald-200/80 p-8 rounded-3xl shadow-md hover:shadow-lg transition space-y-6 text-left relative overflow-hidden group"
+              >
                 <div className="flex items-center justify-between">
                   <div className="w-11 h-11 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center font-black text-base shadow-sm">
                     ✓
@@ -786,12 +857,15 @@ export const LandingPage: React.FC = () => {
                     <span>Human-in-the-loop review ensures 100% authorization control before execution.</span>
                   </li>
                 </ul>
-              </div>
+              </motion.div>
 
             </div>
 
             {/* Bottom Card Container: 5 Pill Cards for Vulnerabilities */}
-            <div className="bg-slate-50/70 p-8 sm:p-12 rounded-3xl border border-slate-200/90 shadow-xl relative overflow-hidden text-center space-y-8">
+            <motion.div 
+              variants={fadeInUpVariants}
+              className="bg-slate-50/70 p-8 sm:p-12 rounded-3xl border border-slate-200/90 shadow-xl relative overflow-hidden text-center space-y-8"
+            >
               
               {/* Subtle Ambient Mesh Glow inside card corners */}
               <div className="absolute top-0 left-0 w-48 h-48 bg-teal-200/20 rounded-full blur-3xl pointer-events-none"></div>
@@ -806,44 +880,44 @@ export const LandingPage: React.FC = () => {
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 relative z-10">
                 
                 {/* Pill 1 */}
-                <div className="bg-white p-5 rounded-2xl border border-slate-200/80 hover:border-orange-300 hover:shadow-md transition flex flex-col items-center justify-center space-y-3 group">
+                <motion.div whileHover={{ scale: 1.04, y: -2 }} className="bg-white p-5 rounded-2xl border border-slate-200/80 hover:border-orange-300 hover:shadow-md transition flex flex-col items-center justify-center space-y-3 group">
                   <div className="w-10 h-10 rounded-xl bg-orange-100/80 text-orange-600 flex items-center justify-center group-hover:scale-105 transition-transform">
                     <TagIcon className="w-5 h-5 text-orange-600" />
                   </div>
                   <span className="font-bold text-slate-900 text-xs text-center">Manual Data Errors</span>
-                </div>
+                </motion.div>
 
                 {/* Pill 2 */}
-                <div className="bg-white p-5 rounded-2xl border border-slate-200/80 hover:border-orange-300 hover:shadow-md transition flex flex-col items-center justify-center space-y-3 group">
+                <motion.div whileHover={{ scale: 1.04, y: -2 }} className="bg-white p-5 rounded-2xl border border-slate-200/80 hover:border-orange-300 hover:shadow-md transition flex flex-col items-center justify-center space-y-3 group">
                   <div className="w-10 h-10 rounded-xl bg-orange-100/80 text-orange-600 flex items-center justify-center group-hover:scale-105 transition-transform">
                     <MailIcon className="w-5 h-5 text-orange-600" />
                   </div>
                   <span className="font-bold text-slate-900 text-xs text-center">Unprocessed Emails</span>
-                </div>
+                </motion.div>
 
                 {/* Pill 3 */}
-                <div className="bg-white p-5 rounded-2xl border border-slate-200/80 hover:border-orange-300 hover:shadow-md transition flex flex-col items-center justify-center space-y-3 group">
+                <motion.div whileHover={{ scale: 1.04, y: -2 }} className="bg-white p-5 rounded-2xl border border-slate-200/80 hover:border-orange-300 hover:shadow-md transition flex flex-col items-center justify-center space-y-3 group">
                   <div className="w-10 h-10 rounded-xl bg-orange-100/80 text-orange-600 flex items-center justify-center group-hover:scale-105 transition-transform">
                     <LockIcon className="w-5 h-5 text-orange-600" />
                   </div>
                   <span className="font-bold text-slate-900 text-xs text-center">Contract Mismatches</span>
-                </div>
+                </motion.div>
 
                 {/* Pill 4 */}
-                <div className="bg-white p-5 rounded-2xl border border-slate-200/80 hover:border-orange-300 hover:shadow-md transition flex flex-col items-center justify-center space-y-3 group">
+                <motion.div whileHover={{ scale: 1.04, y: -2 }} className="bg-white p-5 rounded-2xl border border-slate-200/80 hover:border-orange-300 hover:shadow-md transition flex flex-col items-center justify-center space-y-3 group">
                   <div className="w-10 h-10 rounded-xl bg-orange-100/80 text-orange-600 flex items-center justify-center group-hover:scale-105 transition-transform">
                     <DatabaseIcon className="w-5 h-5 text-orange-600" />
                   </div>
                   <span className="font-bold text-slate-900 text-xs text-center">Payrun Audit Failures</span>
-                </div>
+                </motion.div>
 
                 {/* Pill 5 */}
-                <div className="bg-white p-5 rounded-2xl border border-slate-200/80 hover:border-orange-300 hover:shadow-md transition flex flex-col items-center justify-center space-y-3 group">
+                <motion.div whileHover={{ scale: 1.04, y: -2 }} className="bg-white p-5 rounded-2xl border border-slate-200/80 hover:border-orange-300 hover:shadow-md transition flex flex-col items-center justify-center space-y-3 group">
                   <div className="w-10 h-10 rounded-xl bg-orange-100/80 text-orange-600 flex items-center justify-center group-hover:scale-105 transition-transform">
                     <CreditCardIcon className="w-5 h-5 text-orange-600" />
                   </div>
                   <span className="font-bold text-slate-900 text-xs text-center">Salary Overpayments</span>
-                </div>
+                </motion.div>
 
               </div>
 
@@ -852,9 +926,9 @@ export const LandingPage: React.FC = () => {
                 Manual spreadsheet tracking alone <span className="text-orange-600 font-extrabold">isn't enough.</span>
               </div>
 
-            </div>
+            </motion.div>
 
-          </div>
+          </motion.div>
         </section>
 
         {/* 6. KEY DIFFERENTIATORS (HIGH-IMPACT MODERN GLASSMORPHISM SECTION) */}
@@ -864,10 +938,16 @@ export const LandingPage: React.FC = () => {
           <div className="absolute -top-32 -left-32 w-96 h-96 bg-orange-600/15 rounded-full blur-3xl pointer-events-none"></div>
           <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-cyan-600/15 rounded-full blur-3xl pointer-events-none"></div>
 
-          <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-16">
+          <motion.div 
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-60px" }}
+            variants={staggerContainerVariants}
+            className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-16"
+          >
             
             {/* Header */}
-            <div className="text-center max-w-3xl mx-auto space-y-4">
+            <motion.div variants={fadeInUpVariants} className="text-center max-w-3xl mx-auto space-y-4">
               <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-orange-500/20 text-orange-400 font-bold text-[11px] uppercase tracking-wider border border-orange-500/30 shadow-md">
                 <ZapIcon className="w-3.5 h-3.5 text-orange-400" />
                 <span>WHY PEOPLEPAY360</span>
@@ -878,13 +958,17 @@ export const LandingPage: React.FC = () => {
               <p className="text-slate-400 text-sm sm:text-base leading-relaxed max-w-xl mx-auto font-normal">
                 Engineered with enterprise-grade architecture for modern high-growth teams.
               </p>
-            </div>
+            </motion.div>
 
             {/* 3 Glassmorphism Cards Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               
               {/* Card 1: Validity Window Contracts */}
-              <div className="bg-slate-900/80 backdrop-blur-xl p-8 rounded-3xl border border-slate-800 hover:border-orange-500/60 shadow-2xl transition-all duration-300 hover:-translate-y-1 space-y-6 text-left group">
+              <motion.div 
+                variants={fadeInUpVariants}
+                whileHover={{ y: -6, transition: { duration: 0.25 } }}
+                className="bg-slate-900/80 backdrop-blur-xl p-8 rounded-3xl border border-slate-800 hover:border-orange-500/60 shadow-2xl transition-all duration-300 space-y-6 text-left group"
+              >
                 <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-orange-600 to-amber-500 text-white flex items-center justify-center shadow-lg shadow-orange-500/25 group-hover:scale-105 transition-transform">
                   <LockIcon className="w-6 h-6 text-white" />
                 </div>
@@ -903,10 +987,14 @@ export const LandingPage: React.FC = () => {
                     Contract v2.4 Active
                   </span>
                 </div>
-              </div>
+              </motion.div>
 
               {/* Card 2: MCP Tool-Based Execution */}
-              <div className="bg-slate-900/80 backdrop-blur-xl p-8 rounded-3xl border border-slate-800 hover:border-amber-500/60 shadow-2xl transition-all duration-300 hover:-translate-y-1 space-y-6 text-left group">
+              <motion.div 
+                variants={fadeInUpVariants}
+                whileHover={{ y: -6, transition: { duration: 0.25 } }}
+                className="bg-slate-900/80 backdrop-blur-xl p-8 rounded-3xl border border-slate-800 hover:border-amber-500/60 shadow-2xl transition-all duration-300 space-y-6 text-left group"
+              >
                 <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-500 to-yellow-500 text-white flex items-center justify-center shadow-lg shadow-amber-500/25 group-hover:scale-105 transition-transform">
                   <DatabaseIcon className="w-6 h-6 text-white" />
                 </div>
@@ -923,10 +1011,14 @@ export const LandingPage: React.FC = () => {
                   <div className="text-amber-400 font-mono font-bold text-xs">mcp.call_tool("calc_salary")</div>
                   <div className="text-slate-500 text-[10px] font-sans">✓ Zod schema validated & logged</div>
                 </div>
-              </div>
+              </motion.div>
 
               {/* Card 3: Deterministic Rule Engine */}
-              <div className="bg-slate-900/80 backdrop-blur-xl p-8 rounded-3xl border border-slate-800 hover:border-cyan-500/60 shadow-2xl transition-all duration-300 hover:-translate-y-1 space-y-6 text-left group">
+              <motion.div 
+                variants={fadeInUpVariants}
+                whileHover={{ y: -6, transition: { duration: 0.25 } }}
+                className="bg-slate-900/80 backdrop-blur-xl p-8 rounded-3xl border border-slate-800 hover:border-cyan-500/60 shadow-2xl transition-all duration-300 space-y-6 text-left group"
+              >
                 <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-cyan-500 to-teal-500 text-white flex items-center justify-center shadow-lg shadow-cyan-500/25 group-hover:scale-105 transition-transform">
                   <CreditCardIcon className="w-6 h-6 text-white" />
                 </div>
@@ -946,7 +1038,7 @@ export const LandingPage: React.FC = () => {
                   <span className="text-slate-600">→</span>
                   <span>3. NET</span>
                 </div>
-              </div>
+              </motion.div>
 
             </div>
 
@@ -958,7 +1050,7 @@ export const LandingPage: React.FC = () => {
               <span className="flex items-center"><CheckIcon /> Role-Based Access Control</span>
             </div>
 
-          </div>
+          </motion.div>
         </section>
 
         {/* 7. FEATURES BENTO GRID */}
@@ -1380,10 +1472,16 @@ export const LandingPage: React.FC = () => {
 
         {/* 10. FREQUENTLY ASKED QUESTIONS SECTION */}
         <section id="faq" className="py-16 md:py-24 bg-white">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div 
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-60px" }}
+            variants={staggerContainerVariants}
+            className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
+          >
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
               
-              <div className="lg:col-span-5 text-left space-y-4">
+              <motion.div variants={fadeInUpVariants} className="lg:col-span-5 text-left space-y-4">
                 <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-100 text-orange-700 font-bold text-[11px] uppercase tracking-wider">
                   <MessageSquareIcon className="w-3.5 h-3.5" />
                   <span>FAQ</span>
@@ -1398,12 +1496,13 @@ export const LandingPage: React.FC = () => {
                   <span>Contact Us</span>
                   <ArrowRightIcon />
                 </a>
-              </div>
+              </motion.div>
 
               <div className="lg:col-span-7 space-y-3">
                 {faqs.map((faq, index) => (
-                  <div 
+                  <motion.div 
                     key={index}
+                    variants={fadeInUpVariants}
                     className="bg-slate-50 rounded-2xl border border-slate-200/90 overflow-hidden transition"
                   >
                     <button 
@@ -1415,17 +1514,27 @@ export const LandingPage: React.FC = () => {
                         ↓
                       </span>
                     </button>
-                    {openFaq === index && (
-                      <div className="px-4 pb-4 text-xs text-slate-600 leading-relaxed border-t border-slate-100 pt-3">
-                        {faq.answer}
-                      </div>
-                    )}
-                  </div>
+                    <AnimatePresence>
+                      {openFaq === index && (
+                        <motion.div 
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.28, ease: "easeInOut" }}
+                          className="overflow-hidden"
+                        >
+                          <div className="px-4 pb-4 text-xs text-slate-600 leading-relaxed border-t border-slate-100 pt-3">
+                            {faq.answer}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </motion.div>
                 ))}
               </div>
 
             </div>
-          </div>
+          </motion.div>
         </section>
 
       </main>
