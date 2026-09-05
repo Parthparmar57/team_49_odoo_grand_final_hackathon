@@ -170,7 +170,16 @@ export class PayrollService {
             where: { status: 'ACTIVE' },
             include: { schedule: true },
         });
+        const employees = await prisma.employee.findMany({
+            where: { status: 'ACTIVE' },
+            include: { schedule: true },
+        });
 
+        const warnings = [];
+        let totalGross = 0;
+        let totalDeductions = 0;
+        let totalNet = 0;
+        let employeeCount = 0;
         const warnings = [];
         let totalGross = 0;
         let totalDeductions = 0;
@@ -180,78 +189,149 @@ export class PayrollService {
         for (const employee of employees) {
             try {
                 const contract = await ContractsService.findApplicableContract(employee.id, payrun.periodStart, payrun.periodEnd);
+                for (const employee of employees) {
+                    try {
+                        const contract = await ContractsService.findApplicableContract(employee.id, payrun.periodStart, payrun.periodEnd);
 
-                let salaryStructure = payrun.salaryStructure;
-                if (!salaryStructure) {
-                    salaryStructure = contract.salaryStructure;
-                }
+                        let salaryStructure = payrun.salaryStructure;
+                        if (!salaryStructure) {
+                            salaryStructure = contract.salaryStructure;
+                        }
 
-                if (!salaryStructure) {
-                    warnings.push({
-                        employeeId: employee.id,
-                        employeeName: `${employee.firstName} ${employee.lastName}`,
-                        issue: 'Missing salary structure on contract and payrun',
-                    });
-                    continue;
-                }
+                        if (!salaryStructure) {
+                            warnings.push({
+                                employeeId: employee.id,
+                                employeeName: `${employee.firstName} ${employee.lastName}`,
+                                issue: 'Missing salary structure on contract and payrun',
+                            });
+                            continue;
+                        }
+                        if (!salaryStructure) {
+                            warnings.push({
+                                employeeId: employee.id,
+                                employeeName: `${employee.firstName} ${employee.lastName}`,
+                                issue: 'Missing salary structure on contract and payrun',
+                            });
+                            continue;
+                        }
 
-                const rules = salaryStructure.rules || [];
-                const lines = [];
-                const categoryTotals = { BASIC: 0, ALLOWANCE: 0, GROSS: 0, DEDUCTION: 0, NET: 0 };
-                const wage = Number(contract.wage || 0);
+                        const rules = salaryStructure.rules || [];
+                        const lines = [];
+                        const categoryTotals = { BASIC: 0, ALLOWANCE: 0, GROSS: 0, DEDUCTION: 0, NET: 0 };
+                        const wage = Number(contract.wage || 0);
+                        const rules = salaryStructure.rules || [];
+                        const lines = [];
+                        const categoryTotals = { BASIC: 0, ALLOWANCE: 0, GROSS: 0, DEDUCTION: 0, NET: 0 };
+                        const wage = Number(contract.wage || 0);
 
-                for (const rule of rules) {
-                    let amount = 0;
+                        for (const rule of rules) {
+                            let amount = 0;
+                            for (const rule of rules) {
+                                let amount = 0;
 
-                    if (rule.computationMethod === 'FIXED') {
-                        amount = Number(rule.amount || 0);
-                    } else if (rule.computationMethod === 'PERCENTAGE') {
-                        const baseCode = rule.percentageBasedOn || 'BASIC';
-                        const baseAmount = categoryTotals[baseCode] ?? wage;
-                        amount = baseAmount * (Number(rule.percentage || 0) / 100);
-                    } else if (rule.computationMethod === 'FORMULA') {
-                        amount = wage;
+                                if (rule.computationMethod === 'FIXED') {
+                                    amount = Number(rule.amount || 0);
+                                } else if (rule.computationMethod === 'PERCENTAGE') {
+                                    const baseCode = rule.percentageBasedOn || 'BASIC';
+                                    const baseAmount = categoryTotals[baseCode] ?? wage;
+                                    amount = baseAmount * (Number(rule.percentage || 0) / 100);
+                                } else if (rule.computationMethod === 'FORMULA') {
+                                    amount = wage;
+                                }
+                                if (rule.computationMethod === 'FIXED') {
+                                    amount = Number(rule.amount || 0);
+                                } else if (rule.computationMethod === 'PERCENTAGE') {
+                                    const baseCode = rule.percentageBasedOn || 'BASIC';
+                                    const baseAmount = categoryTotals[baseCode] ?? wage;
+                                    amount = baseAmount * (Number(rule.percentage || 0) / 100);
+                                } else if (rule.computationMethod === 'FORMULA') {
+                                    amount = wage;
+                                }
+
+                                amount = Math.round(amount * 100) / 100;
+                                amount = Math.round(amount * 100) / 100;
+
+                                if (rule.category === 'BASIC') categoryTotals.BASIC += amount;
+                                else if (rule.category === 'ALLOWANCE') categoryTotals.ALLOWANCE += amount;
+                                else if (rule.category === 'DEDUCTION') categoryTotals.DEDUCTION += amount;
+                                if (rule.category === 'BASIC') categoryTotals.BASIC += amount;
+                                else if (rule.category === 'ALLOWANCE') categoryTotals.ALLOWANCE += amount;
+                                else if (rule.category === 'DEDUCTION') categoryTotals.DEDUCTION += amount;
+
+                                lines.push({
+                                    code: rule.code,
+                                    name: rule.name,
+                                    category: rule.category,
+                                    sequence: rule.sequence,
+                                    amount,
+                                });
+                            }
+                            lines.push({
+                                code: rule.code,
+                                name: rule.name,
+                                category: rule.category,
+                                sequence: rule.sequence,
+                                amount,
+                            });
+                        }
+
+                        categoryTotals.GROSS = categoryTotals.BASIC + categoryTotals.ALLOWANCE;
+                        categoryTotals.NET = Math.max(0, categoryTotals.GROSS - categoryTotals.DEDUCTION);
+                        categoryTotals.GROSS = categoryTotals.BASIC + categoryTotals.ALLOWANCE;
+                        categoryTotals.NET = Math.max(0, categoryTotals.GROSS - categoryTotals.DEDUCTION);
+
+                        const payslipRef = `PS-${payrunId.slice(-6)}-${employee.employeeNumber}`;
+                        const payslipRef = `PS-${payrunId.slice(-6)}-${employee.employeeNumber}`;
+
+                        await prisma.payslip.create({
+                            data: {
+                                payslipRef,
+                                employeeId: employee.id,
+                                contractId: contract.id,
+                                salaryStructureId: salaryStructure.id,
+                                payrunId: payrun.id,
+                                periodStart: payrun.periodStart,
+                                periodEnd: payrun.periodEnd,
+                                basicSalary: categoryTotals.BASIC,
+                                grossSalary: categoryTotals.GROSS,
+                                totalAllowances: categoryTotals.ALLOWANCE,
+                                totalDeductions: categoryTotals.DEDUCTION,
+                                netSalary: categoryTotals.NET,
+                                status: 'COMPUTED',
+                                lines: { create: lines },
+                            },
+                        });
+                        await prisma.payslip.create({
+                            data: {
+                                payslipRef,
+                                employeeId: employee.id,
+                                contractId: contract.id,
+                                salaryStructureId: salaryStructure.id,
+                                payrunId: payrun.id,
+                                periodStart: payrun.periodStart,
+                                periodEnd: payrun.periodEnd,
+                                basicSalary: categoryTotals.BASIC,
+                                grossSalary: categoryTotals.GROSS,
+                                totalAllowances: categoryTotals.ALLOWANCE,
+                                totalDeductions: categoryTotals.DEDUCTION,
+                                netSalary: categoryTotals.NET,
+                                status: 'COMPUTED',
+                                lines: { create: lines },
+                            },
+                        });
+
+                        totalGross += categoryTotals.GROSS;
+                        totalDeductions += categoryTotals.DEDUCTION;
+                        totalNet += categoryTotals.NET;
+                        employeeCount++;
+                    } catch (err) {
+                        warnings.push({
+                            employeeId: employee.id,
+                            employeeName: `${employee.firstName} ${employee.lastName}`,
+                            issue: err.message,
+                        });
                     }
-
-                    amount = Math.round(amount * 100) / 100;
-
-                    if (rule.category === 'BASIC') categoryTotals.BASIC += amount;
-                    else if (rule.category === 'ALLOWANCE') categoryTotals.ALLOWANCE += amount;
-                    else if (rule.category === 'DEDUCTION') categoryTotals.DEDUCTION += amount;
-
-                    lines.push({
-                        code: rule.code,
-                        name: rule.name,
-                        category: rule.category,
-                        sequence: rule.sequence,
-                        amount,
-                    });
                 }
-
-                categoryTotals.GROSS = categoryTotals.BASIC + categoryTotals.ALLOWANCE;
-                categoryTotals.NET = Math.max(0, categoryTotals.GROSS - categoryTotals.DEDUCTION);
-
-                const payslipRef = `PS-${payrunId.slice(-6)}-${employee.employeeNumber}`;
-
-                await prisma.payslip.create({
-                    data: {
-                        payslipRef,
-                        employeeId: employee.id,
-                        contractId: contract.id,
-                        salaryStructureId: salaryStructure.id,
-                        payrunId: payrun.id,
-                        periodStart: payrun.periodStart,
-                        periodEnd: payrun.periodEnd,
-                        basicSalary: categoryTotals.BASIC,
-                        grossSalary: categoryTotals.GROSS,
-                        totalAllowances: categoryTotals.ALLOWANCE,
-                        totalDeductions: categoryTotals.DEDUCTION,
-                        netSalary: categoryTotals.NET,
-                        status: 'COMPUTED',
-                        lines: { create: lines },
-                    },
-                });
-
                 totalGross += categoryTotals.GROSS;
                 totalDeductions += categoryTotals.DEDUCTION;
                 totalNet += categoryTotals.NET;
@@ -297,52 +377,105 @@ export class PayrollService {
                 },
             },
         });
-    }
+        where: { id: payrunId },
+        data: {
+            status: PayrunStatus.COMPUTED,
+                totalGross,
+                totalDeductions,
+                totalNet,
+                employeeCount,
+            },
+        include: {
+            salaryStructure: true,
+                warnings: true,
+                    payslips: {
+                include: {
+                    employee: { select: { id: true, firstName: true, lastName: true, employeeNumber: true } },
+                    lines: { orderBy: { sequence: 'asc' } },
+                },
+            },
+        },
+    });
+}
 
     static async validatePayrun(payrunId, actorId) {
-        let payrun = await this.getPayrunById(payrunId);
+    let payrun = await this.getPayrunById(payrunId);
 
-        if (payrun.status !== PayrunStatus.COMPUTED && payrun.status !== PayrunStatus.DRAFT) {
-            throw new AppError(`Payrun must be in COMPUTED or DRAFT state before validation (Current state: ${payrun.status})`, 400, 'INVALID_STATE');
-        }
+    if (payrun.status !== PayrunStatus.COMPUTED && payrun.status !== PayrunStatus.DRAFT) {
+        throw new AppError(`Payrun must be in COMPUTED or DRAFT state before validation (Current state: ${payrun.status})`, 400, 'INVALID_STATE');
+    }
+    if (payrun.status !== PayrunStatus.COMPUTED && payrun.status !== PayrunStatus.DRAFT) {
+        throw new AppError(`Payrun must be in COMPUTED or DRAFT state before validation (Current state: ${payrun.status})`, 400, 'INVALID_STATE');
+    }
 
-        if (!payrun.payslips || payrun.payslips.length === 0) {
-            payrun = await this.computePayrun(payrunId);
-        }
+    if (!payrun.payslips || payrun.payslips.length === 0) {
+        payrun = await this.computePayrun(payrunId);
+    }
+    if (!payrun.payslips || payrun.payslips.length === 0) {
+        payrun = await this.computePayrun(payrunId);
+    }
 
-        const warnings = payrun.warnings || [];
-        const blockingWarnings = warnings.filter((w) => w.severity === 'BLOCKING' && !w.resolved);
-        if (blockingWarnings.length > 0) {
-            throw new AppError(`Cannot validate payrun with ${blockingWarnings.length} unresolved blocking warnings`, 400, 'BLOCKING_WARNINGS_EXIST');
-        }
+    const warnings = payrun.warnings || [];
+    const blockingWarnings = warnings.filter((w) => w.severity === 'BLOCKING' && !w.resolved);
+    if (blockingWarnings.length > 0) {
+        throw new AppError(`Cannot validate payrun with ${blockingWarnings.length} unresolved blocking warnings`, 400, 'BLOCKING_WARNINGS_EXIST');
+    }
+    const warnings = payrun.warnings || [];
+    const blockingWarnings = warnings.filter((w) => w.severity === 'BLOCKING' && !w.resolved);
+    if (blockingWarnings.length > 0) {
+        throw new AppError(`Cannot validate payrun with ${blockingWarnings.length} unresolved blocking warnings`, 400, 'BLOCKING_WARNINGS_EXIST');
+    }
 
-        if (!payrun.payslips || payrun.payslips.length === 0) {
-            throw new AppError('Cannot validate payrun with no generated payslips. Please ensure active employees have active contracts.', 400, 'NO_PAYSLIPS_GENERATED');
-        }
+    if (!payrun.payslips || payrun.payslips.length === 0) {
+        throw new AppError('Cannot validate payrun with no generated payslips. Please ensure active employees have active contracts.', 400, 'NO_PAYSLIPS_GENERATED');
+    }
+    if (!payrun.payslips || payrun.payslips.length === 0) {
+        throw new AppError('Cannot validate payrun with no generated payslips. Please ensure active employees have active contracts.', 400, 'NO_PAYSLIPS_GENERATED');
+    }
 
-        const validated = await prisma.payrun.update({
-            where: { id: payrunId },
-            data: {
-                status: PayrunStatus.VALIDATED,
-                validatedAt: new Date(),
-            },
-            include: { salaryStructure: true, payslips: true, warnings: true },
-        });
+    const validated = await prisma.payrun.update({
+        where: { id: payrunId },
+        data: {
+            status: PayrunStatus.VALIDATED,
+            validatedAt: new Date(),
+        },
+        include: { salaryStructure: true, payslips: true, warnings: true },
+    });
+    const validated = await prisma.payrun.update({
+        where: { id: payrunId },
+        data: {
+            status: PayrunStatus.VALIDATED,
+            validatedAt: new Date(),
+        },
+        include: { salaryStructure: true, payslips: true, warnings: true },
+    });
 
-        await this.logAudit(actorId, 'PAYRUN_VALIDATED', 'Payrun', payrunId, { validatedAt: validated.validatedAt });
-        return validated;
+    await this.logAudit(actorId, 'PAYRUN_VALIDATED', 'Payrun', payrunId, { validatedAt: validated.validatedAt });
+    return validated;
+}
+await this.logAudit(actorId, 'PAYRUN_VALIDATED', 'Payrun', payrunId, { validatedAt: validated.validatedAt });
+return validated;
     }
 
     // ==========================================
     // MARK PAYRUN PAID
     // ==========================================
     static async markPayrunPaid(payrunId, actorId) {
-        const payrun = await this.getPayrunById(payrunId);
+    const payrun = await this.getPayrunById(payrunId);
+    const payrun = await this.getPayrunById(payrunId);
 
-        if (payrun.status !== PayrunStatus.VALIDATED) {
-            throw new AppError(`Payrun must be in VALIDATED state before marking as paid (Current state: ${payrun.status})`, 400, 'INVALID_STATE');
-        }
+    if (payrun.status !== PayrunStatus.VALIDATED) {
+        throw new AppError(`Payrun must be in VALIDATED state before marking as paid (Current state: ${payrun.status})`, 400, 'INVALID_STATE');
+    }
+    if (payrun.status !== PayrunStatus.VALIDATED) {
+        throw new AppError(`Payrun must be in VALIDATED state before marking as paid (Current state: ${payrun.status})`, 400, 'INVALID_STATE');
+    }
 
+    return prisma.$transaction(async (tx) => {
+        await tx.payslip.updateMany({
+            where: { payrunId },
+            data: { status: 'PAID' },
+        });
         return prisma.$transaction(async (tx) => {
             await tx.payslip.updateMany({
                 where: { payrunId },
@@ -357,88 +490,163 @@ export class PayrollService {
                 },
                 include: { salaryStructure: true, payslips: true },
             });
+            const paidPayrun = await tx.payrun.update({
+                where: { id: payrunId },
+                data: {
+                    status: PayrunStatus.PAID,
+                    paidAt: new Date(),
+                },
+                include: { salaryStructure: true, payslips: true },
+            });
 
             await this.logAudit(actorId, 'PAYRUN_MARKED_PAID', 'Payrun', payrunId, { paidAt: paidPayrun.paidAt });
             return paidPayrun;
         });
+    }
+            await this.logAudit(actorId, 'PAYRUN_MARKED_PAID', 'Payrun', payrunId, { paidAt: paidPayrun.paidAt });
+    return paidPayrun;
+});
     }
 
     // ==========================================
     // PAYSLIPS & PDF
     // ==========================================
     static async getPayslips(query = {}) {
-        const where = {};
-        if (query.employeeId) where.employeeId = query.employeeId;
-        if (query.payrunId) where.payrunId = query.payrunId;
+    const where = {};
+    if (query.employeeId) where.employeeId = query.employeeId;
+    if (query.payrunId) where.payrunId = query.payrunId;
+    const where = {};
+    if (query.employeeId) where.employeeId = query.employeeId;
+    if (query.payrunId) where.payrunId = query.payrunId;
 
-        return prisma.payslip.findMany({
-            where,
-            include: {
-                employee: { select: { id: true, firstName: true, lastName: true, email: true, employeeNumber: true, designation: true } },
-                contract: true,
-                salaryStructure: true,
-                lines: { orderBy: { sequence: 'asc' } },
-            },
-            orderBy: { periodStart: 'desc' },
-        });
+    return prisma.payslip.findMany({
+        where,
+        include: {
+            employee: { select: { id: true, firstName: true, lastName: true, email: true, employeeNumber: true, designation: true } },
+            contract: true,
+            salaryStructure: true,
+            lines: { orderBy: { sequence: 'asc' } },
+        },
+        orderBy: { periodStart: 'desc' },
+    });
+}
+return prisma.payslip.findMany({
+    where,
+    include: {
+        employee: { select: { id: true, firstName: true, lastName: true, email: true, employeeNumber: true, designation: true } },
+        contract: true,
+        salaryStructure: true,
+        lines: { orderBy: { sequence: 'asc' } },
+    },
+    orderBy: { periodStart: 'desc' },
+});
     }
 
     static async getPayslipById(id) {
-        const payslip = await prisma.payslip.findUnique({
-            where: { id },
-            include: {
-                employee: { select: { id: true, firstName: true, lastName: true, email: true, employeeNumber: true, department: true } },
-                contract: true,
-                salaryStructure: true,
-                lines: { orderBy: { sequence: 'asc' } },
-            },
-        });
+    const payslip = await prisma.payslip.findUnique({
+        where: { id },
+        include: {
+            employee: { select: { id: true, firstName: true, lastName: true, email: true, employeeNumber: true, department: true } },
+            contract: true,
+            salaryStructure: true,
+            lines: { orderBy: { sequence: 'asc' } },
+        },
+    });
+    const payslip = await prisma.payslip.findUnique({
+        where: { id },
+        include: {
+            employee: { select: { id: true, firstName: true, lastName: true, email: true, employeeNumber: true, department: true } },
+            contract: true,
+            salaryStructure: true,
+            lines: { orderBy: { sequence: 'asc' } },
+        },
+    });
 
-        if (!payslip) {
-            throw new AppError('Payslip not found', 404, 'PAYSLIP_NOT_FOUND');
-        }
+    if (!payslip) {
+        throw new AppError('Payslip not found', 404, 'PAYSLIP_NOT_FOUND');
+    }
+    if (!payslip) {
+        throw new AppError('Payslip not found', 404, 'PAYSLIP_NOT_FOUND');
+    }
 
-        return payslip;
+    return payslip;
+}
+return payslip;
     }
 
     static async downloadPayslipPdf(id, actorId) {
-        const payslip = await this.getPayslipById(id);
-        const pdfBuffer = await PayslipPdfService.generatePayslipPdf(payslip);
-        if (actorId) {
-            await this.logAudit(actorId, 'PAYSLIP_PDF_DOWNLOADED', 'Payslip', id);
-        }
-        return pdfBuffer;
+    const payslip = await this.getPayslipById(id);
+    const pdfBuffer = await PayslipPdfService.generatePayslipPdf(payslip);
+    if (actorId) {
+        await this.logAudit(actorId, 'PAYSLIP_PDF_DOWNLOADED', 'Payslip', id);
+    }
+    return pdfBuffer;
+}
+const payslip = await this.getPayslipById(id);
+const pdfBuffer = await PayslipPdfService.generatePayslipPdf(payslip);
+if (actorId) {
+    await this.logAudit(actorId, 'PAYSLIP_PDF_DOWNLOADED', 'Payslip', id);
+}
+return pdfBuffer;
     }
 
     static async sendPayrunEmails(payrunId, actorId) {
-        const payrun = await this.getPayrunById(payrunId);
-        if (!payrun.payslips || payrun.payslips.length === 0) {
-            throw new AppError('No payslips found in this payrun to dispatch emails', 400, 'NO_PAYSLIPS');
-        }
+    const payrun = await this.getPayrunById(payrunId);
+    if (!payrun.payslips || payrun.payslips.length === 0) {
+        throw new AppError('No payslips found in this payrun to dispatch emails', 400, 'NO_PAYSLIPS');
+    }
+    const payrun = await this.getPayrunById(payrunId);
+    if (!payrun.payslips || payrun.payslips.length === 0) {
+        throw new AppError('No payslips found in this payrun to dispatch emails', 400, 'NO_PAYSLIPS');
+    }
 
-        const results = [];
-        for (const payslip of payrun.payslips) {
-            const recipientEmail = payslip.employee?.email;
-            const recipientName = `${payslip.employee?.firstName || ''} ${payslip.employee?.lastName || ''}`.trim();
-            if (recipientEmail) {
-                console.log(`[BULK PAYSLIP EMAIL DISPATCH] Queued email to ${recipientName} (${recipientEmail}) for Payslip ${payslip.payslipRef || payslip.id}`);
-                results.push({
-                    employeeId: payslip.employeeId,
-                    email: recipientEmail,
-                    payslipRef: payslip.payslipRef,
-                    status: 'DISPATCHED'
-                });
-            }
+    const results = [];
+    for (const payslip of payrun.payslips) {
+        const recipientEmail = payslip.employee?.email;
+        const recipientName = `${payslip.employee?.firstName || ''} ${payslip.employee?.lastName || ''}`.trim();
+        if (recipientEmail) {
+            console.log(`[BULK PAYSLIP EMAIL DISPATCH] Queued email to ${recipientName} (${recipientEmail}) for Payslip ${payslip.payslipRef || payslip.id}`);
+            results.push({
+                employeeId: payslip.employeeId,
+                email: recipientEmail,
+                payslipRef: payslip.payslipRef,
+                status: 'DISPATCHED'
+            });
         }
-
-        if (actorId) {
-            await this.logAudit(actorId, 'PAYRUN_EMAILS_DISPATCHED', 'Payrun', payrunId, { totalSent: results.length });
+    }
+    const results = [];
+    for (const payslip of payrun.payslips) {
+        const recipientEmail = payslip.employee?.email;
+        const recipientName = `${payslip.employee?.firstName || ''} ${payslip.employee?.lastName || ''}`.trim();
+        if (recipientEmail) {
+            console.log(`[BULK PAYSLIP EMAIL DISPATCH] Queued email to ${recipientName} (${recipientEmail}) for Payslip ${payslip.payslipRef || payslip.id}`);
+            results.push({
+                employeeId: payslip.employeeId,
+                email: recipientEmail,
+                payslipRef: payslip.payslipRef,
+                status: 'DISPATCHED'
+            });
         }
+    }
 
-        return {
-            message: `Bulk payslip emails dispatched successfully to ${results.length} employees`,
-            dispatchedCount: results.length,
-            details: results
-        };
+    if (actorId) {
+        await this.logAudit(actorId, 'PAYRUN_EMAILS_DISPATCHED', 'Payrun', payrunId, { totalSent: results.length });
+    }
+    if (actorId) {
+        await this.logAudit(actorId, 'PAYRUN_EMAILS_DISPATCHED', 'Payrun', payrunId, { totalSent: results.length });
+    }
+
+    return {
+        message: `Bulk payslip emails dispatched successfully to ${results.length} employees`,
+        dispatchedCount: results.length,
+        details: results
+    };
+}
+}
+return {
+    message: `Bulk payslip emails dispatched successfully to ${results.length} employees`,
+    dispatchedCount: results.length,
+    details: results
+};
     }
 }
