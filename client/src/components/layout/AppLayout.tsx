@@ -59,16 +59,19 @@ const navItems: NavItem[] = [
     label: 'Leave Management',
     path: '/leave',
     icon: Calendar,
+    roles: ['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER', 'EMPLOYEE'],
   },
   {
     label: 'Payroll & Payslips',
     path: '/payroll',
     icon: CreditCard,
+    roles: ['ADMIN', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER'],
   },
   {
     label: 'Email AI Ingestion',
     path: '/email-logs',
     icon: Mail,
+    roles: ['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER'],
   },
   {
     label: 'User Management',

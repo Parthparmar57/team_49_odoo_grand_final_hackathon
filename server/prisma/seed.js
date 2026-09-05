@@ -53,26 +53,26 @@ async function main() {
     });
 
     // Create Users & Employees for all 5 Roles
-    const passwordHash = await bcrypt.hash('Password123!', 10);
+    const passwordHash = await bcrypt.hash('odoo@123', 10);
 
     const adminUser = await prisma.user.create({
-        data: { email: 'admin@peoplepay360.com', passwordHash, role: Role.ADMIN },
+        data: { email: 'admin@ex.com', passwordHash, role: Role.ADMIN },
     });
 
     const hrManagerUser = await prisma.user.create({
-        data: { email: 'hr.manager@peoplepay360.com', passwordHash, role: Role.HR_MANAGER },
+        data: { email: 'hrmanager@ex.com', passwordHash, role: Role.HR_MANAGER },
     });
 
     const payrollUser = await prisma.user.create({
-        data: { email: 'payroll.user@peoplepay360.com', passwordHash, role: Role.HR_PAYROLL_USER },
+        data: { email: 'payrolluser@ex.com', passwordHash, role: Role.HR_PAYROLL_USER },
     });
 
     const payrollMgrUser = await prisma.user.create({
-        data: { email: 'payroll.manager@peoplepay360.com', passwordHash, role: Role.HR_PAYROLL_MANAGER },
+        data: { email: 'payrollmanager@ex.com', passwordHash, role: Role.HR_PAYROLL_MANAGER },
     });
 
     const employeeUser = await prisma.user.create({
-        data: { email: 'rahul@example.com', passwordHash, role: Role.EMPLOYEE },
+        data: { email: 'employee@ex.com', passwordHash, role: Role.EMPLOYEE },
     });
 
     // Create Employee Records
@@ -81,7 +81,7 @@ async function main() {
             employeeNumber: 'EMP001',
             firstName: 'Rahul',
             lastName: 'Sharma',
-            email: 'rahul@example.com',
+            email: 'employee@ex.com',
             phone: '+919876543210',
             designation: 'Senior Software Engineer',
             joiningDate: new Date('2023-01-15'),
@@ -102,7 +102,7 @@ async function main() {
             employeeNumber: 'EMP002',
             firstName: 'Priya',
             lastName: 'Verma',
-            email: 'hr.manager@peoplepay360.com',
+            email: 'hrmanager@ex.com',
             designation: 'HR Manager',
             joiningDate: new Date('2022-05-01'),
             employmentType: EmploymentType.FULL_TIME,

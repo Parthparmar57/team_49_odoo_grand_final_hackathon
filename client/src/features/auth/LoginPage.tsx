@@ -56,7 +56,7 @@ export const LoginPage: React.FC = () => {
 
   const setDemoAccount = (personaEmail: string, personaRole: string) => {
     setEmail(personaEmail);
-    setPassword('Password123!');
+    setPassword('odoo@123');
     setActivePersona(personaRole);
     setError(null);
   };
@@ -253,41 +253,50 @@ export const LoginPage: React.FC = () => {
           {/* Quick Demo Live Database Account Presets */}
           <div className="mt-6 p-4 bg-[#F8FAF9] border border-slate-200/80 rounded-2xl text-center">
             <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
-              Seeded Live Database Presets
+              1-Click Role Login Presets (Password: <code className="text-slate-700 font-mono">odoo@123</code>)
             </p>
             <div className="flex flex-wrap justify-center gap-2 text-xs font-bold">
               <button
                 type="button"
-                onClick={() => setDemoAccount('admin@peoplepay360.com', 'ADMIN')}
+                onClick={() => setDemoAccount('admin@ex.com', 'ADMIN')}
                 className={`px-3 py-1 bg-white border border-slate-200 rounded-full transition-all cursor-pointer shadow-2xs ${
-                  activePersona === 'ADMIN' ? 'text-[#FF5E1E] border-orange-500' : 'text-slate-700 hover:text-[#FF5E1E]'
+                  activePersona === 'ADMIN' ? 'text-[#FF5E1E] border-orange-500 font-extrabold' : 'text-slate-700 hover:text-[#FF5E1E]'
                 }`}
               >
                 Admin
               </button>
               <button
                 type="button"
-                onClick={() => setDemoAccount('hr.manager@peoplepay360.com', 'HR_MANAGER')}
+                onClick={() => setDemoAccount('hrmanager@ex.com', 'HR_MANAGER')}
                 className={`px-3 py-1 bg-white border border-slate-200 rounded-full transition-all cursor-pointer shadow-2xs ${
-                  activePersona === 'HR_MANAGER' ? 'text-teal-600 border-teal-500' : 'text-slate-700 hover:text-teal-600'
+                  activePersona === 'HR_MANAGER' ? 'text-teal-600 border-teal-500 font-extrabold' : 'text-slate-700 hover:text-teal-600'
                 }`}
               >
                 HR Manager
               </button>
               <button
                 type="button"
-                onClick={() => setDemoAccount('payroll.manager@peoplepay360.com', 'HR_PAYROLL_MANAGER')}
+                onClick={() => setDemoAccount('payrolluser@ex.com', 'HR_PAYROLL_USER')}
                 className={`px-3 py-1 bg-white border border-slate-200 rounded-full transition-all cursor-pointer shadow-2xs ${
-                  activePersona === 'HR_PAYROLL_MANAGER' ? 'text-purple-600 border-purple-500' : 'text-slate-700 hover:text-purple-600'
+                  activePersona === 'HR_PAYROLL_USER' ? 'text-indigo-600 border-indigo-500 font-extrabold' : 'text-slate-700 hover:text-indigo-600'
+                }`}
+              >
+                Payroll User
+              </button>
+              <button
+                type="button"
+                onClick={() => setDemoAccount('payrollmanager@ex.com', 'HR_PAYROLL_MANAGER')}
+                className={`px-3 py-1 bg-white border border-slate-200 rounded-full transition-all cursor-pointer shadow-2xs ${
+                  activePersona === 'HR_PAYROLL_MANAGER' ? 'text-purple-600 border-purple-500 font-extrabold' : 'text-slate-700 hover:text-purple-600'
                 }`}
               >
                 Payroll Manager
               </button>
               <button
                 type="button"
-                onClick={() => setDemoAccount('rahul@example.com', 'EMPLOYEE')}
+                onClick={() => setDemoAccount('employee@ex.com', 'EMPLOYEE')}
                 className={`px-3 py-1 bg-white border border-slate-200 rounded-full transition-all cursor-pointer shadow-2xs ${
-                  activePersona === 'EMPLOYEE' ? 'text-indigo-600 border-indigo-500' : 'text-slate-700 hover:text-indigo-600'
+                  activePersona === 'EMPLOYEE' ? 'text-emerald-600 border-emerald-500 font-extrabold' : 'text-slate-700 hover:text-emerald-600'
                 }`}
               >
                 Employee

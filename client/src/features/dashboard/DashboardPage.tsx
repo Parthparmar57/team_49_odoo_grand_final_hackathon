@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { apiClient } from '../../api/client';
-import { Link, useSearchParams } from 'react-router-dom';
-import { CreateUserPage } from '../admin/CreateUserPage';
+import { Link } from 'react-router-dom';
 import {
   Zap,
   Users,
@@ -17,7 +16,6 @@ import {
   Mail,
   Calendar,
   Shield,
-  LayoutDashboard,
 } from 'lucide-react';
 
 interface OverviewMetrics {
@@ -30,14 +28,8 @@ interface OverviewMetrics {
 
 export const DashboardPage: React.FC = () => {
   const { user } = useAuth();
-  const [searchParams] = useSearchParams();
   const [metrics, setMetrics] = useState<OverviewMetrics | null>(null);
   const [isLoadingMetrics, setIsLoadingMetrics] = useState<boolean>(true);
-
-  // If URL query string specifies ?role=admin, render Admin User Access & RBAC page directly
-  if (searchParams.get('role')?.toLowerCase() === 'admin') {
-    return <CreateUserPage />;
-  }
 
   useEffect(() => {
     const loadOverview = async () => {

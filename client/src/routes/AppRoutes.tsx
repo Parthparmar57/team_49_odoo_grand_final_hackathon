@@ -66,15 +66,7 @@ export const AppRoutes: React.FC = () => {
       >
         <Route path="/dashboard" element={<DashboardPage />} />
 
-        {/* Admin Only Routes */}
-        <Route
-          path="/admin/users/new"
-          element={
-            <RoleGuard allowedRoles={['ADMIN']}>
-              <CreateUserPage />
-            </RoleGuard>
-          }
-        />
+        {/* Single Dedicated Admin User Management Route */}
         <Route
           path="/admin/users"
           element={
@@ -83,33 +75,116 @@ export const AppRoutes: React.FC = () => {
             </RoleGuard>
           }
         />
+
+        {/* HR & Payroll Core Module Routes */}
         <Route
-          path="/admin"
+          path="/employees"
           element={
-            <RoleGuard allowedRoles={['ADMIN']}>
-              <CreateUserPage />
+            <RoleGuard allowedRoles={['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER']}>
+              <EmployeesPage />
+            </RoleGuard>
+          }
+        />
+        <Route
+          path="/employees/new"
+          element={
+            <RoleGuard allowedRoles={['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_MANAGER']}>
+              <EmployeeForm />
+            </RoleGuard>
+          }
+        />
+        <Route
+          path="/employees/:id"
+          element={
+            <RoleGuard allowedRoles={['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER']}>
+              <EmployeeDetail />
+            </RoleGuard>
+          }
+        />
+        <Route
+          path="/employees/:id/edit"
+          element={
+            <RoleGuard allowedRoles={['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_MANAGER']}>
+              <EmployeeForm />
             </RoleGuard>
           }
         />
 
-        {/* HR & Payroll Core Module Routes */}
-        <Route path="/employees" element={<EmployeesPage />} />
-        <Route path="/employees/new" element={<EmployeeForm />} />
-        <Route path="/employees/:id" element={<EmployeeDetail />} />
-        <Route path="/employees/:id/edit" element={<EmployeeForm />} />
+        <Route
+          path="/contracts"
+          element={
+            <RoleGuard allowedRoles={['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER']}>
+              <ContractsPage />
+            </RoleGuard>
+          }
+        />
+        <Route
+          path="/contracts/new"
+          element={
+            <RoleGuard allowedRoles={['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_MANAGER']}>
+              <ContractForm />
+            </RoleGuard>
+          }
+        />
+        <Route
+          path="/contracts/:id/edit"
+          element={
+            <RoleGuard allowedRoles={['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_MANAGER']}>
+              <ContractForm />
+            </RoleGuard>
+          }
+        />
 
-        <Route path="/contracts" element={<ContractsPage />} />
-        <Route path="/contracts/new" element={<ContractForm />} />
-        <Route path="/contracts/:id/edit" element={<ContractForm />} />
-
-        <Route path="/schedules" element={<SchedulesPage />} />
-        <Route path="/attendance" element={<AttendancePage />} />
-        <Route path="/leave" element={<TimeOffPage />} />
+        <Route
+          path="/schedules"
+          element={
+            <RoleGuard allowedRoles={['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER']}>
+              <SchedulesPage />
+            </RoleGuard>
+          }
+        />
+        <Route
+          path="/attendance"
+          element={
+            <RoleGuard allowedRoles={['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER', 'EMPLOYEE']}>
+              <AttendancePage />
+            </RoleGuard>
+          }
+        />
+        <Route
+          path="/leave"
+          element={
+            <RoleGuard allowedRoles={['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER', 'EMPLOYEE']}>
+              <TimeOffPage />
+            </RoleGuard>
+          }
+        />
         
-        <Route path="/payroll" element={<PayrollPage />} />
-        <Route path="/payroll/payruns/:id" element={<PayrunDetail />} />
+        <Route
+          path="/payroll"
+          element={
+            <RoleGuard allowedRoles={['ADMIN', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER']}>
+              <PayrollPage />
+            </RoleGuard>
+          }
+        />
+        <Route
+          path="/payroll/payruns/:id"
+          element={
+            <RoleGuard allowedRoles={['ADMIN', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER']}>
+              <PayrunDetail />
+            </RoleGuard>
+          }
+        />
 
-        <Route path="/email-logs" element={<DashboardPage />} />
+        <Route
+          path="/email-logs"
+          element={
+            <RoleGuard allowedRoles={['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER']}>
+              <DashboardPage />
+            </RoleGuard>
+          }
+        />
       </Route>
 
       {/* Catch-all redirect */}
