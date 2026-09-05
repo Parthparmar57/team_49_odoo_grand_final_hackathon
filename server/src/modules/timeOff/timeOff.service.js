@@ -537,11 +537,7 @@ export class TimeOffService {
             }
 
             if (request.status !== LeaveRequestStatus.PENDING) {
-<<<<<<< Updated upstream
-                throw new AppError(`Cannot approve leave request in status ${request.status}`, 400, 'INVALID_STATE_TRANSITION');
-=======
                 throw new AppError(`Cannot approve request with status '${request.status}' (Must be PENDING)`, 400, 'INVALID_STATE_TRANSITION');
->>>>>>> Stashed changes
             }
 
             // Revalidate balance inside transaction
@@ -589,13 +585,7 @@ export class TimeOffService {
                     action: 'LEAVE_REQUEST_APPROVED',
                     entity: 'LeaveRequest',
                     entityId: requestId,
-<<<<<<< Updated upstream
-                    actorId: reviewerUserId,
-                    oldValue: { status: request.status },
-                    newValue: { status: LeaveRequestStatus.APPROVED },
-=======
-                    metadata: { duration: request.duration, employeeId: request.employeeId },
->>>>>>> Stashed changes
+                    metadata: { oldValue: { status: request.status }, newValue: { status: LeaveRequestStatus.APPROVED }, duration: request.duration, employeeId: request.employeeId },
                 },
             });
 
@@ -618,11 +608,7 @@ export class TimeOffService {
         }
 
         if (request.status !== LeaveRequestStatus.PENDING) {
-<<<<<<< Updated upstream
-            throw new AppError(`Cannot refuse leave request in status ${request.status}`, 400, 'INVALID_STATE_TRANSITION');
-=======
             throw new AppError(`Cannot refuse request with status '${request.status}' (Must be PENDING)`, 400, 'INVALID_STATE_TRANSITION');
->>>>>>> Stashed changes
         }
 
         const updated = await prisma.leaveRequest.update({
@@ -753,15 +739,8 @@ export class TimeOffService {
                 actorId: actorUserId,
                 action: 'LEAVE_REQUEST_UPDATED',
                 entity: 'LeaveRequest',
-<<<<<<< Updated upstream
-                entityId: requestId,
-                actorId: reviewerUserId,
-                oldValue: { status: request.status },
-                newValue: { status: LeaveRequestStatus.REFUSED, rejectionReason },
-=======
                 entityId: id,
                 metadata: { oldValue: existing, newValue: updated },
->>>>>>> Stashed changes
             },
         });
 
