@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { motion, AnimatePresence, Variants } from 'framer-motion';
+import { motion, Variants } from 'framer-motion';
 import { apiClient } from '../../api/client';
 import {
   Sparkle,
@@ -8,27 +8,49 @@ import {
   CheckCircle,
   ArrowRight,
   UsersThree,
-  EnvelopeSimple,
   ChartLineUp,
   ShieldCheck,
-  Tag,
-  ChatCircleDots,
-  LockKey,
-  Database,
-  CreditCard,
   Briefcase,
-  Robot,
+  CalendarCheck,
+  FileText,
+  Clock,
+  Printer,
 } from '@phosphor-icons/react';
 
 // --- SILKY CINEMATIC FRAMER MOTION ANIMATION VARIANTS ---
 const fadeInUpVariants: Variants = {
-  hidden: { opacity: 0, y: 40, filter: 'blur(4px)' },
+  hidden: { opacity: 0, y: 35, filter: 'blur(4px)' },
   visible: {
     opacity: 1,
     y: 0,
     filter: 'blur(0px)',
     transition: {
-      duration: 1.05,
+      duration: 0.85,
+      ease: [0.16, 1, 0.3, 1]
+    }
+  }
+};
+
+const textRevealVariants: Variants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.7,
+      ease: [0.16, 1, 0.3, 1]
+    }
+  }
+};
+
+const cardScaleVariants: Variants = {
+  hidden: { opacity: 0, y: 30, scale: 0.95 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      duration: 0.7,
       ease: [0.16, 1, 0.3, 1]
     }
   }
@@ -39,130 +61,68 @@ const staggerContainerVariants: Variants = {
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.16,
-      delayChildren: 0.12
+      staggerChildren: 0.12,
+      delayChildren: 0.08
     }
   }
 };
 
 const heroScaleVariants: Variants = {
-  hidden: { opacity: 0, y: 55, scale: 0.94, filter: 'blur(6px)' },
+  hidden: { opacity: 0, y: 50, scale: 0.95, filter: 'blur(6px)' },
   visible: {
     opacity: 1,
     y: 0,
     scale: 1,
     filter: 'blur(0px)',
     transition: {
-      duration: 1.3,
+      duration: 1.15,
       ease: [0.16, 1, 0.3, 1],
-      delay: 0.2
+      delay: 0.1
     }
   }
 };
 
-// --- PREMIUM PHOSPHOR & HEROICONS (Ultra-sleek duotone & vector enterprise icons) ---
+// --- ICON COMPONENTS ---
 const ArrowRightIcon = () => (
   <ArrowRight weight="bold" className="w-4 h-4 ml-1.5 inline-block transition-transform group-hover:translate-x-1" />
-);
-
-const CheckIcon = ({ className = "w-4 h-4 text-emerald-500 mr-2 flex-shrink-0" }: { className?: string }) => (
-  <CheckCircle weight="fill" className={className} />
 );
 
 const ZapIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
   <Lightning weight="fill" className={className} />
 );
 
-const SparklesIcon = () => (
-  <Sparkle weight="fill" className="w-4 h-4 text-amber-500 inline-block mr-1.5 animate-pulse" />
-);
-
 const UsersIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
   <UsersThree weight="duotone" className={className} />
-);
-
-const MailIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
-  <EnvelopeSimple weight="duotone" className={className} />
 );
 
 const ChartBarIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
   <ChartLineUp weight="duotone" className={className} />
 );
 
-const ShieldCheckIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
-  <ShieldCheck weight="duotone" className={className} />
-);
-
-const TagIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
-  <Tag weight="duotone" className={className} />
-);
-
-const MessageSquareIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
-  <ChatCircleDots weight="duotone" className={className} />
-);
-
-const LockIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
-  <LockKey weight="duotone" className={className} />
-);
-
-const DatabaseIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
-  <Database weight="duotone" className={className} />
-);
-
-const CreditCardIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
-  <CreditCard weight="duotone" className={className} />
-);
-
 const BriefcaseIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
   <Briefcase weight="duotone" className={className} />
 );
 
-const BotIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
-  <Robot weight="duotone" className={className} />
+const FileTextIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <FileText weight="duotone" className={className} />
 );
 
-// --- SOCIAL MEDIA ICONS ---
-const FacebookIcon = () => (
-  <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-    <path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" />
-  </svg>
+const ClockIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <Clock weight="duotone" className={className} />
 );
 
-const InstagramIcon = () => (
-  <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
-  </svg>
+const CalendarIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <CalendarCheck weight="duotone" className={className} />
 );
 
-const XTwitterIcon = () => (
-  <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-  </svg>
-);
-
-const LinkedInIcon = () => (
-  <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-    <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
-  </svg>
+const PrinterIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <Printer weight="duotone" className={className} />
 );
 
 export const LandingPage: React.FC = () => {
-  // Backend API connection state
   const [apiStatus, setApiStatus] = useState<'checking' | 'online' | 'offline'>('checking');
-
-  // State for Live Sandbox Tab
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'email-demo' | 'payroll'>('dashboard');
-  const [demoState, setDemoState] = useState<'idle' | 'extracting' | 'validating' | 'completed'>('idle');
-  const [selectedSampleEmail, setSelectedSampleEmail] = useState(0);
-
-  // State for Interactive Pricing Calculator
-  const [employeeCount, setEmployeeCount] = useState<number>(25);
-  const [currency, setCurrency] = useState<'INR' | 'USD' | 'EUR'>('INR');
-
-  // State for FAQ Accordion
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'payroll' | 'leave'>('dashboard');
   const [openFaq, setOpenFaq] = useState<number | null>(0);
-
-  // Scroll detection for dynamic header shape (rectangle at top, circular pill on scroll)
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
@@ -173,134 +133,80 @@ export const LandingPage: React.FC = () => {
         setIsScrolled(false);
       }
     };
-
     window.addEventListener('scroll', handleScroll, { passive: true });
     handleScroll();
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Check Backend Health on Mount
   useEffect(() => {
     apiClient.checkHealth()
       .then((res) => {
-        if (res.success) {
-          setApiStatus('online');
-        } else {
-          setApiStatus('offline');
-        }
+        if (res.success) setApiStatus('online');
+        else setApiStatus('offline');
       })
       .catch(() => setApiStatus('offline'));
   }, []);
 
-  const sampleEmails = [
-    {
-      sender: "rahul.sharma@company.com",
-      subject: "Leave Request - Family Function",
-      body: "Hi HR Team,\nI need leave from 10 September 2026 to 12 September 2026 due to a family function.\nRegards,\nRahul",
-      type: "Casual Leave",
-      dates: "Sep 10 - Sep 12 (3 days)",
-      confidence: "96%"
-    },
-    {
-      sender: "priya.patel@company.com",
-      subject: "Urgent Sick Leave",
-      body: "Hello HR,\nI am suffering from severe flu and won't be able to join work today and tomorrow (Sep 15 - Sep 16).\nThanks,\nPriya",
-      type: "Sick Leave",
-      dates: "Sep 15 - Sep 16 (2 days)",
-      confidence: "98%"
-    }
-  ];
-
-  const handleSimulateAI = async () => {
-    setDemoState('extracting');
-    const email = sampleEmails[selectedSampleEmail];
-
-    try {
-      await apiClient.sendInboundEmail({
-        senderEmail: email.sender,
-        subject: email.subject,
-        body: email.body,
-      });
-      setDemoState('validating');
-      setTimeout(() => {
-        setDemoState('completed');
-      }, 800);
-    } catch {
-      setTimeout(() => {
-        setDemoState('validating');
-        setTimeout(() => {
-          setDemoState('completed');
-        }, 1000);
-      }, 1000);
-    }
-  };
-
-  const getPerEmployeeRate = () => {
-    if (currency === 'INR') return 650;
-    if (currency === 'USD') return 8;
-    return 7.5;
-  };
-
-  const getCurrencySymbol = () => {
-    if (currency === 'INR') return '₹';
-    if (currency === 'USD') return '$';
-    return '€';
-  };
-
-  const calculateTotal = () => {
-    return (employeeCount * getPerEmployeeRate()).toLocaleString();
-  };
-
   const faqs = [
     {
-      question: "What is PeoplePay360?",
-      answer: "PeoplePay360 is an integrated HR & Payroll platform that converts natural-language employee emails into validated leave requests, keeps humans in control of approvals, and automates downstream payroll calculations."
+      question: "What makes PeoplePay360 different from isolated HR software?",
+      answer: "PeoplePay360 unifies Employee Master Data, Period-Based Contracts, Working Schedules, Attendance Tracking, Leave Allocations, and Payruns into one connected operational workflow, ensuring payroll always reflects active contract terms and verified attendance without manual spreadsheets."
     },
     {
-      question: "Does AI make final leave approval decisions?",
-      answer: "No. AI parses, validates, and recommends structured requests, but an authorized human HR manager retains 100% final authority to approve or refuse leave."
+      question: "How does period-specific contract management work?",
+      answer: "When executing a Payrun for a specific period (e.g. September 2026), PeoplePay360 automatically evaluates and applies the exact contract valid during that timeframe, accurately accommodating wage changes, position updates, and structural adjustments."
     },
     {
-      question: "How does period-specific contract selection work?",
-      answer: "When generating a payrun for a period (e.g. September 2026), PeoplePay360 automatically selects only the contract active during that exact validity window."
+      question: "What is the 2-Step Payrun Creation Wizard?",
+      answer: "Instead of immediately creating a batch record, the wizard first lets you define period scope and salary structure overrides, then filters and lets you explicitly select eligible staff before building and opening the processing view."
     },
     {
-      question: "How does PeoplePay360 handle employee privacy?",
-      answer: "We enforce strict role-based access control (RBAC), end-to-end data encryption, and auditable MCP tool permissions. Data is never shared or used to train public models."
+      question: "How are leave balances and allocations handled?",
+      answer: "Time off types define leave policies and allocation rules. Approved leave requests automatically deduct from employee balances in real-time, ensuring clear balances and accurate payroll adjustments."
+    },
+    {
+      question: "How are payslips generated and delivered to employees?",
+      answer: "Payslips calculated during Payruns break down Basic, Allowances, Deductions, Gross, and Net amounts. Officers can generate individual printable PDFs or use the bulk Send Payslips action for automated email distribution."
     }
   ];
 
   return (
-    <div className="min-h-screen bg-[#FAF9F6] text-slate-900 font-sans selection:bg-orange-100 selection:text-orange-600 flex flex-col">
+    <div className="min-h-screen bg-[#FAF9F6] text-slate-900 font-sans selection:bg-orange-100 selection:text-orange-600 flex flex-col overflow-x-hidden">
 
       {/* 1. TOP ANNOUNCEMENT BANNER */}
-      <div className="bg-slate-900 text-white text-xs py-2 px-4 text-center font-medium flex items-center justify-center gap-2">
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="bg-slate-900 text-white text-xs py-2 px-4 text-center font-medium flex items-center justify-center gap-2"
+      >
         <span className="bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold px-2 py-0.5 rounded-full text-[10px] uppercase tracking-wider flex items-center gap-1">
-          <ZapIcon className="w-3 h-3 fill-current" /> EVENT
+          <ZapIcon className="w-3 h-3 fill-current" /> PLATFORM
         </span>
-        <span>We're presenting <strong>PeoplePay360</strong> at Odoo Grand Final Hackathon 2026!</span>
+        <span>PeoplePay360 — Integrated HR & Payroll Operations Suite</span>
         <a href="#features" className="underline hover:text-orange-300 transition ml-1 hidden sm:inline">
-          Explore AI Leave Automation →
+          Explore Core Modules →
         </a>
-      </div>
+      </motion.div>
 
-      {/* 2. DYNAMIC NAVIGATION BAR (Full-screen rectangle at top, Circular pill when scrolled) */}
+      {/* 2. DYNAMIC NAVIGATION BAR */}
       <motion.header
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-        className={`sticky z-50 transition-all duration-300 w-full ${isScrolled
-          ? 'top-3 max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 mt-2'
-          : 'top-0 max-w-full px-0 mt-0'
-          }`}
+        className={`sticky z-50 transition-all duration-300 w-full ${
+          isScrolled
+            ? 'top-3 max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 mt-2'
+            : 'top-0 max-w-full px-0 mt-0'
+        }`}
       >
         <nav
-          className={`transition-all duration-300 flex items-center justify-between ${isScrolled
-            ? 'bg-white/90 backdrop-blur-md border border-slate-200/80 rounded-full px-6 py-3 shadow-lg hover:shadow-xl'
-            : 'bg-white/95 backdrop-blur-md border-b border-slate-200/80 rounded-none px-6 sm:px-12 py-4 shadow-sm'
-            }`}
+          className={`transition-all duration-300 flex items-center justify-between ${
+            isScrolled
+              ? 'bg-white/90 backdrop-blur-md border border-slate-200/80 rounded-full px-6 py-3 shadow-lg hover:shadow-xl'
+              : 'bg-white/95 backdrop-blur-md border-b border-slate-200/80 rounded-none px-6 sm:px-12 py-4 shadow-sm'
+          }`}
         >
-
           {/* Logo */}
           <div className="flex items-center">
             <a href="#home">
@@ -311,22 +217,25 @@ export const LandingPage: React.FC = () => {
           {/* Navigation Links */}
           <div className="hidden md:flex items-center gap-7 text-sm font-semibold text-slate-600">
             <a href="#home" className="text-orange-600 font-bold hover:text-orange-600 transition">Home</a>
-            <a href="#benefits" className="hover:text-orange-600 transition">Benefits</a>
-            <a href="#features" className="hover:text-orange-600 transition">Features</a>
+            <a href="#overview" className="hover:text-orange-600 transition">Overview</a>
+            <a href="#workflow" className="hover:text-orange-600 transition">Operations Workflow</a>
+            <a href="#roles" className="hover:text-orange-600 transition">User Roles</a>
             <a href="#faq" className="hover:text-orange-600 transition">FAQ</a>
           </div>
 
           {/* Action Buttons */}
           <div className="flex items-center gap-3">
-            <Link
-              to="/auth/login"
-              className="group inline-flex items-center justify-center px-5 py-2 text-xs font-bold text-white bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-500 hover:to-amber-600 rounded-full transition shadow-md shadow-orange-500/25"
-            >
-              <span>Sign In</span>
-              <div className="w-4 h-4 ml-1.5 rounded-full bg-white/20 flex items-center justify-center group-hover:translate-x-0.5 transition-transform">
-                <ArrowRightIcon />
-              </div>
-            </Link>
+            <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}>
+              <Link
+                to="/auth/login"
+                className="group inline-flex items-center justify-center px-5 py-2 text-xs font-bold text-white bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-500 hover:to-amber-600 rounded-full transition shadow-md shadow-orange-500/25"
+              >
+                <span>Sign Up</span>
+                <div className="w-4 h-4 ml-1.5 rounded-full bg-white/20 flex items-center justify-center group-hover:translate-x-0.5 transition-transform">
+                  <ArrowRightIcon />
+                </div>
+              </Link>
+            </motion.div>
           </div>
         </nav>
       </motion.header>
@@ -334,7 +243,7 @@ export const LandingPage: React.FC = () => {
       {/* MAIN CONTENT AREA */}
       <main className="flex-grow">
 
-        {/* 3. HERO SECTION (FIRST VIEWPORT) */}
+        {/* 3. HERO SECTION */}
         <section id="home" className="relative min-h-[calc(100vh-80px)] md:min-h-[calc(100vh-90px)] flex flex-col items-center justify-center py-12 md:py-16 overflow-hidden hero-gradient-bg">
           <motion.div
             initial="hidden"
@@ -342,76 +251,41 @@ export const LandingPage: React.FC = () => {
             variants={staggerContainerVariants}
             className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10 my-auto"
           >
-
             {/* Tag Pill */}
-            <motion.div variants={fadeInUpVariants} className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-orange-50 border border-orange-200/80 mb-6 text-xs font-semibold text-orange-700 shadow-sm animate-pulse-slow">
-              <span className="bg-orange-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">New</span>
-              <span>AI Email-to-Workflow Leave & Payroll Engine</span>
+            <motion.div variants={fadeInUpVariants} className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-orange-50 border border-orange-200/80 mb-6 text-xs font-semibold text-orange-700 shadow-sm">
+              <span className="bg-orange-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Enterprise HR Suite</span>
+              <span>Unified Employee Master, Attendance, Time Off & Payroll Engine</span>
             </motion.div>
 
             {/* Main Headline */}
             <motion.h1 variants={fadeInUpVariants} className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-950 leading-[1.12]">
-              <span className="gradient-text-brand">PeoplePay360</span> — Transform Employee Emails Into <span className="text-orange-600">Automated Workflows</span>
+              <span className="gradient-text-brand">PeoplePay360</span> — Seamless HR & Payroll <span className="text-orange-600">Operational Experience</span>
             </motion.h1>
 
             {/* Subtitle */}
             <motion.p variants={fadeInUpVariants} className="mt-6 text-base sm:text-lg text-slate-600 max-w-3xl mx-auto font-normal leading-relaxed">
-              Simulate real-world leave requests from natural-language emails, automate entity extraction, connect period-specific contracts to payroll, and maintain human authorization effortlessly.
+              Connect employee profiles, period-specific contracts, working schedules, attendance exceptions, and leave allocations directly into automated payruns, payslips, and strategic dashboard reporting.
             </motion.p>
 
-            {/* Centered Hero CTA with Decorative SVG Line Container */}
+            {/* Centered Hero CTA */}
             <motion.div variants={fadeInUpVariants} className="relative mt-9 mb-8 flex items-center justify-center">
-              {/* Decorative Outlined SVG Line Treatment */}
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
-                <svg className="w-full max-w-4xl h-24 overflow-visible" viewBox="0 0 800 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <defs>
-                    <linearGradient id="heroLineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                      <stop offset="0%" stopColor="#06B6D4" stopOpacity="0.12" />
-                      <stop offset="25%" stopColor="#FF5E1E" stopOpacity="0.35" />
-                      <stop offset="50%" stopColor="#F59E0B" stopOpacity="0.5" />
-                      <stop offset="75%" stopColor="#FF5E1E" stopOpacity="0.35" />
-                      <stop offset="100%" stopColor="#06B6D4" stopOpacity="0.12" />
-                    </linearGradient>
-                  </defs>
-
-                  {/* Top & Bottom Angular Notch Lines */}
-                  <path
-                    d="M 0 40 H 270 L 310 12 H 490 L 530 40 H 800"
-                    stroke="url(#heroLineGrad)"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                  />
-                  <path
-                    d="M 0 40 H 270 L 310 68 H 490 L 530 40 H 800"
-                    stroke="url(#heroLineGrad)"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                  />
-
-                  {/* Vertex Accent Dots */}
-                  <circle cx="310" cy="12" r="2" fill="#FF5E1E" fillOpacity="0.5" />
-                  <circle cx="490" cy="12" r="2" fill="#F59E0B" fillOpacity="0.5" />
-                  <circle cx="310" cy="68" r="2" fill="#FF5E1E" fillOpacity="0.5" />
-                  <circle cx="490" cy="68" r="2" fill="#F59E0B" fillOpacity="0.5" />
-                </svg>
-              </div>
-
-              {/* Single Centered Premium Hero CTA Pill Button */}
-              <Link
-                to="/auth/login"
-                className="relative z-10 group inline-flex items-center gap-3 px-6 py-2.5 sm:px-7 sm:py-3 text-sm font-bold text-white bg-gradient-to-r from-orange-600 via-amber-500 to-orange-600 bg-[length:200%_auto] hover:bg-right rounded-full shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 border border-white/20"
-              >
-                <span className="tracking-wide">Get Started</span>
-                <div className="w-6 h-6 sm:w-6.5 sm:h-6.5 rounded-full bg-white text-orange-600 flex items-center justify-center shadow-xs group-hover:translate-x-1 transition-transform">
-                  <ArrowRight weight="bold" className="w-3.5 h-3.5 fill-current" />
-                </div>
-              </Link>
+              <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}>
+                <Link
+                  to="/auth/login"
+                  className="relative z-10 group inline-flex items-center gap-3 px-7 py-3 text-sm font-bold text-white bg-gradient-to-r from-orange-600 via-amber-500 to-orange-600 bg-[length:200%_auto] hover:bg-right rounded-full shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40 transition-all duration-300 border border-white/20"
+                >
+                  <span className="tracking-wide">Open HR & Payroll Workspace</span>
+                  <div className="w-6 h-6 rounded-full bg-white text-orange-600 flex items-center justify-center shadow-xs group-hover:translate-x-1 transition-transform">
+                    <ArrowRight weight="bold" className="w-3.5 h-3.5 fill-current" />
+                  </div>
+                </Link>
+              </motion.div>
             </motion.div>
           </motion.div>
         </section>
 
-        {/* 4. LIVE INTERACTIVE DASHBOARD PREVIEW SECTION (NEXT SECTION BELOW HERO) */}
-        <section id="demo" className="pt-16 pb-24 md:pt-20 md:pb-32 hero-gradient-bg">
+        {/* 4. LIVE INTERACTIVE SYSTEM PREVIEW */}
+        <section id="overview" className="pt-12 pb-24 md:pt-16 md:pb-28 hero-gradient-bg">
           <motion.div
             initial="hidden"
             whileInView="visible"
@@ -421,16 +295,16 @@ export const LandingPage: React.FC = () => {
           >
             <div className="card-hero-glow rounded-3xl p-4 sm:p-6 shadow-2xl relative overflow-hidden border border-slate-200">
 
-              {/* Top Preview Control Header */}
+              {/* Control Header */}
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-4 mb-4 border-b border-slate-200/80 gap-3">
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 rounded-full bg-red-400"></div>
                   <div className="w-3 h-3 rounded-full bg-amber-400"></div>
                   <div className="w-3 h-3 rounded-full bg-emerald-400"></div>
-                  <span className="ml-2 text-xs font-semibold text-slate-400">app.peoplepay360.com / workspace</span>
-                  <span className={`ml-2 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 border ${apiStatus === 'online' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-500 border-slate-200'}`}>
+                  <span className="ml-2 text-xs font-bold text-slate-700">PeoplePay360 Workspace Overview</span>
+                  <span className={`ml-2 text-[10px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1 border ${apiStatus === 'online' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-600 border-slate-200'}`}>
                     <span className={`w-1.5 h-1.5 rounded-full ${apiStatus === 'online' ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`}></span>
-                    {apiStatus === 'online' ? 'Backend Connected' : 'Local Mode'}
+                    {apiStatus === 'online' ? 'System Live' : 'Operational'}
                   </span>
                 </div>
 
@@ -441,1063 +315,461 @@ export const LandingPage: React.FC = () => {
                     className={`px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 ${activeTab === 'dashboard' ? 'bg-white text-orange-600 shadow-sm font-bold' : 'hover:text-slate-900'}`}
                   >
                     <ChartBarIcon className="w-3.5 h-3.5" />
-                    <span>Live Dashboard</span>
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('email-demo')}
-                    className={`px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 ${activeTab === 'email-demo' ? 'bg-white text-orange-600 shadow-sm font-bold' : 'hover:text-slate-900'}`}
-                  >
-                    <ZapIcon className="w-3.5 h-3.5" />
-                    <span>AI Email Sandbox</span>
+                    <span>Payroll Dashboard</span>
                   </button>
                   <button
                     onClick={() => setActiveTab('payroll')}
                     className={`px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 ${activeTab === 'payroll' ? 'bg-white text-orange-600 shadow-sm font-bold' : 'hover:text-slate-900'}`}
                   >
                     <BriefcaseIcon className="w-3.5 h-3.5" />
-                    <span>Payroll Engine</span>
+                    <span>Payrun Batches</span>
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('leave')}
+                    className={`px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 ${activeTab === 'leave' ? 'bg-white text-orange-600 shadow-sm font-bold' : 'hover:text-slate-900'}`}
+                  >
+                    <CalendarIcon className="w-3.5 h-3.5" />
+                    <span>Time Off & Attendance</span>
                   </button>
                 </div>
               </div>
 
-              {/* TAB 1: LIVE DASHBOARD PREVIEW MATCHING SCREENSHOT EXACTLY */}
+              {/* TAB 1: LIVE PAYROLL DASHBOARD */}
               {activeTab === 'dashboard' && (
-                <div className="bg-white/95 text-slate-900 p-6 sm:p-8 rounded-2xl border border-slate-200/90 shadow-xl font-sans text-xs space-y-7 text-left">
-
-                  {/* Top Welcome Header Bar */}
+                <motion.div
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4 }}
+                  className="bg-white/95 text-slate-900 p-6 sm:p-8 rounded-2xl border border-slate-200/90 shadow-xl font-sans text-xs space-y-7 text-left"
+                >
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-5 border-b border-slate-100 gap-4">
                     <div>
-                      <h2 className="text-xl sm:text-2xl font-extrabold text-slate-950 tracking-tight flex items-center gap-2">
-                        Good afternoon, Mohit <span className="text-xl">👋</span>
+                      <h2 className="text-xl sm:text-2xl font-extrabold text-slate-950 tracking-tight">
+                        Payroll & Operational Analytics Dashboard
                       </h2>
                       <p className="text-xs text-slate-500 mt-1 font-medium">
-                        Here's what's happening across your HR & payroll workspace.
+                        Real-time aggregate data across Employee Master, Contracts, Attendance, Time Off, and Payroll modules.
                       </p>
                     </div>
-
                     <div className="flex items-center gap-3">
-                      <button className="px-4 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-200/90 rounded-full shadow-2xs hover:bg-slate-50 transition">
-                        View Reports
-                      </button>
-                      <button className="px-5 py-2 text-xs font-bold text-white bg-gradient-to-r from-orange-600 to-amber-500 rounded-full shadow-md shadow-orange-500/20 hover:opacity-95 transition flex items-center gap-1.5">
-                        <span>+ New Payrun</span>
-                      </button>
+                      <Link to="/auth/login" className="px-4 py-2 text-xs font-bold text-white bg-gradient-to-r from-orange-600 to-amber-500 rounded-full shadow-md hover:opacity-95 transition">
+                        Manage Live Workspace →
+                      </Link>
                     </div>
                   </div>
 
-                  {/* 4 Top Stat KPI Metric Cards */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-
-                    {/* Card 1: Active Payruns */}
-                    <div className="bg-slate-50/70 p-4 rounded-2xl border border-slate-200/70 shadow-2xs flex items-center gap-3 hover:bg-slate-50 transition">
-                      <div className="w-10 h-10 rounded-xl bg-orange-100/80 text-orange-600 flex items-center justify-center shrink-0">
-                        <ZapIcon className="w-5 h-5 text-orange-600" />
-                      </div>
-                      <div>
-                        <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Active Payruns</div>
-                        <div className="text-2xl font-black text-slate-900 mt-0.5">4</div>
-                        <div className="text-[10px] text-slate-400 font-medium">4 total payruns</div>
-                      </div>
-                    </div>
-
-                    {/* Card 2: Total Employees */}
-                    <div className="bg-slate-50/70 p-4 rounded-2xl border border-slate-200/70 shadow-2xs flex items-center gap-3 hover:bg-slate-50 transition">
-                      <div className="w-10 h-10 rounded-xl bg-purple-100/80 text-purple-600 flex items-center justify-center shrink-0">
-                        <UsersIcon className="w-5 h-5 text-purple-600" />
-                      </div>
-                      <div>
-                        <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Total Employees</div>
-                        <div className="text-2xl font-black text-slate-900 mt-0.5">42</div>
-                        <div className="text-[10px] text-slate-400 font-medium">42 active</div>
-                      </div>
-                    </div>
-
-                    {/* Card 3: High-Risk Flags */}
-                    <div className="bg-slate-50/70 p-4 rounded-2xl border border-slate-200/70 shadow-2xs flex items-center gap-3 hover:bg-slate-50 transition">
-                      <div className="w-10 h-10 rounded-xl bg-rose-100/80 text-rose-600 flex items-center justify-center shrink-0">
-                        <ShieldCheckIcon className="w-5 h-5 text-rose-600" />
-                      </div>
-                      <div>
-                        <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">High-Risk Flags</div>
-                        <div className="text-2xl font-black text-slate-900 mt-0.5">0</div>
-                        <div className="text-[10px] text-slate-400 font-medium">0 compliance flags</div>
-                      </div>
-                    </div>
-
-                    {/* Card 4: Avg. Attendance */}
-                    <div className="bg-slate-50/70 p-4 rounded-2xl border border-slate-200/70 shadow-2xs flex items-center gap-3 hover:bg-slate-50 transition">
-                      <div className="w-10 h-10 rounded-xl bg-amber-100/80 text-amber-600 flex items-center justify-center shrink-0">
-                        <ChartBarIcon className="w-5 h-5 text-amber-600" />
-                      </div>
-                      <div>
-                        <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Avg. Attendance</div>
-                        <div className="text-2xl font-black text-slate-900 mt-0.5">98%</div>
-                        <div className="text-[10px] text-slate-400 font-medium">across live contracts</div>
-                      </div>
-                    </div>
-
-                  </div>
-
-                  {/* Middle Grid: Left RATE TRENDS Chart & Right OUTCOMES Donut Chart */}
-                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-
-                    {/* RATE TRENDS Line Chart (8/12 span) */}
-                    <div className="lg:col-span-7 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs flex flex-col justify-between space-y-4">
-                      <div>
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <h4 className="text-[11px] font-extrabold uppercase tracking-wider text-slate-900">RATE TRENDS</h4>
-                            <p className="text-[11px] text-slate-400 mt-0.5">How open, click, leave, and payrun rates have moved across recent periods.</p>
-                          </div>
-                          <a href="#demo" className="text-orange-600 text-xs font-bold hover:underline shrink-0">
-                            Full report →
-                          </a>
-                        </div>
-
-                        {/* Chart Color Legends */}
-                        <div className="flex items-center justify-end gap-4 text-[10px] font-bold text-slate-600 mt-3">
-                          <span className="flex items-center gap-1.5"><span className="w-2.5 h-0.5 bg-cyan-500 rounded-full"></span> Leave %</span>
-                          <span className="flex items-center gap-1.5"><span className="w-2.5 h-0.5 bg-amber-500 rounded-full"></span> Payroll %</span>
-                          <span className="flex items-center gap-1.5"><span className="w-2.5 h-0.5 bg-orange-500 rounded-full"></span> Audit %</span>
-                        </div>
-                      </div>
-
-                      {/* SVG Line Chart Graphic */}
-                      <div className="relative h-44 w-full pt-2">
-                        {/* Y Axis Gridlines */}
-                        <div className="absolute inset-0 flex flex-col justify-between text-[9px] font-bold text-slate-300 pointer-events-none">
-                          <div className="border-b border-slate-100 w-full flex justify-between"><span>100%</span></div>
-                          <div className="border-b border-slate-100 w-full flex justify-between"><span>75%</span></div>
-                          <div className="border-b border-slate-100 w-full flex justify-between"><span>50%</span></div>
-                          <div className="border-b border-slate-100 w-full flex justify-between"><span>25%</span></div>
-                          <div className="border-b border-slate-100 w-full flex justify-between"><span>0%</span></div>
-                        </div>
-
-                        {/* SVG Paths matching screenshot */}
-                        <svg className="w-full h-full relative z-10 overflow-visible" viewBox="0 0 400 140" preserveAspectRatio="none">
-                          {/* Orange Line (bottom) */}
-                          <path d="M 0 135 L 130 135 L 260 135 L 400 132" fill="none" stroke="#FF5E1E" strokeWidth="2.5" strokeLinecap="round" />
-                          {/* Amber Line (rising mid) */}
-                          <path d="M 0 135 L 130 135 L 260 130 L 400 50" fill="none" stroke="#F59E0B" strokeWidth="2.5" strokeLinecap="round" />
-                          {/* Cyan Line (steep curve to top right) */}
-                          <path d="M 0 135 L 130 135 L 260 120 L 400 15" fill="none" stroke="#06B6D4" strokeWidth="2.5" strokeLinecap="round" />
-                        </svg>
-                      </div>
-
-                      {/* X Axis Labels */}
-                      <div className="flex justify-between text-[10px] font-semibold text-slate-400 pt-1">
-                        <span>Period 1</span>
-                        <span>Period 2</span>
-                        <span>Period 3</span>
-                        <span>Current Period</span>
-                      </div>
-                    </div>
-
-                    {/* OUTCOMES Donut Chart (5/12 span) */}
-                    <div className="lg:col-span-5 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs space-y-4">
-                      <div>
-                        <h4 className="text-[11px] font-extrabold uppercase tracking-wider text-slate-900">OUTCOMES</h4>
-                        <p className="text-[11px] text-slate-400 mt-0.5">Per-employee outcome breakdown across payruns.</p>
-                      </div>
-
-                      <div className="flex items-center gap-4 pt-1">
-                        {/* Donut Chart Ring */}
-                        <div className="relative w-28 h-28 shrink-0 flex items-center justify-center">
-                          <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-                            <path strokeDasharray="66, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#06B6D4" strokeWidth="4.5" />
-                            <path strokeDasharray="20, 100" strokeDashoffset="-66" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#F59E0B" strokeWidth="4.5" />
-                            <path strokeDasharray="10, 100" strokeDashoffset="-86" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#FF5E1E" strokeWidth="4.5" />
-                            <path strokeDasharray="4, 100" strokeDashoffset="-96" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#94A3B8" strokeWidth="4.5" />
-                          </svg>
-                          <div className="absolute flex flex-col items-center justify-center text-center">
-                            <span className="text-xl font-extrabold text-slate-900 leading-none">42</span>
-                            <span className="text-[9px] text-slate-400 font-semibold uppercase">delivered</span>
-                          </div>
-                        </div>
-
-                        {/* Legend Table Breakdown */}
-                        <div className="flex-1 space-y-2 text-[11px] font-semibold">
-                          <div className="flex items-center justify-between">
-                            <span className="flex items-center gap-1.5 text-slate-700">
-                              <span className="w-2 h-2 rounded-full bg-rose-500"></span> Pending Action
-                            </span>
-                            <span className="text-slate-400">2 <span className="text-[10px] text-slate-300 font-mono">5%</span></span>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span className="flex items-center gap-1.5 text-slate-700">
-                              <span className="w-2 h-2 rounded-full bg-amber-500"></span> Leave Requested
-                            </span>
-                            <span className="text-slate-400">8 <span className="text-[10px] text-slate-300 font-mono">19%</span></span>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span className="flex items-center gap-1.5 text-slate-700">
-                              <span className="w-2 h-2 rounded-full bg-cyan-500"></span> Approved & Paid
-                            </span>
-                            <span className="text-slate-400">28 <span className="text-[10px] text-slate-300 font-mono">66%</span></span>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span className="flex items-center gap-1.5 text-slate-700">
-                              <span className="w-2 h-2 rounded-full bg-slate-400"></span> No Action
-                            </span>
-                            <span className="text-slate-400">4 <span className="text-[10px] text-slate-300 font-mono">10%</span></span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                  </div>
-
-                  {/* Bottom Grid: ACTIVE PAYRUNS & RECENT ACTIVITY */}
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-                    {/* Active Payruns */}
-                    <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs space-y-3">
-                      <div>
-                        <h4 className="text-[11px] font-extrabold uppercase tracking-wider text-slate-900">ACTIVE PAYRUNS</h4>
-                        <p className="text-[11px] text-slate-400 mt-0.5">Currently sending, scheduled, or paused.</p>
-                      </div>
-                      <div className="h-16 flex items-center justify-center text-xs text-slate-400 italic bg-slate-50/70 rounded-xl border border-dashed border-slate-200">
-                        No active payrun warnings. All 4 payruns synced.
-                      </div>
-                    </div>
-
-                    {/* Recent Activity */}
-                    <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs space-y-3">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h4 className="text-[11px] font-extrabold uppercase tracking-wider text-slate-900">RECENT ACTIVITY</h4>
-                          <p className="text-[11px] text-slate-400 mt-0.5">Latest events from your HR workflow engine.</p>
-                        </div>
-                        <a href="#demo" className="text-orange-600 text-xs font-bold hover:underline">All logs →</a>
-                      </div>
-
-                      <div className="space-y-2.5">
-                        <div className="flex items-center justify-between p-2.5 bg-slate-50 rounded-xl border border-slate-100 text-xs">
-                          <div className="flex items-center gap-2.5">
-                            <div className="w-6 h-6 rounded-full bg-emerald-500 text-white font-bold text-[10px] flex items-center justify-center">M</div>
-                            <div>
-                              <div className="font-bold text-slate-900">Mitul — leave approved</div>
-                              <div className="text-[10px] text-slate-400">new again</div>
-                            </div>
-                          </div>
-                          <span className="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full">+ Leave Approved</span>
-                        </div>
-
-                        <div className="flex items-center justify-between p-2.5 bg-slate-50 rounded-xl border border-slate-100 text-xs">
-                          <div className="flex items-center gap-2.5">
-                            <div className="w-6 h-6 rounded-full bg-emerald-500 text-white font-bold text-[10px] flex items-center justify-center">M</div>
-                            <div>
-                              <div className="font-bold text-slate-900">Mitul — email parsed</div>
-                              <div className="text-[10px] text-slate-400">new again</div>
-                            </div>
-                          </div>
-                          <span className="bg-cyan-100 text-cyan-800 text-[10px] font-bold px-2 py-0.5 rounded-full">+ Parsed</span>
-                        </div>
-                      </div>
-                    </div>
-
-                  </div>
-
-                </div>
-              )}
-
-              {/* TAB 2: AI EMAIL SANDBOX DEMO */}
-              {activeTab === 'email-demo' && (
-                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6">
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
-                    <div>
-                      <h3 className="text-base font-bold text-slate-900">Interactive AI Email Processing Sandbox</h3>
-                      <p className="text-xs text-slate-500">Test how Google Gemini + LangGraph convert raw emails into validated HR requests.</p>
-                    </div>
-                    <div className="flex gap-2">
-                      {sampleEmails.map((_, idx) => (
-                        <button
-                          key={idx}
-                          onClick={() => { setSelectedSampleEmail(idx); setDemoState('idle'); }}
-                          className={`px-3 py-1 text-xs font-semibold rounded-lg border ${selectedSampleEmail === idx ? 'bg-orange-600 text-white border-orange-600' : 'bg-slate-50 text-slate-700 border-slate-200'}`}
-                        >
-                          Sample Email #{idx + 1}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 text-left font-mono text-xs space-y-2">
-                      <div className="text-slate-400 font-sans text-[11px] uppercase font-bold tracking-wider">Incoming Email Payload (Gmail API)</div>
-                      <div className="bg-white p-3 rounded-lg border border-slate-200 text-slate-800">
-                        <div><strong className="text-slate-500">From:</strong> {sampleEmails[selectedSampleEmail].sender}</div>
-                        <div><strong className="text-slate-500">Subject:</strong> {sampleEmails[selectedSampleEmail].subject}</div>
-                        <hr className="my-2 border-slate-100" />
-                        <div className="whitespace-pre-line text-slate-700 font-sans text-xs">{sampleEmails[selectedSampleEmail].body}</div>
-                      </div>
-                      <button
-                        onClick={handleSimulateAI}
-                        disabled={demoState !== 'idle'}
-                        className="w-full py-2.5 bg-gradient-to-r from-orange-600 to-amber-500 text-white font-sans text-xs font-bold rounded-lg shadow-md hover:opacity-95 transition disabled:opacity-50 flex items-center justify-center gap-1.5"
-                      >
-                        <ZapIcon className="w-3.5 h-3.5" />
-                        <span>{demoState === 'idle' ? 'Simulate AI Parsing & Workflow' : 'Processing...'}</span>
-                      </button>
-                    </div>
-
-                    <div className="bg-slate-900 text-slate-100 p-4 rounded-xl text-xs space-y-3">
-                      <div className="flex items-center justify-between text-slate-400 font-sans text-[11px] uppercase font-bold tracking-wider">
-                        <span>LangGraph Agent State</span>
-                        <span className="text-emerald-400">Zod Validated</span>
-                      </div>
-
-                      {demoState === 'idle' && (
-                        <div className="h-40 flex items-center justify-center text-slate-500 italic">
-                          Click "Simulate AI Parsing" to watch the 5 agents execute.
-                        </div>
-                      )}
-
-                      {demoState === 'extracting' && (
-                        <div className="h-40 flex flex-col items-center justify-center text-amber-400 space-y-2">
-                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-400"></div>
-                          <span>Agent 2 (Email Agent) Extracting Entities...</span>
-                        </div>
-                      )}
-
-                      {demoState === 'validating' && (
-                        <div className="h-40 flex flex-col items-center justify-center text-cyan-400 space-y-2">
-                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-400"></div>
-                          <span>Agent 3 (Leave Agent) Checking Balances & Policy...</span>
-                        </div>
-                      )}
-
-                      {demoState === 'completed' && (
-                        <div className="space-y-2 font-mono text-[11px]">
-                          <div className="text-emerald-400 font-bold">✓ Extraction & Business Validation Complete</div>
-                          <pre className="bg-slate-950 p-3 rounded-lg border border-slate-800 text-slate-300 overflow-x-auto">
-                            {JSON.stringify({
-                              employee: sampleEmails[selectedSampleEmail].sender,
-                              leaveType: sampleEmails[selectedSampleEmail].type,
-                              dates: sampleEmails[selectedSampleEmail].dates,
-                              confidence: sampleEmails[selectedSampleEmail].confidence,
-                              status: "READY_FOR_HR_APPROVAL"
-                            }, null, 2)}
-                          </pre>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* TAB 3: PAYROLL ENGINE PREVIEW */}
-              {activeTab === 'payroll' && (
-                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                    <div>
-                      <h3 className="text-base font-bold text-slate-900">Deterministic Salary Rule Engine</h3>
-                      <p className="text-xs text-slate-500">Period-specific contract resolution & ordered rule execution.</p>
-                    </div>
-                    <span className="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-1 rounded-full font-bold">Payrun #2026-09</span>
-                  </div>
-
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left text-xs font-sans">
-                      <thead>
-                        <tr className="border-b border-slate-200 text-slate-400 font-bold uppercase text-[10px]">
-                          <th className="py-2 px-3">Rule Code</th>
-                          <th className="py-2 px-3">Category</th>
-                          <th className="py-2 px-3">Computation Formula</th>
-                          <th className="py-2 px-3 text-right">Calculated Amount</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100 text-slate-700">
-                        <tr>
-                          <td className="py-2.5 px-3 font-mono font-bold text-slate-900">BASIC</td>
-                          <td className="py-2.5 px-3"><span className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded text-[10px] font-bold">BASIC SALARY</span></td>
-                          <td className="py-2.5 px-3 text-slate-500 font-mono text-[11px]">Contract Monthly Basic</td>
-                          <td className="py-2.5 px-3 text-right font-bold text-slate-900">$3,500.00</td>
-                        </tr>
-                        <tr>
-                          <td className="py-2.5 px-3 font-mono font-bold text-slate-900">HRA</td>
-                          <td className="py-2.5 px-3"><span className="bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded text-[10px] font-bold">ALLOWANCE</span></td>
-                          <td className="py-2.5 px-3 text-slate-500 font-mono text-[11px]">40% of BASIC</td>
-                          <td className="py-2.5 px-3 text-right font-bold text-emerald-600">+$1,400.00</td>
-                        </tr>
-                        <tr>
-                          <td className="py-2.5 px-3 font-mono font-bold text-slate-900">CONVEYANCE</td>
-                          <td className="py-2.5 px-3"><span className="bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded text-[10px] font-bold">ALLOWANCE</span></td>
-                          <td className="py-2.5 px-3 text-slate-500 font-mono text-[11px]">Fixed Allowance Rate</td>
-                          <td className="py-2.5 px-3 text-right font-bold text-emerald-600">+$250.00</td>
-                        </tr>
-                        <tr>
-                          <td className="py-2.5 px-3 font-mono font-bold text-slate-900">PF_DEDUCTION</td>
-                          <td className="py-2.5 px-3"><span className="bg-red-50 text-red-700 px-2 py-0.5 rounded text-[10px] font-bold">DEDUCTION</span></td>
-                          <td className="py-2.5 px-3 text-slate-500 font-mono text-[11px]">12% of BASIC (Statutory)</td>
-                          <td className="py-2.5 px-3 text-right font-bold text-red-500">-$420.00</td>
-                        </tr>
-                        <tr className="bg-orange-50/60 font-bold">
-                          <td className="py-3 px-3 text-slate-900">NET_SALARY</td>
-                          <td className="py-3 px-3"><span className="bg-orange-200 text-orange-900 px-2 py-0.5 rounded text-[10px] font-bold">FINAL NET</span></td>
-                          <td className="py-3 px-3 text-slate-600 font-mono text-[11px]">Gross Earnings - Total Deductions</td>
-                          <td className="py-3 px-3 text-right text-base text-orange-600 font-extrabold">$4,730.00</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
-
-            </div>
-          </motion.div>
-        </section>
-
-        {/* 5. PROBLEM & SOLUTION COMPARISON CARDS (ULTRA-CLEAN & MODERN) */}
-        <section id="benefits" className="py-16 md:py-24 bg-gradient-to-b from-[#FAF9F6] via-white to-white">
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-60px" }}
-            variants={staggerContainerVariants}
-            className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 space-y-16"
-          >
-
-            {/* Header */}
-            <motion.div variants={fadeInUpVariants} className="text-center max-w-3xl mx-auto space-y-4">
-              <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-orange-100/80 text-orange-700 font-bold text-[11px] uppercase tracking-wider border border-orange-200/80">
-                <ShieldCheckIcon className="w-3.5 h-3.5" />
-                <span>THE PAIN POINT</span>
-              </div>
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-950 tracking-tight leading-tight">
-                Why Traditional HR Systems <span className="text-rose-500">Break Down</span>
-              </h2>
-              <p className="text-slate-600 text-sm sm:text-base leading-relaxed max-w-xl mx-auto font-normal">
-                Manual email copying, miscalculated leave balances, and rigid contract dates create endless compliance risk.
-              </p>
-            </motion.div>
-
-            {/* 2-Column Clean Comparison Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-
-              {/* Legacy Manual HR Bottlenecks Card */}
-              <motion.div
-                variants={fadeInUpVariants}
-                whileHover={{ y: -4, transition: { duration: 0.2 } }}
-                className="bg-gradient-to-b from-rose-50/70 via-white to-slate-50/40 border border-rose-200/80 p-8 rounded-3xl shadow-sm hover:shadow-md transition space-y-6 text-left relative overflow-hidden group"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="w-11 h-11 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center font-black text-base shadow-2xs">
-                    ✕
-                  </div>
-                  <span className="px-3 py-1 bg-rose-100/80 text-rose-800 text-[10px] font-bold uppercase tracking-wider rounded-full border border-rose-200">
-                    High Risk
-                  </span>
-                </div>
-
-                <div>
-                  <h3 className="text-xl sm:text-2xl font-extrabold text-slate-950">Legacy Manual HR Bottlenecks</h3>
-                  <p className="text-xs text-slate-500 mt-1">Fragmented tools and disconnected spreadsheets.</p>
-                </div>
-
-                <ul className="space-y-4 text-xs sm:text-sm text-slate-700 font-medium">
-                  <li className="flex items-start gap-3 bg-white/80 p-3.5 rounded-2xl border border-rose-100/80 shadow-2xs">
-                    <span className="w-5 h-5 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">✕</span>
-                    <span>HR spends hours manually parsing leave details from emails into spreadsheets.</span>
-                  </li>
-                  <li className="flex items-start gap-3 bg-white/80 p-3.5 rounded-2xl border border-rose-100/80 shadow-2xs">
-                    <span className="w-5 h-5 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">✕</span>
-                    <span>Mid-month contract revisions cause incorrect salary & statutory tax calculations.</span>
-                  </li>
-                  <li className="flex items-start gap-3 bg-white/80 p-3.5 rounded-2xl border border-rose-100/80 shadow-2xs">
-                    <span className="w-5 h-5 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">✕</span>
-                    <span>Zero auditable validation between employee leave emails and final payslip deductions.</span>
-                  </li>
-                </ul>
-              </motion.div>
-
-              {/* The PeoplePay360 Solution Card */}
-              <motion.div
-                variants={fadeInUpVariants}
-                whileHover={{ y: -4, transition: { duration: 0.2 } }}
-                className="bg-gradient-to-b from-emerald-50/80 via-white to-slate-50/40 border border-emerald-200/80 p-8 rounded-3xl shadow-md hover:shadow-lg transition space-y-6 text-left relative overflow-hidden group"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="w-11 h-11 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center font-black text-base shadow-sm">
-                    ✓
-                  </div>
-                  <span className="px-3 py-1 bg-emerald-100 text-emerald-800 text-[10px] font-bold uppercase tracking-wider rounded-full border border-emerald-200">
-                    100% Automated
-                  </span>
-                </div>
-
-                <div>
-                  <h3 className="text-xl sm:text-2xl font-extrabold text-slate-950">The PeoplePay360 Solution</h3>
-                  <p className="text-xs text-slate-500 mt-1">Unified multi-agent workflow with human authorization control.</p>
-                </div>
-
-                <ul className="space-y-4 text-xs sm:text-sm text-slate-700 font-medium">
-                  <li className="flex items-start gap-3 bg-white/90 p-3.5 rounded-2xl border border-emerald-100 shadow-2xs">
-                    <CheckIcon className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
-                    <span>Gemini 2.5 Flash automatically extracts intent, dates, and leave types into Zod schemas.</span>
-                  </li>
-                  <li className="flex items-start gap-3 bg-white/90 p-3.5 rounded-2xl border border-emerald-100 shadow-2xs">
-                    <CheckIcon className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
-                    <span>Period-specific validity window logic maps contract versions directly to payrun dates.</span>
-                  </li>
-                  <li className="flex items-start gap-3 bg-white/90 p-3.5 rounded-2xl border border-emerald-100 shadow-2xs">
-                    <CheckIcon className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
-                    <span>Human-in-the-loop review ensures 100% authorization control before execution.</span>
-                  </li>
-                </ul>
-              </motion.div>
-
-            </div>
-
-            {/* Bottom Card Container: 5 Pill Cards for Vulnerabilities */}
-            <motion.div
-              variants={fadeInUpVariants}
-              className="bg-slate-50/70 p-8 sm:p-12 rounded-3xl border border-slate-200/90 shadow-xl relative overflow-hidden text-center space-y-8"
-            >
-
-              {/* Subtle Ambient Mesh Glow inside card corners */}
-              <div className="absolute top-0 left-0 w-48 h-48 bg-teal-200/20 rounded-full blur-3xl pointer-events-none"></div>
-              <div className="absolute top-0 right-0 w-48 h-48 bg-orange-200/30 rounded-full blur-3xl pointer-events-none"></div>
-
-              {/* Card Title */}
-              <h3 className="text-slate-900 font-extrabold text-base sm:text-lg tracking-tight relative z-10">
-                Without regular AI leave automation, HR teams remain vulnerable to
-              </h3>
-
-              {/* 5 Pill Cards Row */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 relative z-10">
-
-                {/* Pill 1 */}
-                <motion.div whileHover={{ scale: 1.04, y: -2 }} className="bg-white p-5 rounded-2xl border border-slate-200/80 hover:border-orange-300 hover:shadow-md transition flex flex-col items-center justify-center space-y-3 group">
-                  <div className="w-10 h-10 rounded-xl bg-orange-100/80 text-orange-600 flex items-center justify-center group-hover:scale-105 transition-transform">
-                    <TagIcon className="w-5 h-5 text-orange-600" />
-                  </div>
-                  <span className="font-bold text-slate-900 text-xs text-center">Manual Data Errors</span>
-                </motion.div>
-
-                {/* Pill 2 */}
-                <motion.div whileHover={{ scale: 1.04, y: -2 }} className="bg-white p-5 rounded-2xl border border-slate-200/80 hover:border-orange-300 hover:shadow-md transition flex flex-col items-center justify-center space-y-3 group">
-                  <div className="w-10 h-10 rounded-xl bg-orange-100/80 text-orange-600 flex items-center justify-center group-hover:scale-105 transition-transform">
-                    <MailIcon className="w-5 h-5 text-orange-600" />
-                  </div>
-                  <span className="font-bold text-slate-900 text-xs text-center">Unprocessed Emails</span>
-                </motion.div>
-
-                {/* Pill 3 */}
-                <motion.div whileHover={{ scale: 1.04, y: -2 }} className="bg-white p-5 rounded-2xl border border-slate-200/80 hover:border-orange-300 hover:shadow-md transition flex flex-col items-center justify-center space-y-3 group">
-                  <div className="w-10 h-10 rounded-xl bg-orange-100/80 text-orange-600 flex items-center justify-center group-hover:scale-105 transition-transform">
-                    <LockIcon className="w-5 h-5 text-orange-600" />
-                  </div>
-                  <span className="font-bold text-slate-900 text-xs text-center">Contract Mismatches</span>
-                </motion.div>
-
-                {/* Pill 4 */}
-                <motion.div whileHover={{ scale: 1.04, y: -2 }} className="bg-white p-5 rounded-2xl border border-slate-200/80 hover:border-orange-300 hover:shadow-md transition flex flex-col items-center justify-center space-y-3 group">
-                  <div className="w-10 h-10 rounded-xl bg-orange-100/80 text-orange-600 flex items-center justify-center group-hover:scale-105 transition-transform">
-                    <DatabaseIcon className="w-5 h-5 text-orange-600" />
-                  </div>
-                  <span className="font-bold text-slate-900 text-xs text-center">Payrun Audit Failures</span>
-                </motion.div>
-
-                {/* Pill 5 */}
-                <motion.div whileHover={{ scale: 1.04, y: -2 }} className="bg-white p-5 rounded-2xl border border-slate-200/80 hover:border-orange-300 hover:shadow-md transition flex flex-col items-center justify-center space-y-3 group">
-                  <div className="w-10 h-10 rounded-xl bg-orange-100/80 text-orange-600 flex items-center justify-center group-hover:scale-105 transition-transform">
-                    <CreditCardIcon className="w-5 h-5 text-orange-600" />
-                  </div>
-                  <span className="font-bold text-slate-900 text-xs text-center">Salary Overpayments</span>
-                </motion.div>
-
-              </div>
-
-              {/* Card Footer Warning */}
-              <div className="pt-2 border-t border-slate-200/80 text-xs sm:text-sm font-medium text-slate-600 relative z-10">
-                Manual spreadsheet tracking alone <span className="text-orange-600 font-extrabold">isn't enough.</span>
-              </div>
-
-            </motion.div>
-
-          </motion.div>
-        </section>
-
-
-
-        {/* 7. FEATURES BENTO GRID */}
-        <section id="features" className="py-16 md:py-24 bg-slate-50/50">
-          <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
-
-            <div className="text-center max-w-3xl mx-auto mb-16">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-100 text-orange-700 font-bold text-[11px] uppercase tracking-wider mb-4">
-                <ZapIcon className="w-3 h-3" />
-                <span>FEATURES</span>
-              </div>
-              <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-950 tracking-tight">
-                Everything You <span className="gradient-text-brand">Need</span> to Build an Automated HR Engine
-              </h2>
-              <p className="mt-3 text-slate-600 text-sm sm:text-base">
-                Connect employee master data, leave automation, contracts, payroll, and background notifications into one unified platform.
-              </p>
-            </div>
-
-            {/* 4 Feature Bento Grid Cards Matching Screenshot 1 UI/UX Exactly */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-left">
-
-              {/* Card 1: Natural-Language Email Intake (Orange Top Border Accent + Template List) */}
-              <div className="bg-white rounded-3xl p-8 border border-slate-200/90 border-t-4 border-t-orange-500 shadow-md hover:shadow-xl transition-all duration-300 space-y-6 relative overflow-hidden group">
-                <div className="w-10 h-10 rounded-2xl bg-orange-100 text-orange-600 flex items-center justify-center shadow-2xs group-hover:scale-105 transition-transform">
-                  <MailIcon className="w-5 h-5 text-orange-600" />
-                </div>
-
-                <div className="space-y-2">
-                  <h3 className="text-xl font-extrabold text-slate-950">Natural-Language Email Intake</h3>
-                  <p className="text-xs text-slate-600 leading-relaxed">
-                    Receive employee leave emails via Gmail API. Automatically extract start dates, end dates, leave types, and reasons without manual typing.
-                  </p>
-                </div>
-
-                {/* Inner Widget Matching Screenshot 1 Card 1 (Stacked Email Templates) */}
-                <div className="bg-slate-50/80 p-4 rounded-2xl border border-slate-200/80 space-y-2.5">
-                  <div className="bg-white p-3 rounded-xl border border-slate-200/70 shadow-2xs flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 font-bold text-[10px] flex items-center justify-center">M</div>
-                      <div>
-                        <div className="font-bold text-slate-900">Rahul Sharma</div>
-                        <div className="text-[10px] text-slate-400">Leave Sep 10-12 • Casual</div>
-                      </div>
-                    </div>
-                    <span className="bg-orange-100 text-orange-700 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wide">
-                      CASUAL LEAVE
-                    </span>
-                  </div>
-
-                  <div className="bg-white p-3 rounded-xl border border-slate-200/70 shadow-2xs flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-6 h-6 rounded-full bg-rose-100 text-rose-600 font-bold text-[10px] flex items-center justify-center">P</div>
-                      <div>
-                        <div className="font-bold text-slate-900">Priya Patel</div>
-                        <div className="text-[10px] text-slate-400">Flu Leave Sep 15-16</div>
-                      </div>
-                    </div>
-                    <span className="bg-amber-100 text-amber-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wide">
-                      SICK LEAVE
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Card 2: Employee & Contract Hub (Teal Top Border Accent + Avatar Magnifying Highlight) */}
-              <div className="bg-white rounded-3xl p-8 border border-slate-200/90 border-t-4 border-t-teal-500 shadow-md hover:shadow-xl transition-all duration-300 space-y-6 relative overflow-hidden group">
-                <div className="w-10 h-10 rounded-2xl bg-teal-100 text-teal-600 flex items-center justify-center shadow-2xs group-hover:scale-105 transition-transform">
-                  <UsersIcon className="w-5 h-5 text-teal-600" />
-                </div>
-
-                <div className="space-y-2">
-                  <h3 className="text-xl font-extrabold text-slate-950">Employee Management</h3>
-                  <p className="text-xs text-slate-600 leading-relaxed">
-                    Import employees individually or in bulk, organize departments, create groups, and manage period contracts effortlessly.
-                  </p>
-                </div>
-
-                {/* Inner Widget Matching Screenshot 1 Card 2 (Avatar Stack with Magnifying Glass Highlight) */}
-                <div className="bg-slate-50/80 p-4 rounded-2xl border border-slate-200/80 flex items-center justify-center gap-3">
-                  {/* Left Avatar Card */}
-                  <div className="w-16 h-24 bg-white rounded-xl border border-slate-200/80 p-2 shadow-2xs flex flex-col items-center justify-center opacity-60">
-                    <div className="w-8 h-8 rounded-full bg-amber-200 flex items-center justify-center text-amber-800 font-bold text-xs mb-1">A</div>
-                    <div className="w-10 h-1.5 bg-slate-200 rounded-full"></div>
-                  </div>
-
-                  {/* Center Highlighted Avatar Card with Orange Magnifying Accent */}
-                  <div className="w-20 h-28 bg-white rounded-2xl border-2 border-orange-500 p-2 shadow-lg flex flex-col items-center justify-center relative scale-105">
-                    <div className="w-10 h-10 rounded-full bg-purple-200 flex items-center justify-center text-purple-800 font-extrabold text-sm mb-1.5 shadow-2xs">
-                      M
-                    </div>
-                    <div className="w-12 h-2 bg-orange-500 rounded-full mb-1"></div>
-                    <div className="w-8 h-1.5 bg-slate-200 rounded-full"></div>
-
-                    {/* Magnifying Glass Icon Overlay */}
-                    <div className="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-purple-600 text-white flex items-center justify-center shadow-md">
-                      <SparklesIcon />
-                    </div>
-                  </div>
-
-                  {/* Right Avatar Card */}
-                  <div className="w-16 h-24 bg-white rounded-xl border border-slate-200/80 p-2 shadow-2xs flex flex-col items-center justify-center opacity-60">
-                    <div className="w-8 h-8 rounded-full bg-teal-200 flex items-center justify-center text-teal-800 font-bold text-xs mb-1">R</div>
-                    <div className="w-10 h-1.5 bg-slate-200 rounded-full"></div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Card 3: Real-Time Operational Reporting (Teal Top Border Accent + KPI Stat Metric Boxes) */}
-              <div className="bg-white rounded-3xl p-8 border border-slate-200/90 border-t-4 border-t-teal-500 shadow-md hover:shadow-xl transition-all duration-300 space-y-6 relative overflow-hidden group">
-                <div className="w-10 h-10 rounded-2xl bg-teal-100 text-teal-600 flex items-center justify-center shadow-2xs group-hover:scale-105 transition-transform">
-                  <ChartBarIcon className="w-5 h-5 text-teal-600" />
-                </div>
-
-                <div className="space-y-2">
-                  <h3 className="text-xl font-extrabold text-slate-950">Real-Time Reporting</h3>
-                  <p className="text-xs text-slate-600 leading-relaxed">
-                    Monitor campaign performance & payroll costs live with detailed aggregate dashboards and downloadable reports.
-                  </p>
-                </div>
-
-                {/* Inner Widget Matching Screenshot 1 Card 3 (Reporting KPI Metric Boxes) */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-slate-50/80 p-3.5 rounded-2xl border border-slate-200/80 shadow-2xs">
-                    <span className="text-slate-400 text-[10px] font-bold uppercase tracking-wider">TOTAL PAYROLL</span>
-                    <div className="text-xl font-black text-slate-950 mt-1">$54,200</div>
-                    <div className="text-[10px] font-semibold text-emerald-600 mt-0.5">↑ 12.4% vs last period</div>
-                  </div>
-                  <div className="bg-slate-50/80 p-3.5 rounded-2xl border border-slate-200/80 shadow-2xs">
-                    <span className="text-slate-400 text-[10px] font-bold uppercase tracking-wider">ATTENDANCE HEALTH</span>
-                    <div className="text-xl font-black text-emerald-600 mt-1">98.4%</div>
-                    <div className="text-[10px] font-semibold text-slate-500 mt-0.5">Optimal workforce</div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Card 4: BullMQ Asynchronous Notifications (Orange Top Border Accent + Async Checklist) */}
-              <div className="bg-white rounded-3xl p-8 border border-slate-200/90 border-t-4 border-t-orange-500 shadow-md hover:shadow-xl transition-all duration-300 space-y-6 relative overflow-hidden group">
-                <div className="w-10 h-10 rounded-2xl bg-orange-100 text-orange-600 flex items-center justify-center shadow-2xs group-hover:scale-105 transition-transform">
-                  <ZapIcon className="w-5 h-5 text-orange-600" />
-                </div>
-
-                <div className="space-y-2">
-                  <h3 className="text-xl font-extrabold text-slate-950">Employee Tracking</h3>
-                  <p className="text-xs text-slate-600 leading-relaxed">
-                    Track every employee's activity from leave request to payrun completion, so you know exactly where your workflow stands.
-                  </p>
-                </div>
-
-                {/* Inner Widget Matching Screenshot 1 Card 4 (Checklist of Async Jobs) */}
-                <div className="bg-slate-50/80 p-4 rounded-2xl border border-slate-200/80 space-y-2 text-xs font-medium">
-                  {['Email Delivered & Parsed', 'HR Approval Queued', 'Payslips Generated'].map((item, idx) => (
-                    <div key={idx} className="bg-white p-2.5 rounded-xl border border-slate-200/70 shadow-2xs flex items-center justify-between">
-                      <span className="font-semibold text-slate-800">{item}</span>
-                      <span className="text-emerald-600 font-bold text-[11px] bg-emerald-50 px-2 py-0.5 rounded-md">✓ Ready</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-            </div>
-
-          </div>
-        </section>
-
-        {/* 8. 5-AGENT AI SYSTEM SHOWCASE (MATCHING ATTACHED SCREENSHOT MASONRY LAYOUT EXACTLY) */}
-        <section id="agents" className="py-20 md:py-28 bg-white">
-          <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
-
-            {/* Header */}
-            <div className="text-center max-w-3xl mx-auto space-y-4">
-              <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-orange-100/80 text-orange-700 font-bold text-[11px] uppercase tracking-wider border border-orange-200">
-                <BotIcon className="w-3.5 h-3.5 text-orange-600" />
-                <span>MULTI-AGENT ARCHITECTURE</span>
-              </div>
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-950 tracking-tight leading-tight">
-                What Makes Our 5 AI Agents <span className="gradient-text-brand">Different</span>
-              </h2>
-              <p className="text-slate-600 text-sm sm:text-base leading-relaxed max-w-xl mx-auto font-normal">
-                LangGraph manages state and routing while MCP provides auditable tools. AI assists — authorized humans retain 100% final approval authority.
-              </p>
-            </div>
-
-            {/* Staggered 3-Column Bento Grid Matching Screenshot Layout */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left items-start">
-
-              {/* COLUMN 1: Agent 1 (Tall Card with Pill Chips) */}
-              <div className="bg-slate-50/80 hover:bg-white border border-slate-200/90 rounded-3xl p-8 shadow-sm hover:shadow-md transition space-y-6 flex flex-col justify-between h-full group">
-                <div className="space-y-4">
-                  <div className="w-10 h-10 rounded-2xl bg-orange-100 text-orange-600 flex items-center justify-center font-bold shadow-2xs group-hover:scale-105 transition-transform">
-                    <ZapIcon className="w-5 h-5 text-orange-600" />
-                  </div>
-
-                  <div>
-                    <h3 className="text-xl font-extrabold text-slate-950 mb-2">HR Orchestrator Agent</h3>
-                    <p className="text-xs text-slate-600 leading-relaxed">
-                      Acts as central traffic controller. Identifies intent, maintains conversation thread memory, and routes context to specialist sub-agents.
-                    </p>
-                  </div>
-
-                  {/* Pill Tag Chips (Matching Screenshot Style) */}
-                  <div className="flex flex-wrap gap-2 pt-2">
-                    {['Intent Router', 'LangGraph State', 'Human-in-the-Loop', 'Memory Threads', 'Supervisor'].map((chip, idx) => (
-                      <span key={idx} className="px-3 py-1.5 bg-white border border-slate-200/80 rounded-full text-[11px] font-semibold text-slate-700 shadow-2xs">
-                        {chip}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* COLUMN 2: Agent 2 & Agent 3 (Stacked 2 Cards) */}
-              <div className="space-y-6">
-
-                {/* Agent 2: Email Intelligence Agent */}
-                <div className="bg-slate-50/80 hover:bg-white border border-slate-200/90 rounded-3xl p-8 shadow-sm hover:shadow-md transition space-y-5 group">
-                  <div className="w-10 h-10 rounded-2xl bg-orange-100 text-orange-600 flex items-center justify-center font-bold shadow-2xs group-hover:scale-105 transition-transform">
-                    <MailIcon className="w-5 h-5 text-orange-600" />
-                  </div>
-
-                  <div>
-                    <h3 className="text-xl font-extrabold text-slate-950 mb-2">Email Intelligence Agent</h3>
-                    <p className="text-xs text-slate-600 leading-relaxed">
-                      Converts unstructured employee emails into validated intent, dates, leave types, and reason schemas.
-                    </p>
-                  </div>
-
-                  {/* Pill Tag Chips */}
-                  <div className="flex flex-wrap gap-2 pt-1">
-                    {['Gmail API Intake', 'Zod Schema Validated', 'Confidence Score', 'Audit Logging'].map((chip, idx) => (
-                      <span key={idx} className="px-3 py-1.5 bg-white border border-slate-200/80 rounded-full text-[11px] font-semibold text-slate-700 shadow-2xs">
-                        {chip}
-                      </span>
-                    ))}
-                  </div>
-
-                  <div className="text-[11px] text-slate-400 italic pt-2 border-t border-slate-200/60">
-                    Strict validation ensures zero unparsed emails slip through.
-                  </div>
-                </div>
-
-                {/* Agent 3: Leave Management Agent */}
-                <div className="bg-slate-50/80 hover:bg-white border border-slate-200/90 rounded-3xl p-8 shadow-sm hover:shadow-md transition space-y-4 group">
-                  <div className="w-10 h-10 rounded-2xl bg-orange-100 text-orange-600 flex items-center justify-center font-bold shadow-2xs group-hover:scale-105 transition-transform">
-                    <ShieldCheckIcon className="w-5 h-5 text-orange-600" />
-                  </div>
-
-                  <div>
-                    <h3 className="text-xl font-extrabold text-slate-950 mb-2">Leave Management Agent</h3>
-                    <p className="text-xs text-slate-600 leading-relaxed">
-                      Validates leave requests against employee balance, schedules, overlap, and policy rules automatically.
-                    </p>
-                  </div>
-                </div>
-
-              </div>
-
-              {/* COLUMN 3: Agent 4 & Agent 5 (Stacked 2 Cards) */}
-              <div className="space-y-6">
-
-                {/* Agent 4: Payroll Agent */}
-                <div className="bg-slate-50/80 hover:bg-white border border-slate-200/90 rounded-3xl p-8 shadow-sm hover:shadow-md transition space-y-4 group">
-                  <div className="w-10 h-10 rounded-2xl bg-orange-100 text-orange-600 flex items-center justify-center font-bold shadow-2xs group-hover:scale-105 transition-transform">
-                    <BriefcaseIcon className="w-5 h-5 text-orange-600" />
-                  </div>
-
-                  <div>
-                    <h3 className="text-xl font-extrabold text-slate-950 mb-2">Payroll Agent</h3>
-                    <p className="text-xs text-slate-600 leading-relaxed">
-                      Inspects payslips, compares payroll periods, and explains deterministic salary rules without calculation errors.
-                    </p>
-                  </div>
-                </div>
-
-                {/* Agent 5: HR Analytics Agent */}
-                <div className="bg-slate-50/80 hover:bg-white border border-slate-200/90 rounded-3xl p-8 shadow-sm hover:shadow-md transition space-y-5 group">
-                  <div className="w-10 h-10 rounded-2xl bg-orange-100 text-orange-600 flex items-center justify-center font-bold shadow-2xs group-hover:scale-105 transition-transform">
-                    <ChartBarIcon className="w-5 h-5 text-orange-600" />
-                  </div>
-
-                  <div>
-                    <h3 className="text-xl font-extrabold text-slate-950 mb-2">HR Analytics Agent</h3>
-                    <p className="text-xs text-slate-600 leading-relaxed">
-                      Translates natural-language questions into safe, read-only PostgreSQL reporting queries.
-                    </p>
-                  </div>
-
-                  <div className="text-[11px] text-slate-400 italic pt-2 border-t border-slate-200/60">
-                    Every analytics query is securely logged & stored for compliance auditing.
-                  </div>
-                </div>
-
-              </div>
-
-            </div>
-
-          </div>
-        </section>
-
-
-
-        {/* 10. FREQUENTLY ASKED QUESTIONS SECTION */}
-        <section id="faq" className="py-16 md:py-24 bg-white">
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-60px" }}
-            variants={staggerContainerVariants}
-            className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
-          >
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-
-              <motion.div variants={fadeInUpVariants} className="lg:col-span-5 text-left space-y-4">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-100 text-orange-700 font-bold text-[11px] uppercase tracking-wider">
-                  <MessageSquareIcon className="w-3.5 h-3.5" />
-                  <span>FAQ</span>
-                </div>
-                <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-950 tracking-tight leading-tight">
-                  Frequently Asked <span className="gradient-text-brand">Questions</span>
-                </h2>
-                <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
-                  Common questions about PeoplePay360's features, plans, and AI safety, answered to help you get started with confidence.
-                </p>
-                <a href="#demo" className="inline-flex items-center justify-center px-5 py-2.5 text-xs font-bold text-white bg-gradient-to-r from-orange-600 to-amber-500 rounded-full shadow-md hover:shadow-lg transition">
-                  <span>Contact Us</span>
-                  <ArrowRightIcon />
-                </a>
-              </motion.div>
-
-              <div className="lg:col-span-7 space-y-3">
-                {faqs.map((faq, index) => (
+                  {/* 4 Stat Cards */}
                   <motion.div
-                    key={index}
-                    variants={fadeInUpVariants}
-                    className="bg-slate-50 rounded-2xl border border-slate-200/90 overflow-hidden transition"
+                    initial="hidden"
+                    animate="visible"
+                    variants={staggerContainerVariants}
+                    className="grid grid-cols-2 md:grid-cols-4 gap-4"
+                  >
+                    <motion.div variants={cardScaleVariants} whileHover={{ y: -4 }} className="bg-slate-50 p-4 rounded-2xl border border-slate-200/70 transition-all">
+                      <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Total Net Salary Paid</div>
+                      <div className="text-2xl font-black text-slate-900 mt-1">$67.78M</div>
+                      <div className="text-[10px] text-emerald-600 font-bold mt-0.5">824 Payslips Processed</div>
+                    </motion.div>
+                    <motion.div variants={cardScaleVariants} whileHover={{ y: -4 }} className="bg-slate-50 p-4 rounded-2xl border border-slate-200/70 transition-all">
+                      <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Active Employees</div>
+                      <div className="text-2xl font-black text-slate-900 mt-1">206 Staff</div>
+                      <div className="text-[10px] text-slate-400 font-medium">280 Total Registered</div>
+                    </motion.div>
+                    <motion.div variants={cardScaleVariants} whileHover={{ y: -4 }} className="bg-slate-50 p-4 rounded-2xl border border-slate-200/70 transition-all">
+                      <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Approved Leave Days</div>
+                      <div className="text-2xl font-black text-slate-900 mt-1">220 Days</div>
+                      <div className="text-[10px] text-amber-600 font-bold mt-0.5">40 Pending Requests</div>
+                    </motion.div>
+                    <motion.div variants={cardScaleVariants} whileHover={{ y: -4 }} className="bg-slate-50 p-4 rounded-2xl border border-slate-200/70 transition-all">
+                      <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Attendance Health Score</div>
+                      <div className="text-2xl font-black text-slate-900 mt-1">89%</div>
+                      <div className="text-[10px] text-teal-600 font-bold mt-0.5">On-Time & Present Rate</div>
+                    </motion.div>
+                  </motion.div>
+
+                  {/* Department Breakdown */}
+                  <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200/70 space-y-3">
+                    <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-900">Department Salary Expenditure & Headcount Breakdown</h4>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                      <motion.div whileHover={{ y: -3 }} className="bg-white p-3 rounded-xl border border-slate-200 transition-all">
+                        <div className="font-extrabold text-slate-900">Engineering</div>
+                        <div className="text-xs text-orange-600 font-bold">$28.45M</div>
+                        <div className="text-[10px] text-slate-500">68 Active Staff</div>
+                      </motion.div>
+                      <motion.div whileHover={{ y: -3 }} className="bg-white p-3 rounded-xl border border-slate-200 transition-all">
+                        <div className="font-extrabold text-slate-900">Sales & Marketing</div>
+                        <div className="text-xs text-orange-600 font-bold">$18.90M</div>
+                        <div className="text-[10px] text-slate-500">52 Active Staff</div>
+                      </motion.div>
+                      <motion.div whileHover={{ y: -3 }} className="bg-white p-3 rounded-xl border border-slate-200 transition-all">
+                        <div className="font-extrabold text-slate-900">Operations</div>
+                        <div className="text-xs text-orange-600 font-bold">$12.30M</div>
+                        <div className="text-[10px] text-slate-500">45 Active Staff</div>
+                      </motion.div>
+                      <motion.div whileHover={{ y: -3 }} className="bg-white p-3 rounded-xl border border-slate-200 transition-all">
+                        <div className="font-extrabold text-slate-900">HR & Legal</div>
+                        <div className="text-xs text-orange-600 font-bold">$8.13M</div>
+                        <div className="text-[10px] text-slate-500">21 Active Staff</div>
+                      </motion.div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* TAB 2: PAYRUN BATCHES */}
+              {activeTab === 'payroll' && (
+                <motion.div
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4 }}
+                  className="bg-white/95 text-slate-900 p-6 sm:p-8 rounded-2xl border border-slate-200/90 shadow-xl font-sans text-xs space-y-6 text-left"
+                >
+                  <div className="flex justify-between items-center pb-4 border-b border-slate-100">
+                    <div>
+                      <h3 className="text-lg font-extrabold text-slate-900">2-Step Payrun Creation & Batch Processing</h3>
+                      <p className="text-xs text-slate-500">Define batch period, filter staff, compute salary rules, validate warnings, and generate payslips.</p>
+                    </div>
+                    <span className="bg-orange-100 text-orange-700 font-bold px-3 py-1 rounded-full text-xs">
+                      Step 1 Scope → Step 2 Staff Selection
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <motion.div whileHover={{ y: -4 }} className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2 transition-all">
+                      <div className="font-extrabold text-slate-900 text-sm">1. Batch Scope Definition</div>
+                      <p className="text-slate-600 text-xs">Set payrun reference, start/end dates, and select salary structure rules container.</p>
+                    </motion.div>
+                    <motion.div whileHover={{ y: -4 }} className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2 transition-all">
+                      <div className="font-extrabold text-slate-900 text-sm">2. Explicit Staff Selection</div>
+                      <p className="text-slate-600 text-xs">Filter employees by department or type, and select batch participants before record creation.</p>
+                    </motion.div>
+                    <motion.div whileHover={{ y: -4 }} className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2 transition-all">
+                      <div className="font-extrabold text-slate-900 text-sm">3. Compute, Validate & Send</div>
+                      <p className="text-slate-600 text-xs">Calculate Basic, Allowances, Deductions, Gross & Net. Print PDF or bulk email payslips.</p>
+                    </motion.div>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* TAB 3: TIME OFF & ATTENDANCE */}
+              {activeTab === 'leave' && (
+                <motion.div
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4 }}
+                  className="bg-white/95 text-slate-900 p-6 sm:p-8 rounded-2xl border border-slate-200/90 shadow-xl font-sans text-xs space-y-6 text-left"
+                >
+                  <div className="pb-4 border-b border-slate-100">
+                    <h3 className="text-lg font-extrabold text-slate-900">Time Off Allocations & Working Schedules</h3>
+                    <p className="text-xs text-slate-500">Track daily check-in/out records, weekly schedule patterns, leave requests, and atomic balance deductions.</p>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <motion.div whileHover={{ y: -4 }} className="p-4 bg-slate-50 rounded-xl border border-slate-200 transition-all">
+                      <h4 className="font-extrabold text-slate-900 text-sm mb-2">Leave Types & Allocations</h4>
+                      <p className="text-slate-600 text-xs">Configure leave policies in days or hours. Approved requests automatically deduct from employee balances in real-time.</p>
+                    </motion.div>
+                    <motion.div whileHover={{ y: -4 }} className="p-4 bg-slate-50 rounded-xl border border-slate-200 transition-all">
+                      <h4 className="font-extrabold text-slate-900 text-sm mb-2">Working Schedule Setup</h4>
+                      <p className="text-slate-600 text-xs">Define weekly work patterns with shift start/end times and break duration. Total weekly hours are computed automatically.</p>
+                    </motion.div>
+                  </div>
+                </motion.div>
+              )}
+
+            </div>
+          </motion.div>
+        </section>
+
+        {/* 5. 5-STEP OPERATIONS WORKFLOW SECTION WITH SCROLL ANIMATIONS */}
+        <section id="workflow" className="py-20 bg-white border-y border-slate-200/80">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: "-80px" }}
+              variants={fadeInUpVariants}
+              className="text-center max-w-3xl mx-auto mb-16"
+            >
+              <span className="text-orange-600 font-extrabold text-xs uppercase tracking-wider bg-orange-50 px-3 py-1 rounded-full border border-orange-200">
+                End-to-End Operational Lifecycle
+              </span>
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-950 mt-4 tracking-tight">
+                How PeoplePay360 Powers Your HR & Payroll Flow
+              </h2>
+              <p className="text-slate-600 text-sm sm:text-base mt-3">
+                A connected business flow linking employee master data to contract validity, working schedules, leave allocations, payruns, and payslip delivery.
+              </p>
+            </motion.div>
+
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: "-60px" }}
+              variants={staggerContainerVariants}
+              className="grid grid-cols-1 md:grid-cols-5 gap-6 relative"
+            >
+              {[
+                { step: '01', title: 'Employee Master', desc: 'Central hub for employee profiles, Kanban/List views, department assignments, and smart button count shortcuts.', icon: UsersIcon },
+                { step: '02', title: 'Contract & Schedule', desc: 'Link historical contracts and weekly working schedules to enforce period-valid salary terms and expected hours.', icon: FileTextIcon },
+                { step: '03', title: 'Time Off & Attendance', desc: 'Capture check-in/out logs, manage manual edits, allocate leave balances, and approve time off requests.', icon: CalendarIcon },
+                { step: '04', title: '2-Step Payrun Wizard', desc: 'Define period scope and salary structures, filter eligible staff, and initialize batch calculations.', icon: BriefcaseIcon },
+                { step: '05', title: 'Payslips & Analytics', desc: 'Compute rule breakdowns, review validation warnings, print PDF payslips, send emails, and inspect live dashboards.', icon: PrinterIcon },
+              ].map((item, idx) => {
+                const IconComponent = item.icon;
+                return (
+                  <motion.div
+                    key={idx}
+                    variants={cardScaleVariants}
+                    whileHover={{ y: -6, scale: 1.02 }}
+                    className="bg-slate-50 p-5 rounded-2xl border border-slate-200/80 flex flex-col justify-between hover:border-orange-300 hover:shadow-md transition-all cursor-pointer"
+                  >
+                    <div>
+                      <div className="flex items-center justify-between mb-4">
+                        <span className="w-8 h-8 rounded-xl bg-orange-100 text-orange-600 font-extrabold text-xs flex items-center justify-center">
+                          {item.step}
+                        </span>
+                        <IconComponent className="text-slate-400" />
+                      </div>
+                      <h3 className="font-extrabold text-slate-900 text-sm mb-2">{item.title}</h3>
+                      <p className="text-slate-600 text-xs leading-relaxed">{item.desc}</p>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </motion.div>
+          </div>
+        </section>
+
+        {/* 6. KEY MODULES BREAKDOWN WITH SCROLL REVEAL */}
+        <section id="features" className="py-20 hero-gradient-bg">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: "-80px" }}
+              variants={fadeInUpVariants}
+              className="text-center max-w-3xl mx-auto mb-16"
+            >
+              <span className="text-orange-600 font-extrabold text-xs uppercase tracking-wider bg-orange-50 px-3 py-1 rounded-full border border-orange-200">
+                Core System Modules
+              </span>
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-950 mt-4 tracking-tight">
+                Complete HR Master Management & Payroll Capabilities
+              </h2>
+              <p className="text-slate-600 text-sm sm:text-base mt-3">
+                Everything HR officers, payroll specialists, and managers need to operate efficiently with full accuracy.
+              </p>
+            </motion.div>
+
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: "-60px" }}
+              variants={staggerContainerVariants}
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+            >
+              {[
+                { title: 'Employee Master Management', desc: 'Kanban, List, and Form views for staff records. Smart-button count shortcuts for related Contracts, Attendance, Time Off, and Allocations.', icon: UsersIcon },
+                { title: 'Period-Based Contract Handling', desc: 'Maintain complete contract history per employee while ensuring payroll calculations execute strictly on the active, period-valid contract terms.', icon: FileTextIcon },
+                { title: 'Working Schedule Setup', desc: 'Define weekly patterns by day, start/end time, and break duration. Weekly working hours are calculated automatically to benchmark attendance.', icon: ClockIcon },
+                { title: 'Time Off Types & Allocations', desc: 'Configure leave policies with units (days/hours). Approved leave requests automatically deduct from allocations, keeping balances transparent.', icon: CalendarIcon },
+                { title: 'Salary Structures & Rules', desc: 'Container structures holding ordered Salary Rules. Computes Basic, Allowances, Gross, Deductions, and Net salary in exact dependency sequence.', icon: BriefcaseIcon },
+                { title: 'Live Payroll Reporting Dashboard', desc: 'Aggregates metrics across system records. Filter live salary costs, attendance health, and leave patterns by Period, Department, or Employee Type.', icon: ChartBarIcon },
+              ].map((mod, idx) => {
+                const IconComponent = mod.icon;
+                return (
+                  <motion.div
+                    key={idx}
+                    variants={cardScaleVariants}
+                    whileHover={{ y: -6, scale: 1.02 }}
+                    className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-sm hover:shadow-md transition-all cursor-pointer"
+                  >
+                    <div className="w-12 h-12 rounded-2xl bg-orange-50 border border-orange-200 text-orange-600 flex items-center justify-center mb-5">
+                      <IconComponent className="w-6 h-6" />
+                    </div>
+                    <h3 className="text-base font-extrabold text-slate-900 mb-2">{mod.title}</h3>
+                    <p className="text-slate-600 text-xs leading-relaxed">{mod.desc}</p>
+                  </motion.div>
+                );
+              })}
+            </motion.div>
+          </div>
+        </section>
+
+        {/* 7. ROLE-BASED SOLUTIONS */}
+        <section id="roles" className="py-20 bg-white border-t border-slate-200/80">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: "-80px" }}
+              variants={fadeInUpVariants}
+              className="text-center max-w-3xl mx-auto mb-16"
+            >
+              <span className="text-orange-600 font-extrabold text-xs uppercase tracking-wider bg-orange-50 px-3 py-1 rounded-full border border-orange-200">
+                Security & Access Governance
+              </span>
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-950 mt-4 tracking-tight">
+                5 Standard User Roles tailored to Organizational Hierarchy
+              </h2>
+            </motion.div>
+
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: "-60px" }}
+              variants={staggerContainerVariants}
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4"
+            >
+              {[
+                { role: 'Employee', desc: 'View own details, attendance logs, and leave balances. Submit time off requests.' },
+                { role: 'HR Manager', desc: 'Full CRUD access to Employees, Contracts, Schedules, Attendance, and Time Off approvals.' },
+                { role: 'HR Payroll User', desc: 'All HR Manager permissions plus Create/Read/Update access to Payruns and Payslips.' },
+                { role: 'HR Payroll Manager', desc: 'Full CRUD control over Payruns, Payslips, Salary Structures, and Salary Rules.' },
+                { role: 'System Admin', desc: 'Complete system administration, user management, role assignments, and permission configuration.' },
+              ].map((r, idx) => (
+                <motion.div
+                  key={idx}
+                  variants={cardScaleVariants}
+                  whileHover={{ y: -4 }}
+                  className="bg-slate-50 p-5 rounded-2xl border border-slate-200/80 space-y-2 transition-all cursor-pointer"
+                >
+                  <div className="text-orange-600 font-extrabold text-xs uppercase tracking-wider">{r.role}</div>
+                  <p className="text-slate-600 text-xs font-medium leading-relaxed">{r.desc}</p>
+                </motion.div>
+              ))}
+            </motion.div>
+          </div>
+        </section>
+
+        {/* 8. FAQ ACCORDION SECTION */}
+        <section id="faq" className="py-20 hero-gradient-bg border-t border-slate-200/80">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: "-80px" }}
+              variants={fadeInUpVariants}
+              className="text-center mb-14"
+            >
+              <span className="text-orange-600 font-extrabold text-xs uppercase tracking-wider bg-orange-50 px-3 py-1 rounded-full border border-orange-200">
+                Frequently Asked Questions
+              </span>
+              <h2 className="text-3xl font-extrabold text-slate-950 mt-4 tracking-tight">
+                Everything you need to know about PeoplePay360
+              </h2>
+            </motion.div>
+
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: "-60px" }}
+              variants={staggerContainerVariants}
+              className="space-y-4"
+            >
+              {faqs.map((faq, idx) => {
+                const isOpen = openFaq === idx;
+                return (
+                  <motion.div
+                    key={idx}
+                    variants={cardScaleVariants}
+                    className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden transition-all"
                   >
                     <button
-                      onClick={() => setOpenFaq(openFaq === index ? null : index)}
-                      className="w-full p-4 text-left font-bold text-xs sm:text-sm text-slate-900 flex items-center justify-between gap-2 hover:text-orange-600 transition"
+                      onClick={() => setOpenFaq(isOpen ? null : idx)}
+                      className="w-full p-5 text-left flex justify-between items-center gap-4 cursor-pointer hover:bg-slate-50/80 transition"
                     >
-                      <span>{faq.question}</span>
-                      <span className={`w-6 h-6 rounded-full bg-white flex items-center justify-center text-xs font-bold shadow-2xs transition-transform ${openFaq === index ? 'bg-orange-600 text-white rotate-180' : 'text-slate-500'}`}>
-                        ↓
+                      <span className="font-extrabold text-slate-900 text-sm">{faq.question}</span>
+                      <span className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-600 shrink-0 text-xs">
+                        {isOpen ? '−' : '+'}
                       </span>
                     </button>
-                    <AnimatePresence>
-                      {openFaq === index && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: "auto", opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.28, ease: "easeInOut" }}
-                          className="overflow-hidden"
-                        >
-                          <div className="px-4 pb-4 text-xs text-slate-600 leading-relaxed border-t border-slate-100 pt-3">
-                            {faq.answer}
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </motion.div>
-                ))}
-              </div>
 
+                    {isOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        transition={{ duration: 0.3 }}
+                        className="px-5 pb-5 pt-0 text-xs text-slate-600 leading-relaxed border-t border-slate-100"
+                      >
+                        <p className="mt-2">{faq.answer}</p>
+                      </motion.div>
+                    )}
+                  </motion.div>
+                );
+              })}
+            </motion.div>
+          </div>
+        </section>
+
+        {/* 9. BOTTOM CALL TO ACTION */}
+        <section className="py-20 bg-slate-950 text-white text-center relative overflow-hidden">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-80px" }}
+            variants={fadeInUpVariants}
+            className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-6"
+          >
+            <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
+              Ready to Streamline Your HR & Payroll Operations?
+            </h2>
+            <p className="text-slate-400 text-sm sm:text-base max-w-2xl mx-auto">
+              Experience the unified employee lifecycle platform built for real-world HR teams, period-based contract tracking, and automated payruns.
+            </p>
+            <div className="pt-4">
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="inline-block">
+                <Link
+                  to="/auth/login"
+                  className="inline-flex items-center gap-3 px-8 py-3.5 text-sm font-bold text-white bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-500 hover:to-amber-600 rounded-full shadow-lg shadow-orange-500/25 transition"
+                >
+                  <span>Access PeoplePay360 Workspace</span>
+                  <ArrowRight weight="bold" className="w-4 h-4 fill-current" />
+                </Link>
+              </motion.div>
             </div>
           </motion.div>
         </section>
 
       </main>
 
-      {/* 11. FOOTER MATCHING SCREENSHOT EXACTLY */}
-      <footer className="bg-[#0A0E17] text-slate-400 text-xs relative overflow-hidden pt-16 pb-8 border-t border-slate-800">
-
-        {/* Main Footer Container */}
-        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8 pb-12 border-b border-slate-800/80">
-
-            {/* Column 1: Brand & Subtitle */}
-            <div className="lg:col-span-2 space-y-4">
-              <div className="flex items-center">
-                <img src="/logo-footer.webp" alt="PeoplePay360" className="h-8 w-auto object-contain" />
-              </div>
-              <p className="text-slate-400 text-xs max-w-sm leading-relaxed font-normal">
-                PeoplePay360. Build your automated HR & Payroll workflow.
+      {/* 10. FOOTER WITH GIANT BRAND WATERMARK & POLICY LINKS */}
+      <footer className="bg-black text-slate-400 text-xs pt-12 pb-6 border-t border-slate-900 overflow-hidden select-none">
+        <div className="max-w-[1440px] mx-auto px-6 sm:px-10 lg:px-12">
+          {/* Top Info & Links Row */}
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 pb-12 border-b border-slate-900/80">
+            {/* Left Copyright & Brand */}
+            <div className="space-y-1">
+              <p className="text-slate-300 font-medium text-[11px] leading-tight">
+                Copyright © {new Date().getFullYear()} PeoplePay360. All Rights Reserved.
+              </p>
+              <p className="text-slate-500 text-[10px]">
+                Brand of PeoplePay360 Technologies Pvt. Ltd.
               </p>
             </div>
 
-            {/* Column 2: Company */}
-            <div className="space-y-3">
-              <h4 className="font-bold text-white text-xs uppercase tracking-wider">Company</h4>
-              <ul className="space-y-2 text-slate-400 text-xs">
-                <li><a href="#home" className="hover:text-white transition">Home</a></li>
-                <li><a href="#about" className="hover:text-white transition">About</a></li>
-                <li><a href="#features" className="hover:text-white transition">Features</a></li>
-                <li><a href="#pricing" className="hover:text-white transition">Pricing</a></li>
-                <li><a href="#faq" className="hover:text-white transition">Contact</a></li>
-              </ul>
-            </div>
-
-            {/* Column 3: Resources */}
-            <div className="space-y-3">
-              <h4 className="font-bold text-white text-xs uppercase tracking-wider">Resources</h4>
-              <ul className="space-y-2 text-slate-400 text-xs">
-                <li><a href="#features" className="hover:text-white transition">AI Leave Simulation Guide</a></li>
-                <li><a href="#agents" className="hover:text-white transition">Multi-Agent Architecture Topics</a></li>
-                <li><a href="#demo" className="hover:text-white transition">Payroll Calculation Engine</a></li>
-                <li><a href="#differentiators" className="hover:text-white transition">HR Security & Compliance</a></li>
-              </ul>
-            </div>
-
-            {/* Column 4: Industries & Compliance */}
-            <div className="space-y-3">
-              <h4 className="font-bold text-white text-xs uppercase tracking-wider">Modules & Compliance</h4>
-              <ul className="space-y-2 text-slate-400 text-xs">
-                <li><a href="#features" className="hover:text-white transition">Employee Master Hub</a></li>
-                <li><a href="#features" className="hover:text-white transition">Period Contracts</a></li>
-                <li><a href="#features" className="hover:text-white transition">Attendance Tracking</a></li>
-                <li><a href="#demo" className="hover:text-white transition">Salary Structures</a></li>
-                <li><a href="#features" className="hover:text-white transition">BullMQ Queues</a></li>
-              </ul>
-            </div>
-
-            {/* Column 5: Compare */}
-            <div className="space-y-3">
-              <h4 className="font-bold text-white text-xs uppercase tracking-wider">Compare</h4>
-              <ul className="space-y-2 text-slate-400 text-xs">
-                <li><a href="#differentiators" className="hover:text-white transition">Best HR Automation Software</a></li>
-                <li><a href="#differentiators" className="hover:text-white transition">Legacy HRMS Alternatives</a></li>
-                <li><a href="#differentiators" className="hover:text-white transition">PeoplePay360 vs Manual HR</a></li>
-                <li><a href="#differentiators" className="hover:text-white transition">PeoplePay360 vs Legacy Payroll</a></li>
-              </ul>
-            </div>
-
-          </div>
-
-          {/* Bottom Bar with Socials & Legal links */}
-          <div className="pt-8 pb-12 flex flex-col sm:flex-row items-center justify-between gap-4 text-slate-400 text-xs">
-
-            {/* Left Social Icons & Copyright */}
-            <div className="space-y-2">
-              <div className="flex items-center gap-3 text-slate-400">
-                <a href="https://facebook.com" target="_blank" rel="noreferrer" className="hover:text-white transition p-1 bg-slate-900 rounded border border-slate-800">
-                  <FacebookIcon />
-                </a>
-                <a href="https://instagram.com" target="_blank" rel="noreferrer" className="hover:text-white transition p-1 bg-slate-900 rounded border border-slate-800">
-                  <InstagramIcon />
-                </a>
-                <a href="https://twitter.com" target="_blank" rel="noreferrer" className="hover:text-white transition p-1 bg-slate-900 rounded border border-slate-800">
-                  <XTwitterIcon />
-                </a>
-                <a href="https://linkedin.com" target="_blank" rel="noreferrer" className="hover:text-white transition p-1 bg-slate-900 rounded border border-slate-800">
-                  <LinkedInIcon />
-                </a>
-              </div>
-              <div className="text-slate-500 text-[11px]">
-                Copyright © 2026 PeoplePay360. All Rights Reserved. <br className="sm:hidden" />
-                <span className="text-slate-600">Built for Odoo Grand Final Hackathon.</span>
-              </div>
-            </div>
-
             {/* Right Legal Links */}
-            <div className="flex items-center gap-6 text-slate-400 font-medium text-xs">
-              <a href="#home" className="hover:text-white transition">Terms of Service</a>
-              <a href="#home" className="hover:text-white transition">Privacy Policy</a>
-              <a href="#home" className="hover:text-white transition">Refund Policy</a>
+            <div className="flex items-center gap-6 text-[11px] font-medium text-slate-400">
+              <a href="#terms" className="hover:text-white transition">Terms of Service</a>
+              <a href="#privacy" className="hover:text-white transition">Privacy Policy</a>
+              <a href="#refund" className="hover:text-white transition">Refund Policy</a>
             </div>
-
           </div>
 
+          {/* Giant Monumental Gradient Watermark Text with Opacity Fade Gradient */}
+          <div className="pt-6 pb-4 w-full overflow-hidden flex justify-center items-center px-4 relative">
+            <span
+              style={{
+                WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 35%, rgba(0,0,0,0.15) 100%)',
+                maskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 35%, rgba(0,0,0,0.15) 100%)',
+              }}
+              className="font-black tracking-tight text-[7.5vw] sm:text-[8vw] md:text-[8.4vw] leading-none uppercase bg-gradient-to-r from-[#FF5E1E] via-[#EAB308] to-[#14B8A6] bg-clip-text text-transparent opacity-90 drop-shadow-2xl whitespace-nowrap text-center select-none max-w-full"
+            >
+              PeoplePay360
+            </span>
+          </div>
         </div>
-
-        {/* GIANT STYLIZED TEXT WATERMARK AT BOTTOM OF FOOTER MATCHING SCREENSHOT */}
-        <div className="w-full text-center pointer-events-none select-none overflow-hidden leading-none pt-6 mt-4 opacity-90">
-          <span className="text-[13vw] sm:text-[15vw] font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-[#FF5E1E] via-[#EAB308] via-[#2DD4BF] to-[#06B6D4]">
-            PeoplePay360
-          </span>
-        </div>
-
       </footer>
 
     </div>
