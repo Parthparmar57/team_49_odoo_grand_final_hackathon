@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import api from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
-import { PageHeader, Table, Tr, Td, Button, LoadingPage, Alert, Modal, Select, Input, LeaveStatusBadge, Card } from '../../components/ui';
-import { Plus, Check, X, Loader2 } from 'lucide-react';
+import { PageHeader, Table, Tr, Td, Button, LoadingPage, Alert, Modal, Select, Input, LeaveStatusBadge } from '../../components/ui';
+import { Plus, Check, X, Loader2, Calendar, PieChart, Search } from 'lucide-react';
 import { useToast } from '../../context/ToastContext';
 
 export default function TimeOffPage() {
@@ -17,6 +17,8 @@ export default function TimeOffPage() {
   const [refuseModal, setRefuseModal] = useState<{ open: boolean; id: string }>({ open: false, id: '' });
   const [saving, setSaving] = useState(false);
   const [refuseReason, setRefuseReason] = useState('');
+  const [activeTab, setActiveTab] = useState<'summary' | 'requests'>('summary');
+  const [summarySearch, setSummarySearch] = useState('');
   const [newForm, setNewForm] = useState({
     leaveTypeId: '', startDate: '', endDate: '', reason: '', employeeId: '',
   });
@@ -90,6 +92,31 @@ export default function TimeOffPage() {
     }
   };
 
+  // Group allocations by Employee for the Summary View
+  const groupedAllocations = useMemo(() => {
+    const map = new Map<string, { employee: any; balances: any[] }>();
+    allocations.forEach(a => {
+      const emp = a.employee || {};
+      const empId = emp.id || a.employeeId || 'unknown';
+      if (!map.has(empId)) {
+        map.set(empId, { employee: emp, balances: [] });
+      }
+      map.get(empId)!.balances.push(a);
+    });
+    return Array.from(map.values());
+  }, [allocations]);
+
+  const filteredGroupedAllocations = useMemo(() => {
+    if (!summarySearch) return groupedAllocations;
+    const q = summarySearch.toLowerCase();
+    return groupedAllocations.filter(g => {
+      const name = `${g.employee?.firstName || ''} ${g.employee?.lastName || ''}`.toLowerCase();
+      const num = (g.employee?.employeeNumber || '').toLowerCase();
+      const dept = (g.employee?.department?.name || '').toLowerCase();
+      const desg = (g.employee?.designation || '').toLowerCase();
+      return name.includes(q) || num.includes(q) || dept.includes(q) || desg.includes(q);
+    });
+  }, [groupedAllocations, summarySearch]);
 
   return (
     <div className="space-y-6">
@@ -101,37 +128,130 @@ export default function TimeOffPage() {
 
       {error && <Alert message={error} />}
 
-      {/* Allocations Summary */}
-      {allocations.length > 0 && (
-        <div>
-          <h2 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider mb-3">Leave Balance Summary</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {allocations.map(a => (
-              <Card key={a.id} className="p-5 border border-slate-200/80 hover:shadow-md transition-all">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-bold uppercase text-slate-500">{a.leaveType?.name}</span>
-                  <span className="text-xs font-bold text-[#FF5E1E] bg-orange-50 px-2 py-0.5 rounded-full border border-orange-200">{a.leaveType?.code}</span>
+      {/* Top Navigation Toggle */}
+      <div className="flex border-b border-slate-200 gap-8">
+        <button
+          onClick={() => setActiveTab('summary')}
+          className={`pb-3 font-extrabold text-sm flex items-center gap-2 border-b-2 transition-all ${
+            activeTab === 'summary'
+              ? 'border-[#FF5E1E] text-[#FF5E1E]'
+              : 'border-transparent text-slate-500 hover:text-slate-800'
+          }`}
+        >
+          <PieChart size={18} />
+          Leave Balance Summary
+          <span className="ml-1 bg-orange-100 text-[#FF5E1E] text-xs px-2.5 py-0.5 rounded-full font-bold">
+            {groupedAllocations.length}
+          </span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('requests')}
+          className={`pb-3 font-extrabold text-sm flex items-center gap-2 border-b-2 transition-all ${
+            activeTab === 'requests'
+              ? 'border-[#FF5E1E] text-[#FF5E1E]'
+              : 'border-transparent text-slate-500 hover:text-slate-800'
+          }`}
+        >
+          <Calendar size={18} />
+          Leave Requests
+          <span className="ml-1 bg-slate-100 text-slate-700 text-xs px-2.5 py-0.5 rounded-full font-bold">
+            {requests.length}
+          </span>
+        </button>
+      </div>
+
+      {loading ? (
+        <LoadingPage />
+      ) : activeTab === 'summary' ? (
+        /* Leave Balance Summary View (Grouped per Employee Card) */
+        <div className="space-y-4">
+          <div className="flex justify-between items-center flex-wrap gap-3">
+            <h2 className="text-xs font-extrabold text-slate-500 uppercase tracking-wider">
+              Showing Leave Balances ({filteredGroupedAllocations.length} Employees)
+            </h2>
+            <div className="relative min-w-[260px]">
+              <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                value={summarySearch}
+                onChange={e => setSummarySearch(e.target.value)}
+                placeholder="Filter employee or department..."
+                className="w-full bg-white border border-slate-200 rounded-xl pl-10 pr-4 py-2 text-slate-900 text-sm placeholder-slate-400 focus:outline-none focus:border-[#FF5E1E] focus:ring-1 focus:ring-[#FF5E1E] shadow-xs"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {filteredGroupedAllocations.map(group => {
+              const emp = group.employee;
+              return (
+                <div
+                  key={emp.id || Math.random()}
+                  className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-xs hover:border-orange-300 transition-all space-y-4"
+                >
+                  {/* Employee Header Info */}
+                  <div className="flex items-center gap-3.5 pb-3 border-b border-slate-100">
+                    <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#FF5E1E] to-[#FF8038] flex items-center justify-center flex-shrink-0 shadow-xs">
+                      <span className="text-white text-sm font-extrabold">
+                        {emp.firstName?.[0]}{emp.lastName?.[0]}
+                      </span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-1">
+                        <h3 className="text-slate-900 font-extrabold text-sm truncate">
+                          {emp.firstName} {emp.lastName}
+                        </h3>
+                        <span className="text-[11px] font-mono font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
+                          {emp.employeeNumber || 'EMP'}
+                        </span>
+                      </div>
+                      <p className="text-slate-500 text-xs font-medium truncate mt-0.5">
+                        {emp.designation || 'Staff'} · <span className="text-slate-700 font-bold">{emp.department?.name || 'General'}</span>
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Leave Balances Grid for Employee */}
+                  <div className="grid grid-cols-2 gap-2.5">
+                    {group.balances.map(a => (
+                      <div key={a.id} className="bg-slate-50/80 border border-slate-100 rounded-xl p-3 space-y-1.5">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="font-bold text-slate-700 truncate">{a.leaveType?.name}</span>
+                          <span className="text-[10px] font-extrabold text-[#FF5E1E] bg-orange-100/80 px-1.5 py-0.5 rounded">
+                            {a.leaveType?.code}
+                          </span>
+                        </div>
+                        <div className="flex items-baseline gap-1">
+                          <span className="text-xl font-extrabold text-slate-900">
+                            {a.remainingAmount ?? (a.allocatedAmount - a.usedAmount)}
+                          </span>
+                          <span className="text-[11px] text-slate-500 font-bold">
+                            / {a.allocatedAmount} {a.leaveType?.unit?.toLowerCase() || 'days'} left
+                          </span>
+                        </div>
+                        <div className="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
+                          <div
+                            className="bg-[#FF5E1E] h-full rounded-full"
+                            style={{
+                              width: `${Math.min(
+                                100,
+                                a.allocatedAmount ? (a.usedAmount / a.allocatedAmount) * 100 : 0
+                              )}%`,
+                            }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-3xl font-extrabold text-slate-900">{a.remainingAmount ?? (a.allocatedAmount - a.usedAmount)}</span>
-                  <span className="text-xs text-slate-500 font-bold">/ {a.allocatedAmount} {a.leaveType?.unit?.toLowerCase() || 'days'} left</span>
-                </div>
-                <div className="w-full bg-slate-100 rounded-full h-1.5 mt-3 overflow-hidden">
-                  <div
-                    className="bg-[#FF5E1E] h-full rounded-full"
-                    style={{ width: `${Math.min(100, ((a.usedAmount / a.allocatedAmount) * 100))}%` }}
-                  />
-                </div>
-              </Card>
-            ))}
+              );
+            })}
           </div>
         </div>
-      )}
-
-      {/* Requests Table */}
-      {loading ? <LoadingPage /> : (
+      ) : (
+        /* Leave Requests View */
         <div>
-          <h2 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider mb-3">Leave Requests</h2>
           <Table
             headers={['Employee', 'Type', 'Period', 'Duration', 'Reason', 'Status', 'Actions']}
             empty={requests.length === 0}

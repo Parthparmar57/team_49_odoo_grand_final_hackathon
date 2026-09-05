@@ -19,6 +19,7 @@ export class EmployeesService {
         }
         if (params.departmentId) where.departmentId = params.departmentId;
         if (params.status) where.status = params.status;
+        if (params.employmentType) where.employmentType = params.employmentType;
 
         const [employees, total] = await Promise.all([
             prisma.employee.findMany({

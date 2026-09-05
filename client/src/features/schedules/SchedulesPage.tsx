@@ -135,8 +135,14 @@ export default function SchedulesPage() {
       {/* New Schedule Modal */}
       <Modal open={showModal} onClose={() => setShowModal(false)} title="Create Working Schedule">
         <div className="space-y-4">
-          <Input label="Schedule Name *" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="e.g. Standard 40h Shift" />
-          <div className="grid grid-cols-2 gap-3">
+          <Input
+            label="Schedule Name *"
+            value={form.name}
+            onChange={e => setForm({ ...form, name: e.target.value })}
+            placeholder="e.g. Standard 40h Shift"
+          />
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input
               label="Daily Hours *"
               type="number"
@@ -144,10 +150,11 @@ export default function SchedulesPage() {
               onChange={e => setDailyHours(e.target.value)}
               placeholder="e.g. 8"
             />
+
             <div>
-              <div className="flex items-center justify-between mb-1">
-                <label className="text-slate-700 text-xs font-bold uppercase tracking-wider">Weekly Hours (Auto)</label>
-                <span className="text-[10px] text-orange-600 font-bold flex items-center gap-0.5">
+              <div className="flex items-center justify-between mb-1.5 gap-1">
+                <label className="text-slate-700 text-xs font-bold uppercase tracking-wider">Weekly Hours</label>
+                <span className="text-[10px] font-extrabold text-[#FF5E1E] bg-orange-50 border border-orange-200 px-2 py-0.5 rounded-full whitespace-nowrap flex items-center gap-1">
                   <Calculator size={10} /> Auto-Calculated
                 </span>
               </div>
@@ -155,33 +162,61 @@ export default function SchedulesPage() {
                 type="number"
                 readOnly
                 value={form.weeklyHours}
-                className="w-full px-3.5 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-slate-700 font-extrabold text-sm focus:outline-none cursor-not-allowed"
+                className="w-full px-3.5 py-2.5 bg-slate-100/90 border border-slate-200 rounded-xl text-slate-900 font-extrabold text-sm focus:outline-none cursor-not-allowed shadow-xs"
               />
-              <span className="text-[10px] text-slate-400 font-medium mt-1 block">
+              <span className="text-[11px] text-slate-400 font-semibold mt-1 block">
                 Calculated: {dailyHours || 0} hrs × {activeDaysCount} active days
               </span>
             </div>
 
-            <Input label="Break (mins)" type="number" value={form.breakMinutes} onChange={e => setForm({ ...form, breakMinutes: e.target.value })} />
-            <Input label="Start Time" type="time" value={form.startTime} onChange={e => setForm({ ...form, startTime: e.target.value })} />
-            <Input label="End Time" type="time" value={form.endTime} onChange={e => setForm({ ...form, endTime: e.target.value })} />
+            <Input
+              label="Start Time *"
+              type="time"
+              value={form.startTime}
+              onChange={e => setForm({ ...form, startTime: e.target.value })}
+            />
+
+            <Input
+              label="End Time *"
+              type="time"
+              value={form.endTime}
+              onChange={e => setForm({ ...form, endTime: e.target.value })}
+            />
+
+            <div className="sm:col-span-2">
+              <Input
+                label="Break Duration (mins)"
+                type="number"
+                value={form.breakMinutes}
+                onChange={e => setForm({ ...form, breakMinutes: e.target.value })}
+                placeholder="60"
+              />
+            </div>
           </div>
 
           <div>
-            <label className="text-slate-700 text-xs font-bold uppercase tracking-wider block mb-2">
-              Working Days ({activeDaysCount} Days Selected)
-            </label>
-            <div className="grid grid-cols-4 gap-2">
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-slate-700 text-xs font-bold uppercase tracking-wider">
+                Working Days
+              </label>
+              <span className="text-xs font-extrabold text-slate-600 bg-slate-100 border border-slate-200 px-2.5 py-0.5 rounded-md">
+                {activeDaysCount} Days Selected
+              </span>
+            </div>
+            <div className="grid grid-cols-4 sm:grid-cols-7 gap-1.5">
               {days.map(d => (
                 <button
                   key={d}
                   type="button"
                   onClick={() => setForm({ ...form, [d]: !form[d] })}
-                  className={`p-2 rounded-xl text-xs font-bold capitalize transition-all border flex items-center justify-between ${form[d] ? 'bg-orange-50 text-[#FF5E1E] border-orange-200' : 'bg-slate-50 text-slate-500 border-slate-200'
-                    }`}
+                  className={`py-2 px-1 rounded-xl text-xs font-extrabold capitalize transition-all border flex flex-col items-center justify-center gap-1 ${
+                    form[d]
+                      ? 'bg-orange-50 text-[#FF5E1E] border-orange-300 shadow-xs'
+                      : 'bg-slate-50/70 text-slate-400 border-slate-200 hover:bg-slate-100'
+                  }`}
                 >
-                  {d.slice(0, 3)}
-                  {form[d] && <Check size={12} />}
+                  <span>{d.slice(0, 3)}</span>
+                  {form[d] && <Check size={12} className="stroke-[3]" />}
                 </button>
               ))}
             </div>

@@ -252,8 +252,9 @@ export class AuthService {
 
     static async getUsers(queryParams = {}) {
         const page = Math.max(1, parseInt(queryParams.page) || 1);
-        const limit = Math.max(1, Math.min(100, parseInt(queryParams.limit) || 10));
+        const limit = Math.max(1, Math.min(1000, parseInt(queryParams.limit) || 10));
         const skip = (page - 1) * limit;
+
 
         const { search, role } = queryParams;
 
