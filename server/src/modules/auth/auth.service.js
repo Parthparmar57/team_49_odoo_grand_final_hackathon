@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs';
 import { prisma } from '../../config/prisma.js';
 import { signToken } from '../../utils/jwt.js';
 import { AppError } from '../../middleware/error.middleware.js';
+import { sendPasswordResetEmail } from '../../utils/email.js';
 
 export class AuthService {
     static async register(data) {
@@ -94,35 +95,63 @@ export class AuthService {
     }
 
     static async forgotPassword({ email }) {
-        const user = await prisma.user.findUnique({ where: { email } });
+        const user = await prisma.user.findUnique({
+            where: { email },
+            include: { employee: true },
+        });
+
         if (!user) {
-            // For security, return success even if user not found to avoid user enumeration
-            return { message: 'If an account exists with this email, reset instructions have been sent.' };
+            // For security, return generic success to avoid user enumeration
+            return { message: 'If an account exists with this email, reset instructions have been sent via Brevo.' };
         }
 
-        // Generate reset token (in production, saved with expiration in DB or Redis)
-        const resetToken = signToken({ id: user.id, email: user.email, type: 'reset_password' }, '1h');
-        
-        // Log reset link for development/demo
-        console.log(`[AUTH] Password reset link for ${email}: /auth/reset-password/${resetToken}`);
+        // Generate 6-digit verification code
+        const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+
+        // Sign JWT reset token with verification code payload (valid for 1 hour)
+        const resetToken = signToken({
+            id: user.id,
+            email: user.email,
+            verificationCode,
+            type: 'reset_password',
+        }, '1h');
+
+        const recipientName = user.employee ? `${user.employee.firstName} ${user.employee.lastName}` : user.email;
+
+        // Send email via Brevo
+        const emailResult = await sendPasswordResetEmail({
+            recipientEmail: user.email,
+            recipientName,
+            resetToken,
+            verificationCode,
+        });
 
         return {
-            message: 'Password reset link sent to your work email address.',
-            resetToken, // Returned in dev mode for easy testing/demo
+            message: 'Email verification code & password reset link sent via Brevo to your work email.',
+            resetToken,
+            verificationCode,
+            emailDelivery: emailResult,
         };
     }
 
-    static async resetPassword({ token, password }) {
+    static async resetPassword({ token, verificationCode, password }) {
         let decoded;
         try {
             const { verifyToken } = await import('../../utils/jwt.js');
             decoded = verifyToken(token);
         } catch (err) {
-            throw new AppError('Invalid or expired reset token', 400, 'INVALID_TOKEN');
+            throw new AppError('Invalid or expired password reset token', 400, 'INVALID_TOKEN');
         }
 
         if (!decoded || !decoded.id) {
             throw new AppError('Invalid token payload', 400, 'INVALID_TOKEN');
+        }
+
+        // Validate 6-digit verification code if provided
+        if (verificationCode && decoded.verificationCode) {
+            if (verificationCode.trim() !== decoded.verificationCode.trim()) {
+                throw new AppError('Invalid 6-digit email verification code', 400, 'INVALID_VERIFICATION_CODE');
+            }
         }
 
         const user = await prisma.user.findUnique({ where: { id: decoded.id } });
@@ -136,7 +165,7 @@ export class AuthService {
             data: { passwordHash: hashedPassword },
         });
 
-        return { message: 'Password has been reset successfully.' };
+        return { message: 'Password has been verified and updated successfully.' };
     }
 
     static async adminCreateUser(data) {

@@ -1,7 +1,14 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { Mail, ArrowLeft, Loader2, CheckCircle2, AlertCircle, ShieldCheck } from 'lucide-react';
+import {
+  Mail,
+  ArrowRight,
+  Loader2,
+  AlertCircle,
+  CheckCircle2,
+  ChevronDown,
+} from 'lucide-react';
 
 export const ForgotPasswordPage: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -28,7 +35,7 @@ export const ForgotPasswordPage: React.FC = () => {
     setIsSubmitting(false);
 
     if (result.success) {
-      setSuccessMessage(result.message || 'Password reset instructions have been sent to your email.');
+      setSuccessMessage(result.message || 'Password reset instructions have been sent via Brevo.');
       if (result.resetToken) {
         setDemoToken(result.resetToken);
       }
@@ -38,117 +45,190 @@ export const ForgotPasswordPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden font-sans">
-      <div className="absolute top-0 left-1/4 w-96 h-96 bg-orange-500/15 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-teal-500/15 rounded-full blur-3xl pointer-events-none" />
+    <div className="min-h-screen bg-white text-slate-900 font-sans flex flex-col justify-between selection:bg-orange-100 selection:text-orange-600">
+      
+      {/* 1. TOP NAVIGATION HEADER */}
+      <header className="border-b border-slate-100 bg-white sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          {/* Logo */}
+          <Link to="/" className="flex items-center">
+            <img src="/logo.webp" alt="PeoplePay360" className="h-9 w-auto object-contain" />
+          </Link>
 
-      <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10">
-        <div className="flex flex-col items-center">
-          <div className="w-14 h-14 bg-gradient-to-tr from-orange-500 to-amber-500 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-orange-500/20 mb-4 ring-1 ring-white/20">
-            <ShieldCheck className="w-8 h-8" />
-          </div>
-          <h2 className="text-center text-3xl font-extrabold text-white tracking-tight">
-            PeoplePay<span className="text-orange-500">360</span>
-          </h2>
-          <p className="mt-1 text-center text-xs uppercase tracking-widest text-slate-400 font-semibold">
-            Password Recovery
-          </p>
-        </div>
-      </div>
+          {/* Center Links */}
+          <nav className="hidden md:flex items-center gap-8 text-xs font-bold text-[#334155]">
+            <Link to="/" className="hover:text-[#FF5E1E] transition">Home</Link>
+            <a href="#about" className="hover:text-[#FF5E1E] transition">About</a>
+            <a href="#pricing" className="hover:text-[#FF5E1E] transition">Pricing</a>
+            <a href="#features" className="hover:text-[#FF5E1E] transition">Features</a>
+            <a href="#more" className="hover:text-[#FF5E1E] transition flex items-center gap-1">
+              More <ChevronDown className="w-3 h-3" />
+            </a>
+          </nav>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md relative z-10 px-4">
-        <div className="bg-slate-900/90 backdrop-blur-xl border border-slate-800 py-8 px-6 shadow-2xl rounded-3xl sm:px-10">
-          <div className="mb-6 border-b border-slate-800 pb-4">
-            <h3 className="text-xl font-bold text-white">Forgot Password?</h3>
-            <p className="text-slate-400 text-xs mt-1">
-              Enter your work email address below and we'll send you a password reset link.
-            </p>
-          </div>
-
-          {error && (
-            <div className="mb-5 p-3.5 bg-red-500/10 border border-red-500/30 rounded-xl flex items-start gap-3 text-red-400 text-sm">
-              <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
-              <div className="flex-1">{error}</div>
-            </div>
-          )}
-
-          {successMessage && (
-            <div className="mb-5 p-4 bg-teal-500/10 border border-teal-500/30 rounded-xl text-teal-300 text-sm">
-              <div className="flex items-start gap-3 mb-2">
-                <CheckCircle2 className="w-5 h-5 text-teal-400 shrink-0 mt-0.5" />
-                <div className="font-semibold">{successMessage}</div>
-              </div>
-
-              {/* Development Mode Quick Demo Link */}
-              {demoToken && (
-                <div className="mt-3 pt-3 border-t border-teal-500/20 text-xs text-teal-200">
-                  <p className="font-mono bg-slate-950/80 p-2.5 rounded-lg border border-teal-500/30 break-all mb-2">
-                    Token: {demoToken.slice(0, 24)}...
-                  </p>
-                  <Link
-                    to={`/auth/reset-password/${demoToken}`}
-                    className="inline-flex items-center gap-1 font-bold text-orange-400 hover:underline"
-                  >
-                    Click here to open Reset Password page →
-                  </Link>
-                </div>
-              )}
-            </div>
-          )}
-
-          {!successMessage && (
-            <form className="space-y-5" onSubmit={handleSubmit}>
-              <div>
-                <label htmlFor="email" className="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wider">
-                  Work Email Address
-                </label>
-                <div className="relative rounded-xl shadow-sm">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
-                    <Mail className="h-5 w-5" />
-                  </div>
-                  <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    autoComplete="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="name@company.com"
-                    className="block w-full pl-10 pr-3 py-3 bg-slate-950/80 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm transition-all"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full flex justify-center items-center gap-2 py-3.5 px-4 border border-transparent rounded-xl text-sm font-bold text-white bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 focus:ring-offset-slate-900 shadow-lg shadow-orange-500/25 transition-all disabled:opacity-50 cursor-pointer"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                      Sending Link...
-                    </>
-                  ) : (
-                    'Send Reset Link'
-                  )}
-                </button>
-              </div>
-            </form>
-          )}
-
-          <div className="mt-6 pt-5 border-t border-slate-800/80 text-center">
+          {/* Right Action Buttons */}
+          <div className="flex items-center gap-3">
+            <a
+              href="#demo"
+              className="hidden sm:inline-flex items-center justify-center px-4 py-2 text-xs font-bold text-slate-700 bg-white border border-slate-200 rounded-full hover:bg-slate-50 transition"
+            >
+              Book A Demo
+            </a>
             <Link
               to="/auth/login"
-              className="inline-flex items-center gap-2 text-xs font-semibold text-slate-400 hover:text-white transition-colors"
+              className="group inline-flex items-center justify-center px-5 py-2.5 text-xs font-bold text-white bg-[#FF5E1E] hover:bg-[#E0480C] rounded-full transition shadow-md shadow-orange-500/25"
             >
-              <ArrowLeft className="w-4 h-4" /> Back to Login
+              <span>Sign In</span>
+              <div className="w-4 h-4 ml-1.5 rounded-full bg-white/20 flex items-center justify-center group-hover:translate-x-0.5 transition-transform">
+                <ArrowRight className="w-3 h-3 text-white" />
+              </div>
             </Link>
           </div>
         </div>
-      </div>
+      </header>
+
+      {/* 2. CENTERED FORGOT PASSWORD CONTAINER */}
+      <main className="flex-1 flex flex-col justify-center items-center py-12 px-4 bg-white">
+        <div className="max-w-[460px] w-full mx-auto">
+          
+          {/* Card Container matching LoginPage */}
+          <div className="bg-[#F4F6F6] border border-slate-200/80 rounded-[32px] shadow-sm overflow-hidden relative">
+            
+            {/* Top Multi-Gradient Border Strip */}
+            <div className="h-[5px] bg-gradient-to-r from-[#2DD4BF] via-[#F59E0B] to-[#FF5E1E] w-full" />
+
+            <div className="p-8 sm:p-10 space-y-6">
+              
+              {/* Header */}
+              <div className="text-center space-y-1">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-100/80 text-[#FF5E1E] text-[11px] font-bold tracking-wide mb-2">
+                  <span>Brevo Email Verification</span>
+                </div>
+                <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0F172A] tracking-tight">
+                  Forgot password
+                </h1>
+                <p className="text-xs text-[#64748B] font-medium max-w-sm mx-auto">
+                  Enter your work email address to receive a 6-digit verification code & password reset link.
+                </p>
+              </div>
+
+              {/* Error Banner */}
+              {error && (
+                <div className="p-3.5 bg-red-50 border border-red-200 rounded-2xl flex items-start gap-3 text-red-600 text-xs leading-relaxed animate-shake">
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-red-500" />
+                  <div className="flex-1">{error}</div>
+                </div>
+              )}
+
+              {/* Success Banner */}
+              {successMessage ? (
+                <div className="p-4 bg-teal-50 border border-teal-200 rounded-2xl text-teal-800 text-xs space-y-3">
+                  <div className="flex items-start gap-3">
+                    <CheckCircle2 className="w-5 h-5 text-teal-600 shrink-0 mt-0.5" />
+                    <div>
+                      <div className="font-bold text-teal-900 text-sm">Brevo Email Verification Sent!</div>
+                      <div className="text-xs text-teal-700 mt-1 leading-relaxed">{successMessage}</div>
+                    </div>
+                  </div>
+
+                  {demoToken && (
+                    <div className="pt-3 border-t border-teal-200 text-xs">
+                      <p className="text-slate-600 text-[11px] mb-2">
+                        Check your email inbox or click below to proceed directly to the reset screen:
+                      </p>
+                      <Link
+                        to={`/auth/reset-password/${demoToken}`}
+                        className="w-full py-3 px-5 rounded-full text-xs font-bold text-white bg-[#FF5E1E] hover:bg-[#E0480C] transition shadow-md shadow-orange-500/25 inline-flex items-center justify-center gap-2"
+                      >
+                        <span>Proceed to Reset Password Page</span>
+                        <ArrowRight className="w-3.5 h-3.5 text-white" />
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                /* Main Form */
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  {/* Work Email Input */}
+                  <div className="space-y-1.5 text-left">
+                    <label className="block text-xs text-[#1E293B] font-bold">
+                      Work email
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="email"
+                        required
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="Enter your work email"
+                        className="w-full px-5 py-3 rounded-full bg-white border border-slate-200 text-slate-900 placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#FF5E1E]/40 focus:border-[#FF5E1E] text-xs transition-all shadow-sm"
+                      />
+                      <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-slate-400">
+                        <Mail className="w-4 h-4" />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Send Reset Link Button */}
+                  <div className="pt-2">
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="w-full py-3.5 px-6 rounded-full text-xs font-bold text-white bg-[#FF5E1E] hover:bg-[#E0480C] active:scale-[0.99] transition shadow-md shadow-orange-500/25 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin text-white" />
+                          <span>Sending Code...</span>
+                        </>
+                      ) : (
+                        <span>Send Reset Link</span>
+                      )}
+                    </button>
+                  </div>
+                </form>
+              )}
+
+              {/* Bottom Back to Sign in link */}
+              <div className="text-center pt-2 text-xs font-medium text-[#64748B]">
+                Remember your password?{' '}
+                <Link to="/auth/login" className="font-bold text-[#FF5E1E] hover:underline">
+                  Sign in
+                </Link>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </main>
+
+      {/* 3. FOOTER MATCHING LOGIN PAGE EXACTLY */}
+      <footer className="bg-[#0A0D14] text-slate-400 pt-8 pb-4 px-6 text-xs font-sans border-t border-slate-900 overflow-hidden relative">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 relative z-10">
+          <div className="flex items-center">
+            <img src="/logo-footer.webp" alt="PeoplePay360" className="h-7 w-auto object-contain" />
+          </div>
+
+          <div className="flex items-center gap-6 text-slate-400 text-xs font-medium">
+            <Link to="/" className="hover:text-white transition">Home</Link>
+            <a href="#about" className="hover:text-white transition">Terms of Service</a>
+            <a href="#resources" className="hover:text-white transition">Privacy Policy</a>
+            <a href="#industries" className="hover:text-white transition">Refund Policy</a>
+          </div>
+
+          <div className="text-slate-500 text-[11px]">
+            &copy; 2026 PeoplePay360. All rights reserved.
+          </div>
+        </div>
+
+        {/* GIANT GRADIENT TEXT WATERMARK */}
+        <div className="w-full text-center pointer-events-none select-none overflow-hidden leading-none pt-6 mt-2 opacity-90">
+          <span className="text-[13vw] sm:text-[15vw] font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-[#FF5E1E] via-[#EAB308] via-[#2DD4BF] to-[#06B6D4]">
+            PeoplePay360
+          </span>
+        </div>
+      </footer>
     </div>
   );
 };
