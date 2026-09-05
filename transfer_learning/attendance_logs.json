@@ -1,0 +1,110 @@
+[
+  {
+    "id": "ATT-1788643150",
+    "employeeNumber": "EMP-003",
+    "name": "Harsh Patel",
+    "date": "2026-09-06",
+    "day": "Sunday",
+    "checkInTime": "08:55:10 AM",
+    "checkOutTime": "06:30:45 PM",
+    "workedHours": 9.58,
+    "overtimeHours": 0.58,
+    "matchConfidence": 79.4
+  },
+  {
+    "id": "ATT-1788556740",
+    "employeeNumber": "EMP-003",
+    "name": "Harsh Patel",
+    "date": "2026-09-05",
+    "day": "Saturday",
+    "checkInTime": "08:58:20 AM",
+    "checkOutTime": "06:05:10 PM",
+    "workedHours": 9.11,
+    "overtimeHours": 0.11,
+    "matchConfidence": 81.0
+  },
+  {
+    "id": "ATT-1788470330",
+    "employeeNumber": "EMP-003",
+    "name": "Harsh Patel",
+    "date": "2026-09-04",
+    "day": "Friday",
+    "checkInTime": "09:00:15 AM",
+    "checkOutTime": "06:15:30 PM",
+    "workedHours": 9.25,
+    "overtimeHours": 0.25,
+    "matchConfidence": 78.2
+  },
+  {
+    "id": "ATT-1788643140",
+    "employeeNumber": "EMP-001",
+    "name": "Vinay Vaja",
+    "date": "2026-09-06",
+    "day": "Sunday",
+    "checkInTime": "08:52:10 AM",
+    "checkOutTime": "06:35:20 PM",
+    "workedHours": 9.72,
+    "overtimeHours": 0.72,
+    "matchConfidence": 80.6
+  },
+  {
+    "id": "ATT-1788556730",
+    "employeeNumber": "EMP-001",
+    "name": "Vinay Vaja",
+    "date": "2026-09-05",
+    "day": "Saturday",
+    "checkInTime": "08:45:30 AM",
+    "checkOutTime": "06:15:00 PM",
+    "workedHours": 9.49,
+    "overtimeHours": 0.49,
+    "matchConfidence": 85.1
+  },
+  {
+    "id": "ATT-1788470320",
+    "employeeNumber": "EMP-001",
+    "name": "Vinay Vaja",
+    "date": "2026-09-04",
+    "day": "Friday",
+    "checkInTime": "08:50:12 AM",
+    "checkOutTime": "06:20:45 PM",
+    "workedHours": 9.5,
+    "overtimeHours": 0.5,
+    "matchConfidence": 82.3
+  },
+  {
+    "id": "ATT-1788643145",
+    "employeeNumber": "EMP-002",
+    "name": "Parth Parmar",
+    "date": "2026-09-06",
+    "day": "Sunday",
+    "checkInTime": "08:58:30 AM",
+    "checkOutTime": "06:22:15 PM",
+    "workedHours": 9.39,
+    "overtimeHours": 0.39,
+    "matchConfidence": 77.9
+  },
+  {
+    "id": "ATT-1788556735",
+    "employeeNumber": "EMP-002",
+    "name": "Parth Parmar",
+    "date": "2026-09-05",
+    "day": "Saturday",
+    "checkInTime": "09:02:15 AM",
+    "checkOutTime": "06:00:00 PM",
+    "workedHours": 8.96,
+    "overtimeHours": 0.0,
+    "matchConfidence": 79.5
+  },
+  {
+    "id": "ATT-1788470325",
+    "employeeNumber": "EMP-002",
+    "name": "Parth Parmar",
+    "date": "2026-09-04",
+    "day": "Friday",
+    "checkInTime": "09:05:40 AM",
+    "checkOutTime": "06:10:15 PM",
+    "workedHours": 9.07,
+    "overtimeHours": 0.07,
+    "matchConfidence": 76.8
+  }
+]
