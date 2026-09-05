@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Modal, Input, Select, Button, Alert, Badge } from '../../../components/ui';
 import { Plus, Edit2, Trash2, Loader2, Code } from 'lucide-react';
 import api from '../../../api/client';
+import { useToast } from '../../../context/ToastContext';
 
 interface SalaryRulesModalProps {
   open: boolean;
@@ -16,11 +17,13 @@ export const SalaryRulesModal: React.FC<SalaryRulesModalProps> = ({
   structure,
   onRefresh,
 }) => {
+  const { toast } = useToast();
   const [rules, setRules] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
+
 
   const [editingRule, setEditingRule] = useState<any | null>(null);
   const [showRuleForm, setShowRuleForm] = useState(false);
@@ -105,7 +108,9 @@ export const SalaryRulesModal: React.FC<SalaryRulesModalProps> = ({
   const handleSaveRule = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!ruleForm.name.trim() || !ruleForm.code.trim()) {
-      setError('Rule Name and Code are required');
+      const msg = 'Rule Name and Code are required';
+      setError(msg);
+      toast.error(msg);
       return;
     }
 
@@ -136,17 +141,23 @@ export const SalaryRulesModal: React.FC<SalaryRulesModalProps> = ({
         : await api.payroll.createRule(structure.id, payload);
 
       if (res.success) {
-        setSuccessMsg(editingRule ? 'Rule updated successfully' : 'Rule added successfully');
+        const msg = editingRule ? 'Rule updated successfully' : 'Rule added successfully';
+        setSuccessMsg(msg);
+        toast.success(msg);
         setTimeout(() => setSuccessMsg(''), 3000);
         setShowRuleForm(false);
         setEditingRule(null);
         await loadStructureDetails();
         onRefresh();
       } else {
-        setError(res.error?.message || 'Failed to save salary rule');
+        const msg = res.error?.message || 'Failed to save salary rule';
+        setError(msg);
+        toast.error(msg);
       }
     } catch (err: any) {
-      setError(err?.message || 'An error occurred while saving rule');
+      const msg = err?.message || 'An error occurred while saving rule';
+      setError(msg);
+      toast.error(msg);
     } finally {
       setSaving(false);
     }
@@ -158,19 +169,26 @@ export const SalaryRulesModal: React.FC<SalaryRulesModalProps> = ({
     try {
       const res = await api.payroll.deleteRule(structure.id, ruleId);
       if (res.success) {
-        setSuccessMsg('Rule deleted successfully');
+        const msg = 'Rule deleted successfully';
+        setSuccessMsg(msg);
+        toast.success(msg);
         setTimeout(() => setSuccessMsg(''), 3000);
         await loadStructureDetails();
         onRefresh();
       } else {
-        setError(res.error?.message || 'Failed to delete rule');
+        const msg = res.error?.message || 'Failed to delete rule';
+        setError(msg);
+        toast.error(msg);
       }
     } catch (err: any) {
-      setError(err?.message || 'Error deleting rule');
+      const msg = err?.message || 'Error deleting rule';
+      setError(msg);
+      toast.error(msg);
     } finally {
       setSaving(false);
     }
   };
+
 
   const getCategoryBadge = (cat: string) => {
     switch (cat) {

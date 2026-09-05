@@ -2,8 +2,10 @@ import { useEffect, useState, useMemo } from 'react';
 import api from '../../api/client';
 import { PageHeader, Button, LoadingPage, Alert, Modal, Input, Card } from '../../components/ui';
 import { Plus, Clock, Check, Loader2, Calculator } from 'lucide-react';
+import { useToast } from '../../context/ToastContext';
 
 export default function SchedulesPage() {
+  const { toast } = useToast();
   const [schedules, setSchedules] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -18,7 +20,11 @@ export default function SchedulesPage() {
   const load = () => {
     api.schedules.list().then(res => {
       if (res.success) setSchedules(res.data || []);
-      else setError(res.error?.message || 'Failed to load schedules');
+      else {
+        const msg = res.error?.message || 'Failed to load schedules';
+        setError(msg);
+        toast.error(msg);
+      }
       setLoading(false);
     });
   };
@@ -41,7 +47,9 @@ export default function SchedulesPage() {
   const handleSave = async () => {
     // Validation 1: End time <= Start time check
     if (form.startTime && form.endTime && form.endTime <= form.startTime) {
-      setError('End time must be strictly after start time.');
+      const msg = 'End time must be strictly after start time.';
+      setError(msg);
+      toast.error(msg);
       return;
     }
 
@@ -52,7 +60,9 @@ export default function SchedulesPage() {
       const totalShiftMinutes = (endH * 60 + endM) - (startH * 60 + startM);
       const breakMins = parseInt(form.breakMinutes) || 0;
       if (breakMins >= totalShiftMinutes) {
-        setError('Break duration cannot equal or exceed total shift duration.');
+        const msg = 'Break duration cannot equal or exceed total shift duration.';
+        setError(msg);
+        toast.error(msg);
         return;
       }
     }
@@ -65,9 +75,17 @@ export default function SchedulesPage() {
       breakMinutes: parseInt(form.breakMinutes),
     });
     setSaving(false);
-    if (res.success) { setShowModal(false); load(); }
-    else setError(res.error?.message || 'Failed to create schedule');
+    if (res.success) {
+      toast.success('Working schedule created successfully');
+      setShowModal(false);
+      load();
+    } else {
+      const msg = res.error?.message || 'Failed to create schedule';
+      setError(msg);
+      toast.error(msg);
+    }
   };
+
 
   return (
     <div className="space-y-6 font-sans">

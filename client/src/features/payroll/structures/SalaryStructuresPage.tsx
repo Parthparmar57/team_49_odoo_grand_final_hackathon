@@ -5,8 +5,10 @@ import { Plus, Edit3, Settings, Search, CheckCircle, Sliders, FileSpreadsheet, A
 import api from '../../../api/client';
 import SalaryStructureForm from './SalaryStructureForm';
 import SalaryRulesModal from './SalaryRulesModal';
+import { useToast } from '../../../context/ToastContext';
 
 export const SalaryStructuresPage: React.FC = () => {
+  const { toast } = useToast();
   const navigate = useNavigate();
   const [structures, setStructures] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -29,14 +31,19 @@ export const SalaryStructuresPage: React.FC = () => {
       if (res.success && res.data) {
         setStructures(res.data);
       } else {
-        setError(res.error?.message || 'Failed to fetch salary structures');
+        const msg = res.error?.message || 'Failed to fetch salary structures';
+        setError(msg);
+        toast.error(msg);
       }
     } catch (err: any) {
-      setError(err?.message || 'Error connecting to payroll server');
+      const msg = err?.message || 'Error connecting to payroll server';
+      setError(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
   };
+
 
   useEffect(() => {
     loadStructures();

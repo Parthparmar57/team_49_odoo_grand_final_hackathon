@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Modal, Input, Select, Button, Alert } from '../../../components/ui';
 import { Loader2 } from 'lucide-react';
 import api from '../../../api/client';
+import { useToast } from '../../../context/ToastContext';
 
 interface SalaryStructureFormProps {
   open: boolean;
@@ -16,6 +17,7 @@ export const SalaryStructureForm: React.FC<SalaryStructureFormProps> = ({
   onSuccess,
   structure,
 }) => {
+  const { toast } = useToast();
   const isEdit = Boolean(structure?.id);
   const [formData, setFormData] = useState({
     name: '',
@@ -48,7 +50,9 @@ export const SalaryStructureForm: React.FC<SalaryStructureFormProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name.trim() || !formData.code.trim()) {
-      setError('Structure Name and Code are required');
+      const msg = 'Structure Name and Code are required';
+      setError(msg);
+      toast.error(msg);
       return;
     }
 
@@ -68,17 +72,23 @@ export const SalaryStructureForm: React.FC<SalaryStructureFormProps> = ({
         : await api.payroll.createStructure(payload);
 
       if (res.success) {
+        toast.success(isEdit ? 'Salary structure updated successfully' : 'Salary structure created successfully');
         onSuccess();
         onClose();
       } else {
-        setError(res.error?.message || 'Failed to save salary structure');
+        const msg = res.error?.message || 'Failed to save salary structure';
+        setError(msg);
+        toast.error(msg);
       }
     } catch (err: any) {
-      setError(err?.message || 'An unexpected error occurred');
+      const msg = err?.message || 'An unexpected error occurred';
+      setError(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
   };
+
 
   return (
     <Modal

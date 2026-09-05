@@ -3,8 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import api from '../../api/client';
 import { PageHeader, Table, Tr, Td, Button, LoadingPage, Alert, Modal, Input, Select, Card, PayrunStatusBadge } from '../../components/ui';
 import { Plus, Play, CheckCircle, DollarSign, Loader2, ChevronRight } from 'lucide-react';
+import { useToast } from '../../context/ToastContext';
 
 export default function PayrollPage() {
+  const { toast } = useToast();
   const navigate = useNavigate();
   const [payruns, setPayruns] = useState<any[]>([]);
   const [structures, setStructures] = useState<any[]>([]);
@@ -32,16 +34,31 @@ export default function PayrollPage() {
     if (!payload.payrunRef) payload.payrunRef = `PR-${Date.now()}`;
     const res = await api.payroll.createPayrun(payload);
     setSaving(false);
-    if (res.success) { setShowNew(false); load(); }
-    else setError(res.error?.message || 'Failed to create payrun');
+    if (res.success) {
+      toast.success('Payrun batch created successfully');
+      setShowNew(false);
+      load();
+    } else {
+      const msg = res.error?.message || 'Failed to create payrun';
+      setError(msg);
+      toast.error(msg);
+    }
   };
 
   const handleAction = async (id: string, action: 'compute' | 'validate' | 'pay') => {
     const fns = { compute: api.payroll.computePayrun, validate: api.payroll.validatePayrun, pay: api.payroll.markPaid };
     const res = await fns[action](id);
-    if (res.success) load();
-    else setError(res.error?.message || `Failed to ${action}`);
+    if (res.success) {
+      const labels = { compute: 'Payrun computed', validate: 'Payrun validated', pay: 'Payrun marked as paid' };
+      toast.success(labels[action]);
+      load();
+    } else {
+      const msg = res.error?.message || `Failed to ${action}`;
+      setError(msg);
+      toast.error(msg);
+    }
   };
+
 
   return (
     <div className="space-y-6">

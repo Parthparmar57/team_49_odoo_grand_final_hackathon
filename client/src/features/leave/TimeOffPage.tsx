@@ -3,8 +3,10 @@ import api from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 import { PageHeader, Table, Tr, Td, Button, LoadingPage, Alert, Modal, Select, Input, LeaveStatusBadge, Card } from '../../components/ui';
 import { Plus, Check, X, Loader2 } from 'lucide-react';
+import { useToast } from '../../context/ToastContext';
 
 export default function TimeOffPage() {
+  const { toast } = useToast();
   const { user } = useAuth();
   const [requests, setRequests] = useState<any[]>([]);
   const [types, setTypes] = useState<any[]>([]);
@@ -49,23 +51,45 @@ export default function TimeOffPage() {
     }
     const res = await api.timeOff.createRequest(payload);
     setSaving(false);
-    if (res.success) { setShowNew(false); load(); }
-    else setError(res.error?.message || 'Failed to create request');
+    if (res.success) {
+      toast.success('Leave request submitted successfully');
+      setShowNew(false);
+      load();
+    } else {
+      const msg = res.error?.message || 'Failed to create request';
+      setError(msg);
+      toast.error(msg);
+    }
   };
 
   const handleApprove = async (id: string) => {
     const res = await api.timeOff.approve(id);
-    if (res.success) load();
-    else setError(res.error?.message || 'Failed to approve');
+    if (res.success) {
+      toast.success('Leave request approved successfully');
+      load();
+    } else {
+      const msg = res.error?.message || 'Failed to approve';
+      setError(msg);
+      toast.error(msg);
+    }
   };
 
   const handleRefuse = async () => {
     setSaving(true);
     const res = await api.timeOff.refuse(refuseModal.id, refuseReason);
     setSaving(false);
-    if (res.success) { setRefuseModal({ open: false, id: '' }); setRefuseReason(''); load(); }
-    else setError(res.error?.message || 'Failed to refuse');
+    if (res.success) {
+      toast.success('Leave request refused');
+      setRefuseModal({ open: false, id: '' });
+      setRefuseReason('');
+      load();
+    } else {
+      const msg = res.error?.message || 'Failed to refuse';
+      setError(msg);
+      toast.error(msg);
+    }
   };
+
 
   return (
     <div className="space-y-6">

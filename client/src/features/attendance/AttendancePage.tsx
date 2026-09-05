@@ -4,8 +4,10 @@ import api from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 import { PageHeader, Table, Tr, Td, Button, Badge, LoadingPage, Alert, Modal, Input } from '../../components/ui';
 import { Edit, Loader2 } from 'lucide-react';
+import { useToast } from '../../context/ToastContext';
 
 export default function AttendancePage() {
+  const { toast } = useToast();
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const [records, setRecords] = useState<any[]>([]);
@@ -24,7 +26,11 @@ export default function AttendancePage() {
     if (filterStatus) params.status = filterStatus;
     const res = await api.attendance.list(params);
     if (res.success) setRecords(res.data || []);
-    else setError(res.error?.message || 'Failed to load attendance');
+    else {
+      const msg = res.error?.message || 'Failed to load attendance';
+      setError(msg);
+      toast.error(msg);
+    }
     setLoading(false);
   };
 
@@ -39,9 +45,17 @@ export default function AttendancePage() {
       status: 'CORRECTED',
     });
     setSaving(false);
-    if (res.success) { setCorrectModal({ open: false, record: null }); load(); }
-    else setError(res.error?.message || 'Failed to correct record');
+    if (res.success) {
+      toast.success('Attendance record corrected successfully');
+      setCorrectModal({ open: false, record: null });
+      load();
+    } else {
+      const msg = res.error?.message || 'Failed to correct record';
+      setError(msg);
+      toast.error(msg);
+    }
   };
+
 
   return (
     <div className="space-y-6">

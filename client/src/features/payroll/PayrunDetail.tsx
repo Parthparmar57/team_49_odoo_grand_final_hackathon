@@ -3,8 +3,10 @@ import { useNavigate, useParams } from 'react-router-dom';
 import api from '../../api/client';
 import { Button, LoadingPage, Alert, Card, PayrunStatusBadge, Badge } from '../../components/ui';
 import { ArrowLeft, Play, CheckCircle, DollarSign, Download } from 'lucide-react';
+import { useToast } from '../../context/ToastContext';
 
 export default function PayrunDetail() {
+  const { toast } = useToast();
   const { id } = useParams();
   const navigate = useNavigate();
   const [payrun, setPayrun] = useState<any>(null);
@@ -14,7 +16,11 @@ export default function PayrunDetail() {
   const load = () => {
     api.payroll.getPayrun(id!).then(res => {
       if (res.success) setPayrun(res.data);
-      else setError(res.error?.message || 'Payrun not found');
+      else {
+        const msg = res.error?.message || 'Payrun not found';
+        setError(msg);
+        toast.error(msg);
+      }
       setLoading(false);
     });
   };
@@ -24,9 +30,17 @@ export default function PayrunDetail() {
   const handleAction = async (action: 'compute' | 'validate' | 'pay') => {
     const fns = { compute: api.payroll.computePayrun, validate: api.payroll.validatePayrun, pay: api.payroll.markPaid };
     const res = await fns[action](id!);
-    if (res.success) load();
-    else setError(res.error?.message || `Failed to ${action}`);
+    if (res.success) {
+      const labels = { compute: 'Payrun computed successfully', validate: 'Payrun validated successfully', pay: 'Payrun marked as paid' };
+      toast.success(labels[action]);
+      load();
+    } else {
+      const msg = res.error?.message || `Failed to ${action}`;
+      setError(msg);
+      toast.error(msg);
+    }
   };
+
 
   if (loading) return <LoadingPage />;
   if (error) return <Alert message={error} />;
