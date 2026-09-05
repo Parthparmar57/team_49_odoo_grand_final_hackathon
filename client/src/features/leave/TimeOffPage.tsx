@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import api from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 import { PageHeader, Table, Tr, Td, Button, LoadingPage, Alert, Modal, Select, Input, LeaveStatusBadge } from '../../components/ui';
@@ -8,6 +9,9 @@ import { useToast } from '../../context/ToastContext';
 export default function TimeOffPage() {
   const { toast } = useToast();
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
+  const employeeIdParam = searchParams.get('employeeId');
+
   const [requests, setRequests] = useState<any[]>([]);
   const [types, setTypes] = useState<any[]>([]);
   const [allocations, setAllocations] = useState<any[]>([]);
@@ -20,15 +24,16 @@ export default function TimeOffPage() {
   const [activeTab, setActiveTab] = useState<'summary' | 'requests'>('summary');
   const [summarySearch, setSummarySearch] = useState('');
   const [newForm, setNewForm] = useState({
-    leaveTypeId: '', startDate: '', endDate: '', reason: '', employeeId: '',
+    leaveTypeId: '', startDate: '', endDate: '', reason: '', employeeId: employeeIdParam || '',
   });
   const [employees, setEmployees] = useState<any[]>([]);
 
   const load = async () => {
+    const params = employeeIdParam ? { employeeId: employeeIdParam } : undefined;
     const [reqRes, typeRes, allocRes] = await Promise.all([
-      api.timeOff.requests(),
+      api.timeOff.requests(params),
       api.timeOff.types(),
-      api.timeOff.allocations(),
+      api.timeOff.allocations(params),
     ]);
     if (reqRes.success) setRequests(reqRes.data || []);
     if (typeRes.success) setTypes(typeRes.data || []);
@@ -43,7 +48,7 @@ export default function TimeOffPage() {
         if (res.success) setEmployees(res.data?.employees || res.data || []);
       });
     }
-  }, []);
+  }, [employeeIdParam]);
 
   const handleCreate = async () => {
     setSaving(true);
