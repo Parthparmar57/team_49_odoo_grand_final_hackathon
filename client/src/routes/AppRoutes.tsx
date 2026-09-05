@@ -25,6 +25,7 @@ import AttendancePage from '../features/attendance/AttendancePage';
 import TimeOffPage from '../features/leave/TimeOffPage';
 import PayrollPage from '../features/payroll/PayrollPage';
 import PayrunDetail from '../features/payroll/PayrunDetail';
+import { NotFoundPage } from '../features/notfound/NotFoundPage';
 
 
 export const AppRoutes: React.FC = () => {
@@ -209,8 +210,8 @@ export const AppRoutes: React.FC = () => {
         />
       </Route>
 
-      {/* Catch-all redirect */}
-      <Route path="*" element={<Navigate to="/" replace />} />
+      {/* Catch-all 404 Route Not Found Page */}
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
 };
