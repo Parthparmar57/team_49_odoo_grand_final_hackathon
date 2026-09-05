@@ -1,0 +1,59 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    background-color: #FAF9F6;
+    color: #0F172A;
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+}
+
+/* Background mesh gradients matching the screenshots */
+.hero-gradient-bg {
+  background: 
+    radial-gradient(circle at 0% 50%, rgba(45, 212, 191, 0.45) 0%, rgba(20, 184, 166, 0.2) 35%, transparent 65%),
+    radial-gradient(circle at 100% 50%, rgba(255, 125, 45, 0.45) 0%, rgba(249, 115, 22, 0.2) 35%, transparent 65%),
+    radial-gradient(circle at 50% 10%, rgba(255, 255, 255, 0.8) 0%, transparent 70%),
+    #FAF9F6;
+}
+
+.gradient-text-brand {
+  background: linear-gradient(135deg, #FF5E1E 0%, #FF8038 50%, #E0480C 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.card-hero-glow {
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(255, 255, 255, 0.8);
+}
+
+.feature-card-orange {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 1) 0%, rgba(255, 245, 240, 0.6) 100%);
+  border: 1px solid rgba(255, 232, 221, 0.8);
+}
+
+.feature-card-teal {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 1) 0%, rgba(240, 253, 250, 0.6) 100%);
+  border: 1px solid rgba(204, 251, 241, 0.8);
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #F1F5F9;
+}
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
