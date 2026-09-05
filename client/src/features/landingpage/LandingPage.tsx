@@ -194,18 +194,16 @@ export const LandingPage: React.FC = () => {
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-        className={`sticky z-50 transition-all duration-300 w-full ${
-          isScrolled
+        className={`sticky z-50 transition-all duration-300 w-full ${isScrolled
             ? 'top-3 max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 mt-2'
             : 'top-0 max-w-full px-0 mt-0'
-        }`}
+          }`}
       >
         <nav
-          className={`transition-all duration-300 flex items-center justify-between ${
-            isScrolled
+          className={`transition-all duration-300 flex items-center justify-between ${isScrolled
               ? 'bg-white/90 backdrop-blur-md border border-slate-200/80 rounded-full px-6 py-3 shadow-lg hover:shadow-xl'
               : 'bg-white/95 backdrop-blur-md border-b border-slate-200/80 rounded-none px-6 sm:px-12 py-4 shadow-sm'
-          }`}
+            }`}
         >
           {/* Logo */}
           <div className="flex items-center">
@@ -259,7 +257,7 @@ export const LandingPage: React.FC = () => {
 
             {/* Main Headline */}
             <motion.h1 variants={fadeInUpVariants} className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-950 leading-[1.12]">
-              <span className="gradient-text-brand">PeoplePay360</span> — Seamless HR & Payroll <span className="text-orange-600">Operational Experience</span>
+              <span className="gradient-text-brand">PeoplePay360</span> — Seamless HR & Payroll <span className="text-slate-950">Operational Experience</span>
             </motion.h1>
 
             {/* Subtitle */}
