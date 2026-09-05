@@ -1,0 +1,431 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  EMPLOYEE
+  HR_MANAGER
+  HR_PAYROLL_USER
+  HR_PAYROLL_MANAGER
+  ADMIN
+}
+
+enum EmploymentType {
+  FULL_TIME
+  PART_TIME
+  CONTRACT
+  INTERN
+}
+
+enum EmployeeStatus {
+  ACTIVE
+  INACTIVE
+  ON_LEAVE
+  TERMINATED
+}
+
+enum ContractStatus {
+  DRAFT
+  ACTIVE
+  EXPIRED
+  CANCELLED
+}
+
+enum AttendanceStatus {
+  PRESENT
+  LATE
+  ABSENT
+  HALF_DAY
+  OVERTIME
+  MISSING_CHECKOUT
+  CORRECTED
+}
+
+enum LeaveUnit {
+  DAYS
+  HOURS
+}
+
+enum LeaveRequestStatus {
+  PENDING
+  APPROVED
+  REFUSED
+  CANCELLED
+}
+
+enum LeaveSource {
+  MANUAL
+  EMAIL_AI
+}
+
+enum RuleCategory {
+  BASIC
+  ALLOWANCE
+  GROSS
+  DEDUCTION
+  NET
+}
+
+enum CalculationMethod {
+  FIXED
+  PERCENTAGE
+  FORMULA
+}
+
+enum PayrunStatus {
+  DRAFT
+  COMPUTED
+  VALIDATED
+  PAID
+}
+
+enum PayslipStatus {
+  DRAFT
+  COMPUTED
+  VERIFIED
+  PAID
+}
+
+enum NotificationStatus {
+  UNREAD
+  READ
+}
+
+enum AIExecutionStatus {
+  SUCCESS
+  FAILED
+  NEEDS_CLARIFICATION
+  HUMAN_REVIEW
+}
+
+model User {
+  id            String         @id @default(uuid())
+  email         String         @unique
+  passwordHash  String
+  role          Role           @default(EMPLOYEE)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  employee      Employee?
+  notifications Notification[]
+  auditLogs     AuditLog[]     @relation("ActorAuditLogs")
+  reviews       LeaveRequest[] @relation("ReviewedLeaves")
+}
+
+model Department {
+  id          String     @id @default(uuid())
+  name        String     @unique
+  code        String     @unique
+  description String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  employees   Employee[]
+  contracts   Contract[]
+}
+
+model WorkingSchedule {
+  id           String     @id @default(uuid())
+  name         String
+  weeklyHours  Float      @default(40.0)
+  monday       Boolean    @default(true)
+  tuesday      Boolean    @default(true)
+  wednesday    Boolean    @default(true)
+  thursday     Boolean    @default(true)
+  friday       Boolean    @default(true)
+  saturday     Boolean    @default(false)
+  sunday       Boolean    @default(false)
+  startTime    String     @default("09:00") // HH:mm
+  endTime      String     @default("17:00") // HH:mm
+  breakMinutes Int        @default(60)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  employees    Employee[]
+  contracts    Contract[]
+}
+
+model Employee {
+  id               String          @id @default(uuid())
+  employeeNumber   String          @unique
+  firstName        String
+  lastName         String
+  email            String          @unique
+  phone            String?
+  designation      String
+  joiningDate      DateTime
+  employmentType   EmploymentType  @default(FULL_TIME)
+  status           EmployeeStatus  @default(ACTIVE)
+  bankName         String?
+  accountNumber    String?
+  ifscCode         String?
+  taxId            String?
+  address          String?
+  emergencyContact String?
+  
+  userId           String?         @unique
+  user             User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  departmentId     String
+  department       Department      @relation(fields: [departmentId], references: [id])
+
+  managerId        String?
+  manager          Employee?       @relation("EmployeeManager", fields: [managerId], references: [id])
+  subordinates     Employee[]      @relation("EmployeeManager")
+
+  scheduleId       String?
+  schedule         WorkingSchedule? @relation(fields: [scheduleId], references: [id])
+
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  contracts        Contract[]
+  attendances      Attendance[]
+  leaveAllocations LeaveAllocation[]
+  leaveRequests    LeaveRequest[]
+  payslips         Payslip[]
+}
+
+model Contract {
+  id                 String          @id @default(uuid())
+  contractRef        String          @unique
+  employeeId         String
+  employee           Employee        @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  departmentId       String
+  department         Department      @relation(fields: [departmentId], references: [id])
+  scheduleId         String?
+  schedule           WorkingSchedule? @relation(fields: [scheduleId], references: [id])
+  salaryStructureId  String?
+  salaryStructure    SalaryStructure? @relation(fields: [salaryStructureId], references: [id])
+
+  wage               Float
+  startDate          DateTime
+  endDate            DateTime?
+  status             ContractStatus  @default(ACTIVE)
+  notes              String?
+
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+
+  payslips           Payslip[]
+}
+
+model Attendance {
+  id               String           @id @default(uuid())
+  employeeId       String
+  employee         Employee         @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  date             DateTime         @db.Date
+  checkIn          DateTime?
+  checkOut         DateTime?
+  workedHours      Float            @default(0.0)
+  status           AttendanceStatus @default(PRESENT)
+  correctionReason String?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  @@unique([employeeId, date])
+}
+
+model LeaveType {
+  id                 String            @id @default(uuid())
+  name               String            @unique
+  code               String            @unique
+  unit               LeaveUnit         @default(DAYS)
+  requiresAllocation Boolean           @default(true)
+  approvalRequired   Boolean           @default(true)
+  payrollImpact      Boolean           @default(true) // Unpaid leaves affect payroll
+  description        String?
+  active             Boolean           @default(true)
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+
+  allocations        LeaveAllocation[]
+  requests           LeaveRequest[]
+}
+
+model LeaveAllocation {
+  id              String    @id @default(uuid())
+  employeeId      String
+  employee        Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  leaveTypeId     String
+  leaveType       LeaveType @relation(fields: [leaveTypeId], references: [id], onDelete: Cascade)
+
+  allocatedAmount Float
+  usedAmount      Float     @default(0.0)
+  remainingAmount Float
+  periodStart     DateTime
+  periodEnd       DateTime
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([employeeId, leaveTypeId, periodStart, periodEnd])
+}
+
+model LeaveRequest {
+  id            String             @id @default(uuid())
+  employeeId    String
+  employee      Employee           @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  leaveTypeId   String
+  leaveType     LeaveType          @relation(fields: [leaveTypeId], references: [id])
+
+  startDate     DateTime           @db.Date
+  endDate       DateTime           @db.Date
+  duration      Float
+  reason        String?
+  status        LeaveRequestStatus @default(PENDING)
+  source        LeaveSource        @default(MANUAL)
+  emailId       String?            @unique // Gmail message ID if from email
+
+  submittedAt   DateTime           @default(now())
+  reviewedAt    DateTime?
+  reviewedById  String?
+  reviewedBy    User?              @relation("ReviewedLeaves", fields: [reviewedById], references: [id])
+  reviewComment String?
+
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+}
+
+model SalaryStructure {
+  id          String       @id @default(uuid())
+  name        String       @unique
+  code        String       @unique
+  description String?
+  active      Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  rules       SalaryRule[]
+  contracts   Contract[]
+  payruns     Payrun[]
+  payslips    Payslip[]
+}
+
+model SalaryRule {
+  id                String            @id @default(uuid())
+  salaryStructureId String
+  salaryStructure   SalaryStructure   @relation(fields: [salaryStructureId], references: [id], onDelete: Cascade)
+
+  name              String
+  code              String
+  category          RuleCategory
+  sequence          Int               @default(10)
+  computationMethod CalculationMethod @default(FIXED)
+  amount            Float?            // For FIXED
+  percentage        Float?            // For PERCENTAGE
+  percentageBasedOn String?           // Code of rule or category to base percentage on (e.g. BASIC or GROSS)
+  formula           String?           // For FORMULA calculation
+  active            Boolean           @default(true)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  @@unique([salaryStructureId, code])
+}
+
+model Payrun {
+  id                String          @id @default(uuid())
+  payrunRef         String          @unique
+  name              String
+  salaryStructureId String
+  salaryStructure   SalaryStructure @relation(fields: [salaryStructureId], references: [id])
+
+  periodStart       DateTime        @db.Date
+  periodEnd         DateTime        @db.Date
+  status            PayrunStatus    @default(DRAFT)
+  totalGross        Float           @default(0.0)
+  totalDeductions   Float           @default(0.0)
+  totalNet          Float           @default(0.0)
+  employeeCount     Int             @default(0)
+
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  payslips          Payslip[]
+}
+
+model Payslip {
+  id                String          @id @default(uuid())
+  payslipRef        String          @unique
+  payrunId          String
+  payrun            Payrun          @relation(fields: [payrunId], references: [id], onDelete: Cascade)
+  employeeId        String
+  employee          Employee        @relation(fields: [employeeId], references: [id])
+  contractId        String
+  contract          Contract        @relation(fields: [contractId], references: [id])
+  salaryStructureId String
+  salaryStructure   SalaryStructure @relation(fields: [salaryStructureId], references: [id])
+
+  periodStart       DateTime        @db.Date
+  periodEnd         DateTime        @db.Date
+  workedDays        Float           @default(0.0)
+  basicSalary       Float           @default(0.0)
+  grossSalary       Float           @default(0.0)
+  totalAllowances   Float           @default(0.0)
+  totalDeductions   Float           @default(0.0)
+  netSalary         Float           @default(0.0)
+  status            PayslipStatus   @default(DRAFT)
+  pdfPath           String?
+  emailSent         Boolean         @default(false)
+  emailSentAt       DateTime?
+
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  lines             PayslipLine[]
+
+  @@unique([payrunId, employeeId])
+}
+
+model PayslipLine {
+  id          String       @id @default(uuid())
+  payslipId   String
+  payslip     Payslip      @relation(fields: [payslipId], references: [id], onDelete: Cascade)
+  code        String
+  name        String
+  category    RuleCategory
+  sequence    Int
+  amount      Float
+  createdAt   DateTime     @default(now())
+}
+
+model Notification {
+  id        String             @id @default(uuid())
+  userId    String
+  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String
+  title     String
+  message   String
+  status    NotificationStatus @default(UNREAD)
+  createdAt DateTime           @default(now())
+  readAt    DateTime?
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  actorId   String?
+  actor     User?    @relation("ActorAuditLogs", fields: [actorId], references: [id], onDelete: SetNull)
+  action    String
+  entity    String
+  entityId  String
+  metadata  Json?
+  timestamp DateTime @default(now())
+}
+
+model AIExecution {
+  id                   String            @id @default(uuid())
+  requestId            String            @unique
+  agent                String
+  intent               String
+  status               AIExecutionStatus @default(SUCCESS)
+  startedAt            DateTime          @default(now())
+  completedAt          DateTime?
+  toolNames            String[]          @default([])
+  resultSummary        String?
+  requiresHumanApproval Boolean          @default(false)
+  metadata             Json?
+}

@@ -1,0 +1,21 @@
+{
+    "name": "peoplepay360-mcp-server",
+    "version": "1.0.0",
+    "description": "Model Context Protocol Server for PeoplePay360 AI Agents (Pure Node.js JavaScript)",
+    "type": "module",
+    "main": "src/index.js",
+    "scripts": {
+        "start": "node src/index.js",
+        "dev": "node --watch src/index.js"
+    },
+    "dependencies": {
+        "@modelcontextprotocol/sdk": "^0.6.0",
+        "@prisma/client": "^5.10.0",
+        "dotenv": "^16.4.5",
+        "express": "^4.19.2",
+        "zod": "^3.22.4"
+    },
+    "devDependencies": {
+        "prisma": "^5.10.0"
+    }
+}

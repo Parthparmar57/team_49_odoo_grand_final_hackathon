@@ -1,0 +1,32 @@
+{
+    "name": "peoplepay360-server",
+    "version": "1.0.0",
+    "description": "PeoplePay360 HR & Payroll Main Express Backend (Pure Node.js JavaScript)",
+    "type": "module",
+    "main": "src/server.js",
+    "scripts": {
+        "start": "node src/server.js",
+        "dev": "node --watch src/server.js",
+        "seed": "node prisma/seed.js",
+        "prisma:generate": "prisma generate",
+        "prisma:migrate": "prisma migrate dev"
+    },
+    "dependencies": {
+        "@prisma/client": "^5.10.0",
+        "bcryptjs": "^2.4.3",
+        "cookie-parser": "^1.4.6",
+        "cors": "^2.8.5",
+        "dotenv": "^16.4.5",
+        "express": "^4.19.2",
+        "express-rate-limit": "^7.1.5",
+        "helmet": "^7.1.0",
+        "jsonwebtoken": "^9.0.2",
+        "morgan": "^1.10.0",
+        "pdfkit": "^0.15.0",
+        "swagger-ui-express": "^5.0.0",
+        "zod": "^3.22.4"
+    },
+    "devDependencies": {
+        "prisma": "^5.10.0"
+    }
+}

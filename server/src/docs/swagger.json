@@ -1,0 +1,90 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "PeoplePay360 HR & Payroll API",
+        "version": "1.0.0",
+        "description": "Comprehensive REST API for PeoplePay360 AI-Powered HR, Leave & Payroll System"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:5000/api",
+            "description": "Local Development Server"
+        }
+    ],
+    "paths": {
+        "/health": {
+            "get": {
+                "summary": "Health check status",
+                "responses": {
+                    "200": {
+                        "description": "System operational status"
+                    }
+                }
+            }
+        },
+        "/auth/login": {
+            "post": {
+                "summary": "User login",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "email": {
+                                        "type": "string"
+                                    },
+                                    "password": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Token issued successfully"
+                    }
+                }
+            }
+        },
+        "/employees": {
+            "get": {
+                "summary": "List employees",
+                "responses": {
+                    "200": {
+                        "description": "Employee list"
+                    }
+                }
+            }
+        },
+        "/leaves/requests": {
+            "get": {
+                "summary": "List leave requests"
+            },
+            "post": {
+                "summary": "Create leave request (PENDING)"
+            }
+        },
+        "/leaves/requests/{id}/approve": {
+            "post": {
+                "summary": "Human approval for leave request"
+            }
+        },
+        "/payroll/payruns": {
+            "get": {
+                "summary": "List payruns"
+            },
+            "post": {
+                "summary": "Create payrun"
+            }
+        },
+        "/dashboard/summary": {
+            "get": {
+                "summary": "Get live operational KPI summary"
+            }
+        }
+    }
+}
