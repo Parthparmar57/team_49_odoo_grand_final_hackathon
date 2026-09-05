@@ -32,4 +32,27 @@ export class EmailService {
             workflowTriggered: Boolean(employee),
         };
     }
+
+    static async getLogs(query = {}) {
+        const { limit = 20, page = 1 } = query;
+        const take = Number(limit);
+        const skip = (Number(page) - 1) * take;
+
+        const [items, total] = await Promise.all([
+            prisma.email.findMany({
+                include: {
+                    employee: {
+                        select: { id: true, firstName: true, lastName: true, email: true, employeeNumber: true }
+                    }
+                },
+                orderBy: { receivedAt: 'desc' },
+                take,
+                skip
+            }),
+            prisma.email.count()
+        ]);
+
+        return { items, total, page: Number(page), limit: take };
+    }
 }
+

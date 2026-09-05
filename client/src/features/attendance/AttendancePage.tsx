@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import api from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 import { PageHeader, Table, Tr, Td, Button, Badge, LoadingPage, Alert, Modal, Input } from '../../components/ui';
-import { LogIn, LogOut, Edit, Loader2 } from 'lucide-react';
+import { Edit, Loader2 } from 'lucide-react';
 
 export default function AttendancePage() {
   const { user } = useAuth();
@@ -11,7 +11,7 @@ export default function AttendancePage() {
   const [records, setRecords] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [actionMsg, setActionMsg] = useState('');
+  const [actionMsg] = useState('');
   const [correctModal, setCorrectModal] = useState<{ open: boolean; record: any }>({ open: false, record: null });
   const [correctForm, setCorrectForm] = useState({ checkIn: '', checkOut: '', correctionReason: '' });
   const [correcting, setSaving] = useState(false);
@@ -30,20 +30,6 @@ export default function AttendancePage() {
 
   useEffect(() => { load(); }, [filterStatus]);
 
-  const handleCheckIn = async () => {
-    setActionMsg('');
-    const res = await api.attendance.checkIn();
-    if (res.success) { setActionMsg('✅ Checked in successfully!'); load(); }
-    else setActionMsg(`❌ ${res.error?.message}`);
-  };
-
-  const handleCheckOut = async () => {
-    setActionMsg('');
-    const res = await api.attendance.checkOut();
-    if (res.success) { setActionMsg('✅ Checked out successfully!'); load(); }
-    else setActionMsg(`❌ ${res.error?.message}`);
-  };
-
   const handleCorrect = async () => {
     setSaving(true);
     const res = await api.attendance.correct(correctModal.record.id, {
@@ -59,17 +45,12 @@ export default function AttendancePage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Attendance" subtitle={`${records.length} daily logs and exception records`}>
-        {(user?.employee?.id || user?.id) && (
-          <div className="flex gap-2">
-            <Button variant="secondary" onClick={handleCheckIn}>
-              <LogIn size={16} className="text-[#FF5E1E]" /> Check In
-            </Button>
-            <Button variant="secondary" onClick={handleCheckOut}>
-              <LogOut size={16} className="text-red-500" /> Check Out
-            </Button>
-          </div>
-        )}
+      <PageHeader title="Attendance Logs" subtitle={`${records.length} biometric daily logs and exception records`}>
+        <div className="flex items-center gap-2">
+          <span className="px-3.5 py-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200/80 rounded-full text-xs font-bold flex items-center gap-1.5 shadow-2xs">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" /> Biometric Kiosk Synced
+          </span>
+        </div>
       </PageHeader>
 
       {actionMsg && <Alert message={actionMsg} variant={actionMsg.includes('✅') ? 'success' : 'error'} />}

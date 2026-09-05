@@ -3,17 +3,27 @@ import { useNavigate, useParams } from 'react-router-dom';
 import api from '../../api/client';
 import { Button, Input, Select, Alert, LoadingPage, Card } from '../../components/ui';
 import { ArrowLeft, Save, Loader2 } from 'lucide-react';
+import { useToast } from '../../context/ToastContext';
 
 export default function ContractForm() {
+  const { toast } = useToast();
   const { id } = useParams();
   const navigate = useNavigate();
   const isEdit = !!id;
 
   const [form, setForm] = useState({
-    contractRef: '', employeeId: '', departmentId: '', scheduleId: '',
-    salaryStructureId: '', wage: '', startDate: '', endDate: '',
-    status: 'ACTIVE', notes: '',
+    contractRef: '',
+    employeeId: '',
+    departmentId: '',
+    scheduleId: '',
+    salaryStructureId: '',
+    wage: '',
+    startDate: '',
+    endDate: '',
+    status: 'ACTIVE',
+    notes: '',
   });
+
   const [employees, setEmployees] = useState<any[]>([]);
   const [departments, setDepartments] = useState<any[]>([]);
   const [schedules, setSchedules] = useState<any[]>([]);
@@ -21,6 +31,7 @@ export default function ContractForm() {
   const [loading, setLoading] = useState(false);
   const [pageLoading, setPageLoading] = useState(isEdit);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
   useEffect(() => {
     Promise.all([
@@ -29,14 +40,28 @@ export default function ContractForm() {
       api.schedules.list(),
       api.payroll.structures(),
     ]).then(([empRes, deptRes, schedRes, strucRes]) => {
-      if (empRes.success) setEmployees(empRes.data?.employees || empRes.data || []);
-      if (deptRes.success) setDepartments(deptRes.data || []);
-      if (schedRes.success) setSchedules(schedRes.data || []);
-      if (strucRes.success) setStructures(strucRes.data || []);
+      const emps = empRes.success ? (empRes.data?.employees || empRes.data || []) : [];
+      const depts = deptRes.success ? (Array.isArray(deptRes.data) ? deptRes.data : []) : [];
+      const scheds = schedRes.success ? (Array.isArray(schedRes.data) ? schedRes.data : []) : [];
+      const strucs = strucRes.success ? (Array.isArray(strucRes.data) ? strucRes.data : []) : [];
+
+      setEmployees(emps);
+      setDepartments(depts);
+      setSchedules(scheds);
+      setStructures(strucs);
+
+      // Pre-select defaults for new contracts
+      if (!isEdit) {
+        setForm((f) => ({
+          ...f,
+          contractRef: f.contractRef || `CIN/${new Date().getFullYear()}/${Math.floor(100 + Math.random() * 900)}`,
+          salaryStructureId: f.salaryStructureId || (strucs.length > 0 ? strucs[0].id : ''),
+        }));
+      }
     });
 
     if (isEdit) {
-      api.contracts.get(id!).then(res => {
+      api.contracts.get(id!).then((res) => {
         if (res.success && res.data) {
           const c = res.data;
           setForm({
@@ -51,18 +76,79 @@ export default function ContractForm() {
             status: c.status || 'ACTIVE',
             notes: c.notes || '',
           });
-        } else setError(res.error?.message || 'Failed to load contract');
+        } else {
+          setError(res.error?.message || 'Failed to load contract');
+        }
         setPageLoading(false);
       });
     }
   }, [id, isEdit]);
 
-  const set = (field: string) => (e: any) => setForm(f => ({ ...f, [field]: e.target.value }));
+  // When Employee is selected, auto-fill department and schedule if empty
+  const handleEmployeeSelect = (empId: string) => {
+    const selectedEmp = employees.find((e) => e.id === empId);
+    setForm((f) => ({
+      ...f,
+      employeeId: empId,
+      departmentId: selectedEmp?.departmentId || f.departmentId,
+      scheduleId: selectedEmp?.scheduleId || f.scheduleId,
+    }));
+  };
+
+  const set = (field: string) => (e: any) => setForm((f) => ({ ...f, [field]: e.target.value }));
+
+  // Real-time inline field error helpers
+  const refErr = form.contractRef && form.contractRef.trim().length < 3 ? 'Contract reference must be at least 3 characters' : '';
+  const wageErr = form.wage && (isNaN(parseFloat(form.wage)) || parseFloat(form.wage) <= 0) ? 'Base wage must be a positive number' : '';
+  const endDateErr = form.startDate && form.endDate && form.endDate < form.startDate ? 'End date cannot be earlier than start date' : '';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(''); setSuccess('');
+
+    if (!form.contractRef || form.contractRef.trim().length < 3) {
+      const msg = 'Contract reference is required (e.g. CON/2026/001)';
+      setError(msg);
+      toast.error(msg);
+      return;
+    }
+
+    if (!form.employeeId) {
+      const msg = 'Please select an employee';
+      setError(msg);
+      toast.error(msg);
+      return;
+    }
+
+    if (!form.wage || isNaN(parseFloat(form.wage)) || parseFloat(form.wage) <= 0) {
+      const msg = 'Monthly Base Wage must be a positive numeric amount';
+      setError(msg);
+      toast.error(msg);
+      return;
+    }
+
+    if (!form.startDate) {
+      const msg = 'Start Date is required';
+      setError(msg);
+      toast.error(msg);
+      return;
+    }
+
+    if (form.endDate && form.endDate < form.startDate) {
+      const msg = 'End date cannot be earlier than start date';
+      setError(msg);
+      toast.error(msg);
+      return;
+    }
+
+    if (!form.salaryStructureId) {
+      const msg = 'Please select a Salary Structure';
+      setError(msg);
+      toast.error(msg);
+      return;
+    }
+
     setLoading(true);
-    setError('');
 
     const payload: any = {
       ...form,
@@ -79,13 +165,18 @@ export default function ContractForm() {
 
     setLoading(false);
     if (res.success) {
-      navigate('/contracts');
+      const msg = isEdit ? 'Contract updated successfully!' : 'Contract created successfully!';
+      setSuccess(msg);
+      toast.success(msg);
+      setTimeout(() => navigate('/contracts'), 1200);
     } else {
-      setError(res.error?.message || 'Failed to save contract');
+      const errMsg = res.error?.message || 'Failed to save contract';
+      setError(errMsg);
+      toast.error(errMsg);
     }
   };
 
-  if (pageLoading) return <LoadingPage />;
+  if (pageLoading) return <div className="p-6"><LoadingPage /></div>;
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
@@ -100,33 +191,84 @@ export default function ContractForm() {
       </div>
 
       {error && <Alert message={error} />}
+      {success && <Alert message={success} variant="success" />}
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <Card className="p-6">
           <h2 className="text-slate-900 font-extrabold text-base mb-4 border-b border-slate-100 pb-3">Contract Information</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Input label="Contract Reference *" value={form.contractRef} onChange={set('contractRef')} placeholder="CON/2026/001" required />
-            <Select label="Employee *" value={form.employeeId} onChange={set('employeeId')} required disabled={isEdit}>
+            <Input
+              label="Contract Reference *"
+              value={form.contractRef}
+              onChange={set('contractRef')}
+              error={refErr}
+              hint="Unique contract code (e.g. CIN/123/411)"
+              placeholder="CIN/123/411"
+              required
+            />
+            <Select
+              label="Employee *"
+              value={form.employeeId}
+              onChange={(e) => handleEmployeeSelect(e.target.value)}
+              required
+              disabled={isEdit}
+            >
               <option value="">Select Employee</option>
-              {employees.map(e => <option key={e.id} value={e.id}>{e.firstName} {e.lastName} ({e.employeeNumber})</option>)}
+              {employees.map((e) => (
+                <option key={e.id} value={e.id}>
+                  {e.firstName} {e.lastName} ({e.employeeNumber})
+                </option>
+              ))}
             </Select>
-            <Input label="Monthly Base Wage (₹) *" type="number" step="0.01" value={form.wage} onChange={set('wage')} placeholder="50000" required />
+            <Input
+              label="Monthly Base Wage (₹) *"
+              type="number"
+              step="0.01"
+              value={form.wage}
+              onChange={set('wage')}
+              error={wageErr}
+              hint="Base monthly salary amount"
+              placeholder="50000"
+              required
+            />
             <Select label="Status" value={form.status} onChange={set('status')}>
-              {['DRAFT', 'ACTIVE', 'EXPIRED', 'CANCELLED'].map(s => <option key={s} value={s}>{s}</option>)}
+              {['DRAFT', 'ACTIVE', 'EXPIRED', 'CANCELLED'].map((s) => (
+                <option key={s} value={s}>{s}</option>
+              ))}
             </Select>
-            <Input label="Start Date *" type="date" value={form.startDate} onChange={set('startDate')} required />
-            <Input label="End Date (Leave blank if ongoing)" type="date" value={form.endDate} onChange={set('endDate')} />
+            <Input
+              label="Start Date *"
+              type="date"
+              value={form.startDate}
+              onChange={set('startDate')}
+              hint="Effective start date of contract"
+              required
+            />
+            <Input
+              label="End Date (Leave blank if ongoing)"
+              type="date"
+              value={form.endDate}
+              onChange={set('endDate')}
+              error={endDateErr}
+              hint="Contract end date (leave empty if ongoing)"
+            />
             <Select label="Department" value={form.departmentId} onChange={set('departmentId')}>
-              <option value="">None</option>
-              {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+              <option value="">Auto-fill from Employee</option>
+              {departments.map((d) => (
+                <option key={d.id} value={d.id}>{d.name}</option>
+              ))}
             </Select>
             <Select label="Working Schedule" value={form.scheduleId} onChange={set('scheduleId')}>
               <option value="">None</option>
-              {schedules.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+              {schedules.map((s) => (
+                <option key={s.id} value={s.id}>{s.name}</option>
+              ))}
             </Select>
             <Select label="Salary Structure *" value={form.salaryStructureId} onChange={set('salaryStructureId')} required>
               <option value="">Select Salary Structure</option>
-              {structures.map(s => <option key={s.id} value={s.id}>{s.name} ({s.code})</option>)}
+              {structures.map((s) => (
+                <option key={s.id} value={s.id}>{s.name} ({s.code})</option>
+              ))}
             </Select>
           </div>
 

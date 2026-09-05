@@ -74,30 +74,73 @@ export class ContractsService {
     }
 
     static async createContract(data) {
-        const cleanedData = Object.fromEntries(
-            Object.entries(data).filter(([_, v]) => v !== undefined)
-        );
+        const {
+            contractRef,
+            employeeId,
+            wage,
+            startDate,
+            endDate,
+            status = 'ACTIVE',
+            departmentId,
+            scheduleId,
+            salaryStructureId,
+            notes,
+        } = data;
 
-        const existingRef = await prisma.contract.findUnique({ where: { contractRef: cleanedData.contractRef } });
-        if (existingRef) {
-            throw new AppError('Contract reference number already exists', 400, 'CONTRACT_REF_EXISTS');
+        if (!contractRef || !employeeId || !wage || !startDate) {
+            throw new AppError('Missing required contract fields (reference, employee, wage, start date)', 400, 'VALIDATION_ERROR');
         }
 
-        if (cleanedData.status === ContractStatus.ACTIVE || !cleanedData.status) {
-            const startDate = new Date(cleanedData.startDate);
-            const endDate = cleanedData.endDate ? new Date(cleanedData.endDate) : null;
+        const existingRef = await prisma.contract.findUnique({ where: { contractRef } });
+        if (existingRef) {
+            throw new AppError(`Contract reference number '${contractRef}' already exists`, 400, 'CONTRACT_REF_EXISTS');
+        }
 
+        const employee = await prisma.employee.findUnique({ where: { id: employeeId } });
+        if (!employee) {
+            throw new AppError('Specified employee does not exist', 404, 'EMPLOYEE_NOT_FOUND');
+        }
+
+        let deptId = departmentId || employee.departmentId;
+        if (!deptId) {
+            const defaultDept = await prisma.department.findFirst();
+            deptId = defaultDept?.id;
+        }
+
+        if (!deptId) {
+            const createdDept = await prisma.department.create({
+                data: { name: 'General', code: 'GEN', description: 'General Department' }
+            });
+            deptId = createdDept.id;
+        }
+
+        const parsedStartDate = new Date(startDate);
+        const parsedEndDate = endDate ? new Date(endDate) : null;
+
+        if (isNaN(parsedStartDate.getTime())) {
+            throw new AppError('Invalid start date format', 400, 'INVALID_DATE');
+        }
+
+        if (parsedEndDate && isNaN(parsedEndDate.getTime())) {
+            throw new AppError('Invalid end date format', 400, 'INVALID_DATE');
+        }
+
+        if (parsedEndDate && parsedEndDate < parsedStartDate) {
+            throw new AppError('End date cannot be earlier than start date', 400, 'INVALID_DATE_RANGE');
+        }
+
+        // Check overlapping active contracts for this employee
+        if (status === ContractStatus.ACTIVE || status === 'ACTIVE') {
             const whereClause = {
-                employeeId: cleanedData.employeeId,
+                employeeId,
                 status: ContractStatus.ACTIVE,
-                OR: [{ endDate: null }, { endDate: { gte: startDate } }],
+                OR: [{ endDate: null }, { endDate: { gte: parsedStartDate } }],
             };
-            if (endDate) {
-                whereClause.startDate = { lte: endDate };
+            if (parsedEndDate) {
+                whereClause.startDate = { lte: parsedEndDate };
             }
 
             const overlapping = await prisma.contract.findFirst({ where: whereClause });
-
             if (overlapping) {
                 throw new AppError(
                     `Overlapping active contract '${overlapping.contractRef}' already exists for this employee`,
@@ -107,8 +150,21 @@ export class ContractsService {
             }
         }
 
+        const payload = {
+            contractRef,
+            employeeId,
+            departmentId: deptId,
+            scheduleId: scheduleId || null,
+            salaryStructureId: salaryStructureId || null,
+            wage: parseFloat(wage),
+            startDate: parsedStartDate,
+            endDate: parsedEndDate,
+            status: status || ContractStatus.ACTIVE,
+            notes: notes || null,
+        };
+
         return prisma.contract.create({
-            data: cleanedData,
+            data: payload,
             include: { employee: true, department: true, schedule: true, salaryStructure: true },
         });
     }
@@ -116,9 +172,19 @@ export class ContractsService {
     static async updateContract(id, data) {
         await this.getContractById(id);
 
+        const payload = { ...data };
+        if (payload.startDate) payload.startDate = new Date(payload.startDate);
+        if (payload.endDate !== undefined) {
+            payload.endDate = payload.endDate ? new Date(payload.endDate) : null;
+        }
+        if (payload.wage) payload.wage = parseFloat(payload.wage);
+        if (payload.scheduleId === '') payload.scheduleId = null;
+        if (payload.salaryStructureId === '') payload.salaryStructureId = null;
+        if (payload.departmentId === '') delete payload.departmentId;
+
         return prisma.contract.update({
             where: { id },
-            data,
+            data: payload,
             include: { employee: true, department: true, schedule: true, salaryStructure: true },
         });
     }

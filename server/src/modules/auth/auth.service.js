@@ -3,6 +3,7 @@ import { prisma } from '../../config/prisma.js';
 import { signToken } from '../../utils/jwt.js';
 import { AppError } from '../../middleware/error.middleware.js';
 import { sendPasswordResetEmail } from '../../utils/email.js';
+import { Validator } from '../../utils/validation.js';
 
 export function buildAuthUserResponse(user) {
     if (!user) return null;
@@ -185,6 +186,7 @@ export class AuthService {
     }
 
     static async adminCreateUser(data) {
+        Validator.validateUserPayload(data);
         const existing = await prisma.user.findUnique({ where: { email: data.email } });
         if (existing) {
             throw new AppError('A user with this email already exists', 400, 'USER_EXISTS');

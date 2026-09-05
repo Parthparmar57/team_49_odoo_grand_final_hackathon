@@ -31,27 +31,33 @@ export const errorHandler = (err, req, res, next) => {
 
     // Prisma Error Handling
     if (err.code === 'P2002') {
+        const targets = err.meta?.target || [];
+        const fieldName = Array.isArray(targets) ? targets.join(', ') : 'field';
         return ApiResponse.error(
             res,
-            `Unique constraint violation on field: ${err.meta?.target}`,
+            `A record with this ${fieldName} already exists in the system.`,
             'DUPLICATE_ENTRY',
             400
         );
     }
 
     if (err.code === 'P2003') {
-        return ApiResponse.error(res, 'Foreign key constraint failed: referenced entity does not exist', 'FOREIGN_KEY_VIOLATION', 400);
+        return ApiResponse.error(res, 'Foreign key violation: referenced relation (department or schedule) does not exist.', 'FOREIGN_KEY_VIOLATION', 400);
     }
 
     if (err.code === 'P2025') {
-        return ApiResponse.error(res, 'Record not found in database', 'NOT_FOUND', 404);
+        return ApiResponse.error(res, 'Requested record was not found in database.', 'NOT_FOUND', 404);
+    }
+
+    if (err.code === 'P2000') {
+        return ApiResponse.error(res, 'Provided field value is too long for database constraints.', 'VALUE_TOO_LONG', 400);
     }
 
     const statusCode = err.statusCode || 500;
-    const message = err.isOperational ? err.message : 'Internal Server Error';
+    const message = err.message || 'Internal Server Error';
     const code = err.code || 'INTERNAL_ERROR';
 
-    return ApiResponse.error(res, message, code, statusCode);
+    return ApiResponse.error(res, message, code, statusCode, err.details);
 };
 
 export const notFoundHandler = (req, res) => {

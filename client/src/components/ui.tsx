@@ -135,15 +135,30 @@ export function Button({ children, onClick, variant = 'primary', size = 'md', di
 }
 
 // Input
-export function Input({ label, error, ...props }: React.InputHTMLAttributes<HTMLInputElement> & { label?: string; error?: string }) {
+export function Input({
+  label,
+  error,
+  hint,
+  ...props
+}: React.InputHTMLAttributes<HTMLInputElement> & { label?: string; error?: string; hint?: string }) {
   return (
     <div className="space-y-1">
       {label && <label className="text-slate-700 text-xs font-bold uppercase tracking-wider">{label}</label>}
       <input
         {...props}
-        className={`w-full bg-white border ${error ? 'border-red-500' : 'border-slate-200'} rounded-xl px-3.5 py-2.5 text-slate-900 text-sm placeholder-slate-400 focus:outline-none focus:border-[#FF5E1E] focus:ring-1 focus:ring-[#FF5E1E] transition-colors ${props.className || ''}`}
+        className={`w-full bg-white border ${
+          error ? 'border-rose-400 bg-rose-50/20' : 'border-slate-200'
+        } rounded-xl px-3.5 py-2.5 text-slate-900 text-sm placeholder-slate-400 focus:outline-none focus:border-[#FF5E1E] focus:ring-1 focus:ring-[#FF5E1E] transition-colors ${
+          props.className || ''
+        }`}
       />
-      {error && <p className="text-red-500 text-xs">{error}</p>}
+      {error ? (
+        <p className="text-rose-500 text-[11px] font-semibold flex items-center gap-1 mt-0.5">
+          <span>⚠️</span> {error}
+        </p>
+      ) : hint ? (
+        <p className="text-slate-400 text-[11px] font-medium leading-tight mt-0.5">{hint}</p>
+      ) : null}
     </div>
   );
 }
@@ -184,9 +199,9 @@ export function Modal({ title, children, onClose, open }: { title: string; child
 }
 
 // Card
-export function Card({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+export function Card({ children, className = '', onClick }: { children: React.ReactNode; className?: string; onClick?: () => void }) {
   return (
-    <div className={`bg-white border border-slate-200/80 rounded-2xl shadow-sm ${className}`}>
+    <div onClick={onClick} className={`bg-white border border-slate-200/80 rounded-2xl shadow-sm ${className}`}>
       {children}
     </div>
   );

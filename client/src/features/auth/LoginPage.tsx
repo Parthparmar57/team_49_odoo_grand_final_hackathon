@@ -7,9 +7,7 @@ import {
   Loader2,
   AlertCircle,
   ArrowRight,
-  Zap,
   ChevronDown,
-  X,
 } from 'lucide-react';
 
 export const LoginPage: React.FC = () => {
@@ -20,7 +18,6 @@ export const LoginPage: React.FC = () => {
   const [activePersona, setActivePersona] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showBanner, setShowBanner] = useState(true);
 
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -64,28 +61,6 @@ export const LoginPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-white text-slate-900 font-sans flex flex-col justify-between selection:bg-orange-100 selection:text-orange-600">
       
-      {/* 1. TOP ANNOUNCEMENT BANNER */}
-      {showBanner && (
-        <div className="bg-[#0B0F19] text-white text-xs py-2 px-4 flex items-center justify-between font-sans border-b border-slate-900">
-          <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
-            <div className="flex items-center gap-2.5 mx-auto sm:mx-0">
-              <span className="bg-[#FF5E1E] text-white font-bold px-2.5 py-0.5 rounded-full text-[10px] uppercase tracking-wider flex items-center gap-1">
-                <Zap className="w-3 h-3 fill-current" /> EVENT
-              </span>
-              <span className="text-slate-300 font-medium">
-                We're presenting <strong>PeoplePay360</strong> at Odoo Grand Final Hackathon 2026! Learn how to automate HR & Payroll workflows.
-              </span>
-            </div>
-            <button
-              onClick={() => setShowBanner(false)}
-              className="text-slate-400 hover:text-white hidden sm:block focus:outline-none"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* 2. TOP NAVIGATION HEADER */}
       <header className="border-b border-slate-100 bg-white sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">

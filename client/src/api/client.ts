@@ -237,6 +237,21 @@ class ApiClient {
     });
   }
 
+  // --- GENERIC REQUEST HELPERS ---
+  get<T = any>(endpoint: string, params?: Record<string, string>): Promise<ApiResponse<T>> {
+    return this.request<T>(endpoint, { method: 'GET', params });
+  }
+
+  post<T = any>(endpoint: string, body?: any): Promise<ApiResponse<T>> {
+    return this.request<T>(endpoint, { method: 'POST', body: JSON.stringify(body) });
+  }
+
+  // --- EMAIL LOGS & AI INGESTION ---
+  email = {
+    logs: (params?: Record<string, string>) => this.request('/email/logs', { params }),
+    inbound: (data: any) => this.request('/email/inbound', { method: 'POST', body: JSON.stringify(data) }),
+  };
+
   // --- DASHBOARD ---
   dashboard = {
     overview: () => this.getDashboardOverview(),

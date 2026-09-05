@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PageHeader, Table, Tr, Td, Button, LoadingPage, Alert, Card, Badge } from '../../../components/ui';
-import { Plus, Edit3, Settings, Search, CheckCircle, Sliders, Shield, FileSpreadsheet, ArrowLeft } from 'lucide-react';
+import { Plus, Edit3, Settings, Search, CheckCircle, Sliders, FileSpreadsheet, ArrowLeft } from 'lucide-react';
 import api from '../../../api/client';
 import SalaryStructureForm from './SalaryStructureForm';
 import SalaryRulesModal from './SalaryRulesModal';

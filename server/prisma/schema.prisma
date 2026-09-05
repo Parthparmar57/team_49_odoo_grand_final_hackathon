@@ -189,6 +189,7 @@ model Employee {
   leaveAllocations LeaveAllocation[]
   leaveRequests    LeaveRequest[]
   payslips         Payslip[]
+  emails           Email[]
   warnings         PayrollWarning[]
 }
 
@@ -459,3 +460,19 @@ model AIExecution {
   requiresHumanApproval Boolean          @default(false)
   metadata             Json?
 }
+
+model Email {
+  id          String    @id @default(uuid())
+  messageId   String    @unique
+  from        String
+  to          String
+  subject     String
+  body        String    @db.Text
+  employeeId  String?
+  employee    Employee? @relation(fields: [employeeId], references: [id], onDelete: SetNull)
+  status      String    @default("RECEIVED")
+  receivedAt  DateTime  @default(now())
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+

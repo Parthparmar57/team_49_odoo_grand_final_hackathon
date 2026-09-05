@@ -1,5 +1,6 @@
 import { prisma } from '../../config/prisma.js';
 import { AppError } from '../../middleware/error.middleware.js';
+import { Validator } from '../../utils/validation.js';
 
 export class EmployeesService {
     static async getEmployees(params = {}) {
@@ -27,7 +28,6 @@ export class EmployeesService {
                 include: {
                     department: true,
                     manager: { select: { id: true, firstName: true, lastName: true, email: true } },
-                    schedule: true,
                     schedule: true,
                 },
                 orderBy: { createdAt: 'desc' },
@@ -71,9 +71,28 @@ export class EmployeesService {
     }
 
     static async createEmployee(data) {
+        Validator.validateEmployeePayload(data);
+        const { email, employeeNumber, departmentId } = data;
+
+        let deptId = departmentId;
+        if (!deptId) {
+            const defaultDept = await prisma.department.findFirst();
+            if (!defaultDept) {
+                const createdDept = await prisma.department.create({
+                    data: { name: 'General', code: 'GEN', description: 'General Department' }
+                });
+                deptId = createdDept.id;
+            } else {
+                deptId = defaultDept.id;
+            }
+        }
+
         const existing = await prisma.employee.findFirst({
             where: {
-                OR: [{ email: data.email }, { employeeNumber: data.employeeNumber }],
+                OR: [
+                    { email: data.email },
+                    { employeeNumber: data.employeeNumber }
+                ],
             },
         });
 
@@ -81,10 +100,30 @@ export class EmployeesService {
             throw new AppError('Employee with this email or employee number already exists', 400, 'EMPLOYEE_EXISTS');
         }
 
+        const payload = {
+            firstName: data.firstName,
+            lastName: data.lastName,
+            email: data.email,
+            phone: data.phone || null,
+            employeeNumber: data.employeeNumber,
+            designation: data.designation,
+            joiningDate: data.joiningDate ? new Date(data.joiningDate) : new Date(),
+            employmentType: data.employmentType || 'FULL_TIME',
+            status: data.status || 'ACTIVE',
+            departmentId: deptId,
+            scheduleId: data.scheduleId || null,
+            managerId: data.managerId || null,
+            bankName: data.bankName || null,
+            accountNumber: data.accountNumber || null,
+            ifscCode: data.ifscCode || null,
+            taxId: data.taxId || null,
+            address: data.address || null,
+            emergencyContact: data.emergencyContact || null,
+        };
+
         return prisma.employee.create({
-            data,
-            include: { department: true, schedule: true },
-            include: { department: true, schedule: true },
+            data: payload,
+            include: { department: true, schedule: true, manager: true },
         });
     }
 
@@ -107,11 +146,18 @@ export class EmployeesService {
             }
         }
 
+        const payload = { ...data };
+        if (payload.joiningDate) {
+            payload.joiningDate = new Date(payload.joiningDate);
+        }
+        if (payload.managerId === '') payload.managerId = null;
+        if (payload.scheduleId === '') payload.scheduleId = null;
+        if (payload.departmentId === '') delete payload.departmentId;
+
         return prisma.employee.update({
             where: { id },
-            data,
-            include: { department: true, schedule: true },
-            include: { department: true, schedule: true },
+            data: payload,
+            include: { department: true, schedule: true, manager: true },
         });
     }
 

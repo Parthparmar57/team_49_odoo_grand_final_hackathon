@@ -26,6 +26,8 @@ import TimeOffPage from '../features/leave/TimeOffPage';
 import PayrollPage from '../features/payroll/PayrollPage';
 import PayrunDetail from '../features/payroll/PayrunDetail';
 
+import EmailLogsPage from '../features/email-logs/EmailLogsPage';
+
 export const AppRoutes: React.FC = () => {
   return (
     <Routes>
@@ -211,7 +213,7 @@ export const AppRoutes: React.FC = () => {
           path="/email-logs"
           element={
             <RoleGuard allowedRoles={['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER']}>
-              <DashboardPage />
+              <EmailLogsPage />
             </RoleGuard>
           }
         />

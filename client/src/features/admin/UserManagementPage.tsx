@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { PageHeader, Table, Tr, Td, Button, LoadingPage, Alert, Modal, Input, Select, Card, Badge } from '../../components/ui';
-import { UserPlus, Search, Shield, UserCheck, RefreshCw, Check, Loader2, Mail, Building, Key } from 'lucide-react';
+import { UserPlus, Search, RefreshCw, Loader2 } from 'lucide-react';
 import api from '../../api/client';
+import { useToast } from '../../context/ToastContext';
 
 export const UserManagementPage: React.FC = () => {
+  const { toast } = useToast();
   const [users, setUsers] = useState<any[]>([]);
   const [employees, setEmployees] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -100,8 +102,17 @@ export const UserManagementPage: React.FC = () => {
 
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newUserForm.email || !newUserForm.email.includes('@')) {
-      setError('A valid email address is required');
+    if (!newUserForm.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newUserForm.email.trim())) {
+      const msg = 'Please enter a valid email address (e.g. user@peoplepay360.com)';
+      setError(msg);
+      toast.error(msg);
+      return;
+    }
+
+    if (newUserForm.password && newUserForm.password.length < 6) {
+      const msg = 'Password must be at least 6 characters long';
+      setError(msg);
+      toast.error(msg);
       return;
     }
 
@@ -120,7 +131,9 @@ export const UserManagementPage: React.FC = () => {
 
       const res = await api.adminCreateUser(payload);
       if (res.success) {
-        setSuccessMsg(res.data?.message || 'User created successfully');
+        const msg = res.data?.message || 'User created successfully!';
+        setSuccessMsg(msg);
+        toast.success(msg);
         setTimeout(() => setSuccessMsg(''), 4000);
         setShowCreateModal(false);
         setNewUserForm({
@@ -133,10 +146,14 @@ export const UserManagementPage: React.FC = () => {
         });
         await loadData();
       } else {
-        setError(res.error?.message || 'Failed to create user');
+        const errMsg = res.error?.message || 'Failed to create user';
+        setError(errMsg);
+        toast.error(errMsg);
       }
     } catch (err: any) {
-      setError(err?.message || 'Error creating user account');
+      const errMsg = err?.message || 'Error creating user account';
+      setError(errMsg);
+      toast.error(errMsg);
     } finally {
       setCreating(false);
     }
@@ -314,18 +331,22 @@ export const UserManagementPage: React.FC = () => {
           <Input
             label="Work Email Address *"
             type="email"
-            placeholder="user@company.com"
+            placeholder="user@peoplepay360.com"
             value={newUserForm.email}
             onChange={(e) => setNewUserForm({ ...newUserForm, email: e.target.value })}
+            error={newUserForm.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newUserForm.email.trim()) ? 'Must be a valid email address' : ''}
+            hint="Primary company email address"
             required
           />
 
           <Input
-            label="Password (Optional - defaults to Welcome@123)"
+            label="Password"
             type="password"
             placeholder="••••••••"
             value={newUserForm.password}
             onChange={(e) => setNewUserForm({ ...newUserForm, password: e.target.value })}
+            error={newUserForm.password && newUserForm.password.length < 6 ? 'Password must be at least 6 characters' : ''}
+            hint="Minimum 6 characters (defaults to Welcome@123 if blank)"
           />
 
           <Select

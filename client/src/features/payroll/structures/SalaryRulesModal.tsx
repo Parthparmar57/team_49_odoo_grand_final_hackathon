@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Input, Select, Button, Alert, Table, Tr, Td, Badge } from '../../../components/ui';
-import { Plus, Edit2, Trash2, Loader2, ArrowUp, ArrowDown, Code, CheckCircle, HelpCircle } from 'lucide-react';
+import { Modal, Input, Select, Button, Alert, Badge } from '../../../components/ui';
+import { Plus, Edit2, Trash2, Loader2, Code } from 'lucide-react';
 import api from '../../../api/client';
 
 interface SalaryRulesModalProps {
