@@ -6,7 +6,6 @@ import { UserRole, AccountStatus, EmployeeSummary, User } from '../../types/auth
 import {
   UserPlus,
   Mail,
-  User as UserIcon,
   Shield,
   CheckCircle2,
   AlertCircle,
@@ -16,7 +15,6 @@ import {
   RefreshCw,
   Edit2,
   Key,
-  Check,
   Filter,
   ChevronLeft,
   ChevronRight,
@@ -24,7 +22,7 @@ import {
 
 export const CreateUserPage: React.FC = () => {
   const { user: currentUser, adminCreateUser } = useAuth();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
 
   // Initial params from URL e.g. /dashboard?role=admin or /admin/users?page=1
   const initialRoleParam = (searchParams.get('role') || 'ALL').toUpperCase();
@@ -223,7 +221,7 @@ export const CreateUserPage: React.FC = () => {
       handleNewUser();
 
       // Refresh data
-      fetchData();
+      fetchUsers();
     } else {
       setError(result.error || 'Failed to save user account. Please check form inputs.');
     }
@@ -279,7 +277,7 @@ export const CreateUserPage: React.FC = () => {
 
         <div className="flex items-center gap-3 shrink-0">
           <button
-            onClick={fetchData}
+            onClick={fetchUsers}
             disabled={isLoading}
             className="p-2.5 bg-white border border-slate-200 rounded-2xl hover:bg-slate-50 transition shadow-2xs text-[#1E293B] focus:outline-none"
             title="Refresh Data"

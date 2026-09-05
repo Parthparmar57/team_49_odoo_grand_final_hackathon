@@ -1,15 +1,18 @@
 import { AuthService } from './auth.service.js';
 import { ApiResponse } from '../../utils/apiResponse.js';
 
+const getCookieOptions = () => ({
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+});
+
 export const register = async (req, res, next) => {
     try {
         const result = await AuthService.register(req.body);
-        res.cookie('token', result.token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax',
-            maxAge: 7 * 24 * 60 * 60 * 1000,
-        });
+        res.cookie('token', result.token, getCookieOptions());
         return ApiResponse.success(res, { user: result.user, token: result.token }, 201);
     } catch (error) {
         next(error);
@@ -19,12 +22,7 @@ export const register = async (req, res, next) => {
 export const login = async (req, res, next) => {
     try {
         const result = await AuthService.login(req.body);
-        res.cookie('token', result.token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax',
-            maxAge: 7 * 24 * 60 * 60 * 1000,
-        });
+        res.cookie('token', result.token, getCookieOptions());
         return ApiResponse.success(res, { user: result.user, token: result.token }, 200);
     } catch (error) {
         next(error);
@@ -32,7 +30,8 @@ export const login = async (req, res, next) => {
 };
 
 export const logout = async (req, res) => {
-    res.clearCookie('token');
+    const { maxAge: _, ...clearOptions } = getCookieOptions();
+    res.clearCookie('token', clearOptions);
     return ApiResponse.success(res, { message: 'Logged out successfully' });
 };
 

@@ -4,6 +4,20 @@ import { signToken } from '../../utils/jwt.js';
 import { AppError } from '../../middleware/error.middleware.js';
 import { sendPasswordResetEmail } from '../../utils/email.js';
 
+export function buildAuthUserResponse(user) {
+    if (!user) return null;
+    const { passwordHash, ...userWithoutPassword } = user;
+    return {
+        id: userWithoutPassword.id,
+        email: userWithoutPassword.email,
+        role: userWithoutPassword.role,
+        employeeId: userWithoutPassword.employee?.id || null,
+        employee: userWithoutPassword.employee || null,
+        createdAt: userWithoutPassword.createdAt,
+        updatedAt: userWithoutPassword.updatedAt,
+    };
+}
+
 export class AuthService {
     static async register(data) {
         const existing = await prisma.user.findUnique({ where: { email: data.email } });
@@ -19,7 +33,15 @@ export class AuthService {
                 passwordHash,
                 role: data.role || 'EMPLOYEE',
             },
-            include: { employee: true },
+            include: {
+                employee: {
+                    include: {
+                        department: true,
+                        schedule: true,
+                        contracts: { orderBy: { startDate: 'desc' } },
+                    },
+                },
+            },
         });
 
         const token = signToken({
@@ -29,14 +51,21 @@ export class AuthService {
             employeeId: user.employee?.id,
         });
 
-        const { passwordHash: _, ...userWithoutPassword } = user;
-        return { user: userWithoutPassword, token };
+        return { user: buildAuthUserResponse(user), token };
     }
 
     static async login(data) {
         const user = await prisma.user.findUnique({
             where: { email: data.email },
-            include: { employee: true },
+            include: {
+                employee: {
+                    include: {
+                        department: true,
+                        schedule: true,
+                        contracts: { orderBy: { startDate: 'desc' } },
+                    },
+                },
+            },
         });
 
         if (!user) {
@@ -55,8 +84,7 @@ export class AuthService {
             employeeId: user.employee?.id,
         });
 
-        const { passwordHash: _, ...userWithoutPassword } = user;
-        return { user: userWithoutPassword, token };
+        return { user: buildAuthUserResponse(user), token };
     }
 
     static async getUserProfile(userId) {
@@ -77,8 +105,7 @@ export class AuthService {
             throw new AppError('User not found', 404, 'USER_NOT_FOUND');
         }
 
-        const { passwordHash: _, ...userWithoutPassword } = user;
-        return userWithoutPassword;
+        return buildAuthUserResponse(user);
     }
 
     static async forgotPassword({ email }) {
@@ -211,9 +238,9 @@ export class AuthService {
             }
         });
 
-        const { passwordHash, ...userWithoutPassword } = user;
+        const { passwordHash: _, ...userWithoutPassword } = user;
         return {
-            user: userWithoutPassword,
+            user: buildAuthUserResponse(user),
             tempPassword: rawPassword,
             message: 'User created successfully.'
         };
@@ -263,10 +290,7 @@ export class AuthService {
             })
         ]);
 
-        const formattedUsers = users.map(user => {
-            const { passwordHash, ...userWithoutPassword } = user;
-            return userWithoutPassword;
-        });
+        const formattedUsers = users.map(user => buildAuthUserResponse(user));
 
         const totalPages = Math.ceil(totalUsers / limit) || 1;
 

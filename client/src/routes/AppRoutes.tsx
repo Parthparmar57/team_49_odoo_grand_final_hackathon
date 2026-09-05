@@ -75,6 +75,22 @@ export const AppRoutes: React.FC = () => {
             </RoleGuard>
           }
         />
+        <Route
+          path="/admin/users/new"
+          element={
+            <RoleGuard allowedRoles={['ADMIN']}>
+              <CreateUserPage />
+            </RoleGuard>
+          }
+        />
+        <Route
+          path="/admin/create-user"
+          element={
+            <RoleGuard allowedRoles={['ADMIN']}>
+              <CreateUserPage />
+            </RoleGuard>
+          }
+        />
 
         {/* HR & Payroll Core Module Routes */}
         <Route
@@ -96,7 +112,7 @@ export const AppRoutes: React.FC = () => {
         <Route
           path="/employees/:id"
           element={
-            <RoleGuard allowedRoles={['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER']}>
+            <RoleGuard allowedRoles={['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER', 'EMPLOYEE']}>
               <EmployeeDetail />
             </RoleGuard>
           }

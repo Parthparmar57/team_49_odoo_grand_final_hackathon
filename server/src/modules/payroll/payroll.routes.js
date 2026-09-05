@@ -18,8 +18,8 @@ router.get('/payruns', authorize(['ADMIN', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGE
 router.post('/payruns', authorize(['ADMIN', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER']), payrollController.createPayrun);
 router.get('/payruns/:id', authorize(['ADMIN', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER']), payrollController.getPayrunById);
 router.post('/payruns/:id/compute', authorize(['ADMIN', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER']), payrollController.computePayrun);
-router.post('/payruns/:id/validate', authorize(['ADMIN', 'HR_PAYROLL_MANAGER']), payrollController.validatePayrun);
-router.post('/payruns/:id/pay', authorize(['ADMIN', 'HR_PAYROLL_MANAGER']), payrollController.markPayrunPaid);
+router.post('/payruns/:id/validate', authorize(['ADMIN', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER']), payrollController.validatePayrun);
+router.post('/payruns/:id/pay', authorize(['ADMIN', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER']), payrollController.markPayrunPaid);
 
 // Payslips
 router.get('/payslips', authorize(['ADMIN', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER', 'EMPLOYEE']), payrollController.getPayslips);

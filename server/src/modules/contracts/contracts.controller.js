@@ -7,6 +7,9 @@ export const getContracts = async (req, res, next) => {
         if (req.params.employeeId) {
             query.employeeId = req.params.employeeId;
         }
+        if (req.user.role === 'EMPLOYEE') {
+            query.employeeId = req.user.employeeId;
+        }
         const contracts = await ContractsService.getContracts(query);
         return ApiResponse.success(res, contracts);
     } catch (error) {
@@ -17,6 +20,9 @@ export const getContracts = async (req, res, next) => {
 export const getContractById = async (req, res, next) => {
     try {
         const contract = await ContractsService.getContractById(req.params.id);
+        if (req.user.role === 'EMPLOYEE' && contract.employeeId !== req.user.employeeId) {
+            return ApiResponse.error(res, 'Unauthorized access to contract record', 'FORBIDDEN', 403);
+        }
         return ApiResponse.success(res, contract);
     } catch (error) {
         next(error);

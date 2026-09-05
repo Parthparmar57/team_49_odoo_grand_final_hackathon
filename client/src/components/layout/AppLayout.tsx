@@ -196,7 +196,7 @@ export const AppLayout: React.FC = () => {
 
                   {user?.role === 'ADMIN' && (
                     <Link
-                      to="/admin/users/new"
+                      to="/admin/users"
                       className="flex items-center gap-2 px-4 py-2.5 text-xs text-[#FF5E1E] hover:bg-orange-50 font-bold transition-colors"
                     >
                       <UserPlus className="w-4 h-4" /> Admin User Provisioning

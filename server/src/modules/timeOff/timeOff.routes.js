@@ -23,18 +23,18 @@ router.use(authenticate);
 // ==========================================
 router.get('/types', timeOffController.getTimeOffTypes);
 router.get('/types/:id', timeOffController.getTimeOffTypeById);
-router.post('/types', authorize(['ADMIN', 'HR_MANAGER']), validate(createLeaveTypeSchema), timeOffController.createTimeOffType);
-router.patch('/types/:id', authorize(['ADMIN', 'HR_MANAGER']), validate(updateLeaveTypeSchema), timeOffController.updateTimeOffType);
-router.delete('/types/:id', authorize(['ADMIN', 'HR_MANAGER']), timeOffController.deleteTimeOffType);
+router.post('/types', authorize(['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_MANAGER']), validate(createLeaveTypeSchema), timeOffController.createTimeOffType);
+router.patch('/types/:id', authorize(['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_MANAGER']), validate(updateLeaveTypeSchema), timeOffController.updateTimeOffType);
+router.delete('/types/:id', authorize(['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_MANAGER']), timeOffController.deleteTimeOffType);
 
 // ==========================================
 // ALLOCATIONS & BALANCES
 // ==========================================
 router.get('/allocations', timeOffController.getTimeOffAllocations);
 router.get('/allocations/:id', timeOffController.getTimeOffAllocationById);
-router.post('/allocations', authorize(['ADMIN', 'HR_MANAGER']), validate(createAllocationSchema), timeOffController.createAllocation);
-router.patch('/allocations/:id', authorize(['ADMIN', 'HR_MANAGER']), validate(updateAllocationSchema), timeOffController.updateAllocation);
-router.delete('/allocations/:id', authorize(['ADMIN', 'HR_MANAGER']), timeOffController.deleteAllocation);
+router.post('/allocations', authorize(['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER']), validate(createAllocationSchema), timeOffController.createAllocation);
+router.patch('/allocations/:id', authorize(['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER']), validate(updateAllocationSchema), timeOffController.updateAllocation);
+router.delete('/allocations/:id', authorize(['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER']), timeOffController.deleteAllocation);
 router.get('/employees/:employeeId/balance', timeOffController.getEmployeeBalance);
 
 // ==========================================
@@ -47,11 +47,11 @@ router.patch('/requests/:id', validate(updateLeaveRequestSchema), timeOffControl
 router.delete('/requests/:id', timeOffController.deleteLeaveRequest);
 
 // Workflow endpoints
-router.post('/requests/:id/approve', authorize(['ADMIN', 'HR_MANAGER']), timeOffController.approveLeaveRequest);
-router.patch('/requests/:id/approve', authorize(['ADMIN', 'HR_MANAGER']), timeOffController.approveLeaveRequest);
+router.post('/requests/:id/approve', authorize(['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER']), timeOffController.approveLeaveRequest);
+router.patch('/requests/:id/approve', authorize(['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER']), timeOffController.approveLeaveRequest);
 
-router.post('/requests/:id/refuse', authorize(['ADMIN', 'HR_MANAGER']), validate(refuseLeaveRequestSchema), timeOffController.refuseLeaveRequest);
-router.patch('/requests/:id/refuse', authorize(['ADMIN', 'HR_MANAGER']), validate(refuseLeaveRequestSchema), timeOffController.refuseLeaveRequest);
+router.post('/requests/:id/refuse', authorize(['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER']), validate(refuseLeaveRequestSchema), timeOffController.refuseLeaveRequest);
+router.patch('/requests/:id/refuse', authorize(['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER']), validate(refuseLeaveRequestSchema), timeOffController.refuseLeaveRequest);
 
 router.post('/requests/:id/cancel', validate(cancelLeaveRequestSchema), timeOffController.cancelLeaveRequest);
 router.patch('/requests/:id/cancel', validate(cancelLeaveRequestSchema), timeOffController.cancelLeaveRequest);

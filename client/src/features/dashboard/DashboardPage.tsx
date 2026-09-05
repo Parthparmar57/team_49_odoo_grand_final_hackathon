@@ -7,14 +7,10 @@ import {
   Users,
   ShieldAlert,
   TrendingUp,
-  ArrowRight,
   Loader2,
   CheckCircle2,
   FileText,
   Plus,
-  Clock,
-  Mail,
-  Calendar,
   Shield,
 } from 'lucide-react';
 

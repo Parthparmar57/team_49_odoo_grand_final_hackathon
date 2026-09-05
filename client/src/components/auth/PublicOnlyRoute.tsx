@@ -8,7 +8,7 @@ interface PublicOnlyRouteProps {
 }
 
 export const PublicOnlyRoute: React.FC<PublicOnlyRouteProps> = ({ children }) => {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
 
   if (isLoading) {
     return (
@@ -20,7 +20,8 @@ export const PublicOnlyRoute: React.FC<PublicOnlyRouteProps> = ({ children }) =>
   }
 
   if (isAuthenticated) {
-    return <Navigate to="/dashboard" replace />;
+    const targetPath = user?.role === 'ADMIN' ? '/admin/users' : '/dashboard';
+    return <Navigate to={targetPath} replace />;
   }
 
   return <>{children}</>;

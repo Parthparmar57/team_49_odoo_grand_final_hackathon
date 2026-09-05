@@ -3,7 +3,10 @@ import { ApiResponse } from '../../utils/apiResponse.js';
 
 export const checkIn = async (req, res, next) => {
     try {
-        const empId = req.body.employeeId || req.user.employeeId;
+        let empId = req.body.employeeId || req.user.employeeId;
+        if (req.user.role === 'EMPLOYEE') {
+            empId = req.user.employeeId;
+        }
         if (!empId) {
             return ApiResponse.error(res, 'User profile must be associated with an Employee record to check in', 'NO_EMPLOYEE_PROFILE', 400);
         }
@@ -16,7 +19,10 @@ export const checkIn = async (req, res, next) => {
 
 export const checkOut = async (req, res, next) => {
     try {
-        const empId = req.body.employeeId || req.user.employeeId;
+        let empId = req.body.employeeId || req.user.employeeId;
+        if (req.user.role === 'EMPLOYEE') {
+            empId = req.user.employeeId;
+        }
         if (!empId) {
             return ApiResponse.error(res, 'User profile must be associated with an Employee record to check out', 'NO_EMPLOYEE_PROFILE', 400);
         }

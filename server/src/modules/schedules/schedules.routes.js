@@ -11,8 +11,8 @@ router.use(authenticate);
 
 router.get('/', schedulesController.getSchedules);
 router.get('/:id', schedulesController.getScheduleById);
-router.post('/', authorize(['ADMIN', 'HR_MANAGER']), validate(createScheduleSchema), schedulesController.createSchedule);
-router.patch('/:id', authorize(['ADMIN', 'HR_MANAGER']), validate(updateScheduleSchema), schedulesController.updateSchedule);
-router.delete('/:id', authorize(['ADMIN', 'HR_MANAGER']), schedulesController.deleteSchedule);
+router.post('/', authorize(['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_MANAGER']), validate(createScheduleSchema), schedulesController.createSchedule);
+router.patch('/:id', authorize(['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_MANAGER']), validate(updateScheduleSchema), schedulesController.updateSchedule);
+router.delete('/:id', authorize(['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_MANAGER']), schedulesController.deleteSchedule);
 
 export default router;
