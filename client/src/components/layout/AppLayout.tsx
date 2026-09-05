@@ -3,7 +3,6 @@ import { Link, useLocation, useNavigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { UserRole } from '../../types/auth';
 import {
-  ShieldCheck,
   LayoutDashboard,
   UserPlus,
   Users,
@@ -101,13 +100,8 @@ export const AppLayout: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           {/* Logo & Brand */}
           <div className="flex items-center gap-3">
-            <Link to="/dashboard" className="flex items-center gap-2.5">
-              <div className="w-9 h-9 bg-gradient-to-tr from-orange-500 to-amber-500 rounded-xl flex items-center justify-center text-white shadow-lg shadow-orange-500/20">
-                <ShieldCheck className="w-5 h-5" />
-              </div>
-              <span className="font-extrabold text-lg tracking-tight text-white">
-                PeoplePay<span className="text-orange-500">360</span>
-              </span>
+            <Link to="/dashboard" className="flex items-center">
+              <img src="/logo-footer.webp" alt="PeoplePay360" className="h-8 w-auto object-contain" />
             </Link>
             <span className="hidden sm:inline-block px-2 py-0.5 text-[10px] uppercase font-bold tracking-wider bg-slate-800 text-slate-400 rounded border border-slate-700">
               Platform Portal
