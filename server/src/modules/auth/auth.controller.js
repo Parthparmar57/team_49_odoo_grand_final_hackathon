@@ -80,3 +80,13 @@ export const getUsers = async (req, res, next) => {
     }
 };
 
+export const updateUser = async (req, res, next) => {
+    try {
+        const result = await AuthService.updateUser(req.params.id, req.body);
+        return ApiResponse.success(res, result, 200);
+    } catch (error) {
+        next(error);
+    }
+};
+
+

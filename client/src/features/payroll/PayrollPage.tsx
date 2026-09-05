@@ -46,10 +46,14 @@ export default function PayrollPage() {
   return (
     <div className="space-y-6">
       <PageHeader title="Payroll & Payruns" subtitle="Batch salary calculation, validation, and disbursement engine">
+        <Button variant="secondary" onClick={() => navigate('/payroll/structures')}>
+          Salary Structures & Rules
+        </Button>
         <Button onClick={() => setShowNew(true)}>
           <Plus size={16} /> New Payrun Batch
         </Button>
       </PageHeader>
+
 
       {/* Stats Summary */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

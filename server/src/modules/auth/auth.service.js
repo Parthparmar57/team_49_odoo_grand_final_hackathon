@@ -308,5 +308,35 @@ export class AuthService {
             }
         };
     }
+
+    static async updateUser(userId, data) {
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+        if (!user) {
+            throw new AppError('User not found', 404, 'USER_NOT_FOUND');
+        }
+
+        const updateData = {};
+        if (data.role) updateData.role = data.role;
+        if (data.employeeId !== undefined) {
+            if (data.employeeId) {
+                updateData.employee = { connect: { id: data.employeeId } };
+            } else {
+                updateData.employee = { disconnect: true };
+            }
+        }
+
+        const updated = await prisma.user.update({
+            where: { id: userId },
+            data: updateData,
+            include: {
+                employee: {
+                    include: { department: true }
+                }
+            }
+        });
+
+        return buildAuthUserResponse(updated);
+    }
 }
+
 

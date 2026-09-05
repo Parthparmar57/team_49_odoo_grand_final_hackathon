@@ -10,6 +10,8 @@ import { LoginPage } from '../features/auth/LoginPage';
 import { ForgotPasswordPage } from '../features/auth/ForgotPasswordPage';
 import { ResetPasswordPage } from '../features/auth/ResetPasswordPage';
 import { CreateUserPage } from '../features/admin/CreateUserPage';
+import UserManagementPage from '../features/admin/UserManagementPage';
+import SalaryStructuresPage from '../features/payroll/structures/SalaryStructuresPage';
 import { DashboardPage } from '../features/dashboard/DashboardPage';
 
 // HR & Payroll Feature Components
@@ -66,12 +68,14 @@ export const AppRoutes: React.FC = () => {
       >
         <Route path="/dashboard" element={<DashboardPage />} />
 
-        {/* Single Dedicated Admin User Management Route */}
+        {/* ========================================== */}
+        {/* DEVELOPER 1: ADMIN & SALARY STRUCTURE ROUTES */}
+        {/* ========================================== */}
         <Route
           path="/admin/users"
           element={
             <RoleGuard allowedRoles={['ADMIN']}>
-              <CreateUserPage />
+              <UserManagementPage />
             </RoleGuard>
           }
         />
@@ -91,6 +95,16 @@ export const AppRoutes: React.FC = () => {
             </RoleGuard>
           }
         />
+
+        <Route
+          path="/payroll/structures"
+          element={
+            <RoleGuard allowedRoles={['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER']}>
+              <SalaryStructuresPage />
+            </RoleGuard>
+          }
+        />
+
 
         {/* HR & Payroll Core Module Routes */}
         <Route

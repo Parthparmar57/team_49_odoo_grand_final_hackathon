@@ -197,10 +197,23 @@ class ApiClient {
     refuse: (id: string, reason?: string) => this.request(`/time-off/requests/${id}/refuse`, { method: 'PATCH', body: JSON.stringify({ rejectionReason: reason }) }),
   };
 
+  async updateAdminUser(userId: string, payload: { role?: string; employeeId?: string | null }): Promise<ApiResponse<User>> {
+    return this.request(`/auth/users/${userId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    });
+  }
+
   // --- PAYROLL ---
   payroll = {
     structures: () => this.request('/payroll/structures'),
+    getStructure: (id: string) => this.request(`/payroll/structures/${id}`),
     createStructure: (data: any) => this.request('/payroll/structures', { method: 'POST', body: JSON.stringify(data) }),
+    updateStructure: (id: string, data: any) => this.request(`/payroll/structures/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+    deleteStructure: (id: string) => this.request(`/payroll/structures/${id}`, { method: 'DELETE' }),
+    createRule: (structureId: string, data: any) => this.request(`/payroll/structures/${structureId}/rules`, { method: 'POST', body: JSON.stringify(data) }),
+    updateRule: (structureId: string, ruleId: string, data: any) => this.request(`/payroll/structures/${structureId}/rules/${ruleId}`, { method: 'PATCH', body: JSON.stringify(data) }),
+    deleteRule: (structureId: string, ruleId: string) => this.request(`/payroll/structures/${structureId}/rules/${ruleId}`, { method: 'DELETE' }),
     payruns: () => this.request('/payroll/payruns'),
     createPayrun: (data: any) => this.request('/payroll/payruns', { method: 'POST', body: JSON.stringify(data) }),
     getPayrun: (id: string) => this.request(`/payroll/payruns/${id}`),
@@ -210,6 +223,7 @@ class ApiClient {
     payslips: (params?: Record<string, string>) => this.request('/payroll/payslips', { params }),
     getPayslip: (id: string) => this.request(`/payroll/payslips/${id}`),
   };
+
 
   // --- INBOUND EMAIL AI PROCESSING ---
   async sendInboundEmail(emailData: {

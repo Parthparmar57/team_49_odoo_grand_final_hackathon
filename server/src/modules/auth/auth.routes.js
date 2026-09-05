@@ -25,6 +25,8 @@ router.post('/reset-password', validate(resetPasswordSchema), authController.res
 // Admin user management routes
 router.post('/users', authenticate, authorize(['ADMIN']), validate(adminCreateUserSchema), authController.adminCreateUser);
 router.get('/users', authenticate, authorize(['ADMIN']), authController.getUsers);
+router.patch('/users/:id', authenticate, authorize(['ADMIN']), authController.updateUser);
 
 export default router;
+
 
