@@ -177,13 +177,36 @@ async function main() {
     const createdEmployees = [];
     const createdUsers = [];
 
-    // Special test accounts configuration
+    // Real-world Multi-User Special Accounts configuration
     const specialAccounts = [
-        { empIndex: 1, email: 'admin@ex.com', role: Role.ADMIN },
-        { empIndex: 2, email: 'hrmanager@ex.com', role: Role.HR_MANAGER },
-        { empIndex: 3, email: 'payrolluser@ex.com', role: Role.HR_PAYROLL_USER },
-        { empIndex: 4, email: 'payrollmanager@ex.com', role: Role.HR_PAYROLL_MANAGER },
-        { empIndex: 5, email: 'employee@ex.com', role: Role.EMPLOYEE },
+        // Admins (3 accounts)
+        { empIndex: 1, email: 'admin@peoplepay360.com', role: Role.ADMIN },
+        { empIndex: 2, email: 'admin@ex.com', role: Role.ADMIN },
+        { empIndex: 3, email: 'sysadmin@peoplepay360.com', role: Role.ADMIN },
+
+        // HR Managers (5 accounts)
+        { empIndex: 4, email: 'hrmanager@ex.com', role: Role.HR_MANAGER },
+        { empIndex: 5, email: 'hr.tech@peoplepay360.com', role: Role.HR_MANAGER },
+        { empIndex: 6, email: 'hr.ops@peoplepay360.com', role: Role.HR_MANAGER },
+        { empIndex: 7, email: 'hr.talent@peoplepay360.com', role: Role.HR_MANAGER },
+        { empIndex: 8, email: 'hr.global@peoplepay360.com', role: Role.HR_MANAGER },
+
+        // HR Payroll Managers (4 accounts)
+        { empIndex: 9, email: 'payrollmanager@ex.com', role: Role.HR_PAYROLL_MANAGER },
+        { empIndex: 10, email: 'payroll.lead@peoplepay360.com', role: Role.HR_PAYROLL_MANAGER },
+        { empIndex: 11, email: 'comp.lead@peoplepay360.com', role: Role.HR_PAYROLL_MANAGER },
+        { empIndex: 12, email: 'payroll.manager@peoplepay360.com', role: Role.HR_PAYROLL_MANAGER },
+
+        // HR Payroll Users (5 accounts)
+        { empIndex: 13, email: 'payrolluser@ex.com', role: Role.HR_PAYROLL_USER },
+        { empIndex: 14, email: 'payroll.spec1@peoplepay360.com', role: Role.HR_PAYROLL_USER },
+        { empIndex: 15, email: 'payroll.spec2@peoplepay360.com', role: Role.HR_PAYROLL_USER },
+        { empIndex: 16, email: 'payroll.analyst1@peoplepay360.com', role: Role.HR_PAYROLL_USER },
+        { empIndex: 17, email: 'payroll.user@peoplepay360.com', role: Role.HR_PAYROLL_USER },
+
+        // Standard Test Employees
+        { empIndex: 18, email: 'employee@ex.com', role: Role.EMPLOYEE },
+        { empIndex: 19, email: 'employee@peoplepay360.com', role: Role.EMPLOYEE },
     ];
 
     for (let i = 1; i <= 280; i++) {
@@ -203,7 +226,11 @@ async function main() {
         const firstName = firstNames[fnIndex];
         const lastName = lastNames[lnIndex];
 
-        // Email calculation
+        // Designation selection
+        const desgs = designationsMap[dept.id] || ['Specialist'];
+        const designation = desgs[(i % desgs.length)];
+
+        // Email & Role calculation
         let email = `employee${String(i).padStart(3, '0')}@company.com`;
         let userRole = Role.EMPLOYEE;
 
@@ -211,7 +238,16 @@ async function main() {
         if (special) {
             email = special.email;
             userRole = special.role;
+        } else if (dept.id === deptHR.id) {
+            if (designation.includes('HR Manager') || designation.includes('HR Business Partner')) {
+                userRole = Role.HR_MANAGER;
+            } else if (designation.includes('Payroll Specialist')) {
+                userRole = Role.HR_PAYROLL_USER;
+            } else if (designation.includes('VP of Human Resources')) {
+                userRole = Role.HR_PAYROLL_MANAGER;
+            }
         }
+
 
         // Create User account
         const user = await prisma.user.create({
@@ -226,15 +262,14 @@ async function main() {
         // Schedule distribution
         const schedule = schedules[i % 3];
 
-        // Designation selection
-        const desgs = designationsMap[dept.id] || ['Specialist'];
-        const designation = desgs[(i % desgs.length)];
 
-        // Employment type distribution
-        let empType = EmploymentType.FULL_TIME;
-        if (i % 25 === 0) empType = EmploymentType.INTERN;
-        else if (i % 15 === 0) empType = EmploymentType.CONTRACT;
-        else if (i % 10 === 0) empType = EmploymentType.PART_TIME;
+        // Employment type and Status distribution
+        const empTypesList = [EmploymentType.FULL_TIME, EmploymentType.FULL_TIME, EmploymentType.PART_TIME, EmploymentType.CONTRACT, EmploymentType.INTERN];
+        const empType = empTypesList[i % empTypesList.length];
+
+        const empStatusesList = [EmployeeStatus.ACTIVE, EmployeeStatus.ACTIVE, EmployeeStatus.ACTIVE, EmployeeStatus.ACTIVE, EmployeeStatus.ON_LEAVE, EmployeeStatus.INACTIVE, EmployeeStatus.TERMINATED];
+        const isSpecialAcc = specialAccounts.some(s => s.empIndex === i);
+        const empStatus = isSpecialAcc ? EmployeeStatus.ACTIVE : empStatusesList[i % empStatusesList.length];
 
         const joiningDate = new Date(2022, (i % 12), (i % 28) + 1);
 
@@ -248,7 +283,7 @@ async function main() {
                 designation,
                 joiningDate,
                 employmentType: empType,
-                status: EmployeeStatus.ACTIVE,
+                status: empStatus,
                 bankName: i % 2 === 0 ? 'HDFC Bank' : 'ICICI Bank',
                 accountNumber: `50100${String(100000000 + i)}`,
                 ifscCode: i % 2 === 0 ? 'HDFC0001234' : 'ICIC0005678',

@@ -5,22 +5,47 @@ import {
   PageHeader, Table, Tr, Td, Button, Badge, LoadingPage, Alert,
   EmployeeStatusBadge
 } from '../../components/ui';
-import { Plus, Search, Eye, Edit, LayoutGrid, List } from 'lucide-react';
+import { Plus, Search, Eye, Edit, LayoutGrid, List, Filter, RotateCcw } from 'lucide-react';
 
 export default function EmployeesPage() {
   const navigate = useNavigate();
   const [employees, setEmployees] = useState<any[]>([]);
+  const [departments, setDepartments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
+  const [departmentId, setDepartmentId] = useState('');
+  const [status, setStatus] = useState('');
+  const [employmentType, setEmploymentType] = useState('');
   const [view, setView] = useState<'list' | 'kanban'>('list');
   const [page, setPage] = useState(1);
   const [pagination, setPagination] = useState<any>(null);
 
-  const load = async (searchVal = search, pageNum = page) => {
+  const loadDepartments = async () => {
+    try {
+      const res = await api.departments.list();
+      if (res.success) {
+        setDepartments(res.data || []);
+      }
+    } catch (e) {
+      console.error('Failed to load departments', e);
+    }
+  };
+
+  const load = async (
+    searchVal = search,
+    deptVal = departmentId,
+    statusVal = status,
+    typeVal = employmentType,
+    pageNum = page
+  ) => {
     setLoading(true);
     const params: Record<string, string> = { page: String(pageNum), limit: '12' };
     if (searchVal) params.search = searchVal;
+    if (deptVal) params.departmentId = deptVal;
+    if (statusVal) params.status = statusVal;
+    if (typeVal) params.employmentType = typeVal;
+
     const res = await api.employees.list(params);
     if (res.success) {
       setEmployees(res.data?.employees || res.data || []);
@@ -29,13 +54,45 @@ export default function EmployeesPage() {
     setLoading(false);
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    loadDepartments();
+    load();
+  }, []);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setPage(1);
-    load(search, 1);
+    load(search, departmentId, status, employmentType, 1);
   };
+
+  const handleDepartmentChange = (val: string) => {
+    setDepartmentId(val);
+    setPage(1);
+    load(search, val, status, employmentType, 1);
+  };
+
+  const handleStatusChange = (val: string) => {
+    setStatus(val);
+    setPage(1);
+    load(search, departmentId, val, employmentType, 1);
+  };
+
+  const handleTypeChange = (val: string) => {
+    setEmploymentType(val);
+    setPage(1);
+    load(search, departmentId, status, val, 1);
+  };
+
+  const resetFilters = () => {
+    setSearch('');
+    setDepartmentId('');
+    setStatus('');
+    setEmploymentType('');
+    setPage(1);
+    load('', '', '', '', 1);
+  };
+
+  const hasActiveFilters = search || departmentId || status || employmentType;
 
   return (
     <div className="space-y-6">
@@ -53,20 +110,80 @@ export default function EmployeesPage() {
         </Button>
       </PageHeader>
 
-      {/* Search */}
-      <form onSubmit={handleSearch} className="flex gap-3 max-w-md">
-        <div className="relative flex-1">
-          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input
-            type="text"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder="Search by name, email, number..."
-            className="w-full bg-white border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-slate-900 text-sm placeholder-slate-400 focus:outline-none focus:border-[#FF5E1E] focus:ring-1 focus:ring-[#FF5E1E] shadow-xs"
-          />
+      {/* Filter & Search Bar */}
+      <div className="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-xs space-y-3">
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Search Box */}
+          <form onSubmit={handleSearch} className="flex-1 min-w-[240px] flex gap-2">
+            <div className="relative flex-1">
+              <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Search by name, email, code..."
+                className="w-full bg-slate-50/70 border border-slate-200 rounded-xl pl-10 pr-4 py-2 text-slate-900 text-sm placeholder-slate-400 focus:outline-none focus:border-[#FF5E1E] focus:bg-white focus:ring-1 focus:ring-[#FF5E1E] transition-all"
+              />
+            </div>
+            <Button type="submit" variant="secondary" size="sm">Search</Button>
+          </form>
+
+          {/* Department Dropdown */}
+          <div className="min-w-[170px]">
+            <select
+              value={departmentId}
+              onChange={e => handleDepartmentChange(e.target.value)}
+              className="w-full bg-slate-50/70 border border-slate-200 rounded-xl px-3 py-2 text-slate-700 text-sm font-medium focus:outline-none focus:border-[#FF5E1E] focus:bg-white focus:ring-1 focus:ring-[#FF5E1E] transition-all cursor-pointer"
+            >
+              <option value="">All Departments</option>
+              {departments.map(d => (
+                <option key={d.id} value={d.id}>{d.name}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Employment Type Dropdown */}
+          <div className="min-w-[150px]">
+            <select
+              value={employmentType}
+              onChange={e => handleTypeChange(e.target.value)}
+              className="w-full bg-slate-50/70 border border-slate-200 rounded-xl px-3 py-2 text-slate-700 text-sm font-medium focus:outline-none focus:border-[#FF5E1E] focus:bg-white focus:ring-1 focus:ring-[#FF5E1E] transition-all cursor-pointer"
+            >
+              <option value="">All Types</option>
+              <option value="FULL_TIME">Full Time</option>
+              <option value="PART_TIME">Part Time</option>
+              <option value="CONTRACT">Contract</option>
+              <option value="INTERN">Intern</option>
+            </select>
+          </div>
+
+          {/* Status Dropdown */}
+          <div className="min-w-[140px]">
+            <select
+              value={status}
+              onChange={e => handleStatusChange(e.target.value)}
+              className="w-full bg-slate-50/70 border border-slate-200 rounded-xl px-3 py-2 text-slate-700 text-sm font-medium focus:outline-none focus:border-[#FF5E1E] focus:bg-white focus:ring-1 focus:ring-[#FF5E1E] transition-all cursor-pointer"
+            >
+              <option value="">All Statuses</option>
+              <option value="ACTIVE">Active</option>
+              <option value="INACTIVE">Inactive</option>
+              <option value="ON_LEAVE">On Leave</option>
+              <option value="TERMINATED">Terminated</option>
+            </select>
+          </div>
+
+          {/* Reset Filters */}
+          {hasActiveFilters && (
+            <button
+              onClick={resetFilters}
+              className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all"
+              title="Clear all active filters"
+            >
+              <RotateCcw size={14} /> Reset
+            </button>
+          )}
         </div>
-        <Button type="submit" variant="secondary">Search</Button>
-      </form>
+      </div>
 
       {error && <Alert message={error} />}
       {loading ? <LoadingPage /> : view === 'list' ? (
@@ -147,7 +264,7 @@ export default function EmployeesPage() {
           <Button
             variant="secondary"
             disabled={page <= 1}
-            onClick={() => { setPage(p => p - 1); load(search, page - 1); }}
+            onClick={() => { setPage(p => p - 1); load(search, departmentId, status, employmentType, page - 1); }}
           >
             Previous
           </Button>
@@ -155,7 +272,7 @@ export default function EmployeesPage() {
           <Button
             variant="secondary"
             disabled={page >= pagination.pages}
-            onClick={() => { setPage(p => p + 1); load(search, page + 1); }}
+            onClick={() => { setPage(p => p + 1); load(search, departmentId, status, employmentType, page + 1); }}
           >
             Next
           </Button>

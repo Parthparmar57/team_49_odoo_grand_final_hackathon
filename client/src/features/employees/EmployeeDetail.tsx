@@ -65,16 +65,40 @@ export default function EmployeeDetail() {
 
       {/* 4 Smart Buttons with exact live database counts */}
       <div className="flex items-center gap-2.5 flex-wrap">
-        <button onClick={() => navigate('/contracts?employeeId=' + id)} className="flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-orange-50 border border-slate-200 hover:border-orange-200 rounded-xl text-xs font-bold text-slate-700 hover:text-[#FF5E1E] shadow-2xs transition-all">
+        <button
+          onClick={() => setTab('contracts')}
+          className={`flex items-center gap-1.5 px-3.5 py-2 border rounded-xl text-xs font-bold transition-all shadow-2xs ${
+            tab === 'contracts'
+              ? 'bg-orange-50 border-orange-300 text-[#FF5E1E]'
+              : 'bg-white hover:bg-orange-50 border-slate-200 text-slate-700 hover:text-[#FF5E1E]'
+          }`}
+        >
           <FileText size={14} className="text-[#FF5E1E]" /> Contracts ({contractsCount})
         </button>
-        <button onClick={() => navigate('/attendance?employeeId=' + id)} className="flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-orange-50 border border-slate-200 hover:border-orange-200 rounded-xl text-xs font-bold text-slate-700 hover:text-[#FF5E1E] shadow-2xs transition-all">
+        <button
+          onClick={() => setTab('attendance')}
+          className={`flex items-center gap-1.5 px-3.5 py-2 border rounded-xl text-xs font-bold transition-all shadow-2xs ${
+            tab === 'attendance'
+              ? 'bg-orange-50 border-orange-300 text-[#FF5E1E]'
+              : 'bg-white hover:bg-orange-50 border-slate-200 text-slate-700 hover:text-[#FF5E1E]'
+          }`}
+        >
           <Clock size={14} className="text-teal-600" /> Attendance ({attendanceCount})
         </button>
-        <button onClick={() => navigate('/leave?employeeId=' + id)} className="flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-orange-50 border border-slate-200 hover:border-orange-200 rounded-xl text-xs font-bold text-slate-700 hover:text-[#FF5E1E] shadow-2xs transition-all">
+        <button
+          onClick={() => setTab('leaves')}
+          className={`flex items-center gap-1.5 px-3.5 py-2 border rounded-xl text-xs font-bold transition-all shadow-2xs ${
+            tab === 'leaves'
+              ? 'bg-orange-50 border-orange-300 text-[#FF5E1E]'
+              : 'bg-white hover:bg-orange-50 border-slate-200 text-slate-700 hover:text-[#FF5E1E]'
+          }`}
+        >
           <CalendarX size={14} className="text-purple-600" /> Time Off Requests ({leaveRequestsCount})
         </button>
-        <button onClick={() => setShowAllocationModal(true)} className="flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-orange-50 border border-slate-200 hover:border-orange-200 rounded-xl text-xs font-bold text-slate-700 hover:text-[#FF5E1E] shadow-2xs transition-all">
+        <button
+          onClick={() => setShowAllocationModal(true)}
+          className="flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-orange-50 border border-slate-200 hover:border-orange-200 rounded-xl text-xs font-bold text-slate-700 hover:text-[#FF5E1E] shadow-2xs transition-all"
+        >
           <Award size={14} className="text-amber-500" /> Leave Allocations ({allocationsCount})
         </button>
       </div>

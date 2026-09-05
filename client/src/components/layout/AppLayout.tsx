@@ -123,13 +123,10 @@ export const AppLayout: React.FC = () => {
       <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200/80 shadow-xs">
         <div className="w-full px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           {/* Logo & Brand */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center shrink-0">
             <Link to="/dashboard" className="flex items-center">
               <img src="/logo.webp" alt="PeoplePay360" className="h-8 w-auto object-contain" />
             </Link>
-            <span className="hidden sm:inline-block px-2 py-0.5 text-[10px] uppercase font-extrabold tracking-wider bg-orange-50 text-[#FF5E1E] rounded-md border border-orange-200/80">
-              Platform Portal
-            </span>
           </div>
 
           {/* Desktop Nav Links */}
@@ -142,11 +139,10 @@ export const AppLayout: React.FC = () => {
                 <Link
                   key={item.path}
                   to={item.path}
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all ${
-                    isActive
-                      ? 'bg-orange-50 text-[#FF5E1E] border border-orange-200/80 shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'
-                  }`}
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all ${isActive
+                    ? 'bg-orange-50 text-[#FF5E1E] border border-orange-200/80 shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'
+                    }`}
                 >
                   <Icon className="w-4 h-4" />
                   {item.label}
@@ -234,9 +230,8 @@ export const AppLayout: React.FC = () => {
                   key={item.path}
                   to={item.path}
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold ${
-                    isActive ? 'bg-orange-50 text-[#FF5E1E]' : 'text-slate-600 hover:bg-slate-100'
-                  }`}
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold ${isActive ? 'bg-orange-50 text-[#FF5E1E]' : 'text-slate-600 hover:bg-slate-100'
+                    }`}
                 >
                   <Icon className="w-4 h-4" />
                   {item.label}

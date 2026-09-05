@@ -129,24 +129,25 @@ export class ContractsService {
             throw new AppError('End date cannot be earlier than start date', 400, 'INVALID_DATE_RANGE');
         }
 
-        // Check overlapping active contracts for this employee
+        // Auto-expire previous active contract(s) for this employee to prevent overlapping active contracts
         if (status === ContractStatus.ACTIVE || status === 'ACTIVE') {
-            const whereClause = {
-                employeeId,
-                status: ContractStatus.ACTIVE,
-                OR: [{ endDate: null }, { endDate: { gte: parsedStartDate } }],
-            };
-            if (parsedEndDate) {
-                whereClause.startDate = { lte: parsedEndDate };
-            }
+            const existingActiveContracts = await prisma.contract.findMany({
+                where: {
+                    employeeId,
+                    status: ContractStatus.ACTIVE,
+                },
+            });
 
-            const overlapping = await prisma.contract.findFirst({ where: whereClause });
-            if (overlapping) {
-                throw new AppError(
-                    `Overlapping active contract '${overlapping.contractRef}' already exists for this employee`,
-                    400,
-                    'OVERLAPPING_CONTRACT'
-                );
+            const dayBeforeNewStart = new Date(parsedStartDate.getTime() - 86400000);
+
+            for (const oldContract of existingActiveContracts) {
+                await prisma.contract.update({
+                    where: { id: oldContract.id },
+                    data: {
+                        status: ContractStatus.EXPIRED,
+                        endDate: oldContract.endDate && oldContract.endDate < dayBeforeNewStart ? oldContract.endDate : dayBeforeNewStart,
+                    },
+                });
             }
         }
 
@@ -170,7 +171,7 @@ export class ContractsService {
     }
 
     static async updateContract(id, data) {
-        await this.getContractById(id);
+        const currentContract = await this.getContractById(id);
 
         const payload = { ...data };
         if (payload.startDate) payload.startDate = new Date(payload.startDate);
@@ -181,6 +182,30 @@ export class ContractsService {
         if (payload.scheduleId === '') payload.scheduleId = null;
         if (payload.salaryStructureId === '') payload.salaryStructureId = null;
         if (payload.departmentId === '') delete payload.departmentId;
+
+        // Auto-expire other active contracts if updating status to ACTIVE
+        if (payload.status === ContractStatus.ACTIVE || payload.status === 'ACTIVE') {
+            const startDate = payload.startDate || currentContract.startDate;
+            const dayBeforeStart = new Date(new Date(startDate).getTime() - 86400000);
+
+            const otherActiveContracts = await prisma.contract.findMany({
+                where: {
+                    employeeId: currentContract.employeeId,
+                    status: ContractStatus.ACTIVE,
+                    id: { not: id },
+                },
+            });
+
+            for (const oldContract of otherActiveContracts) {
+                await prisma.contract.update({
+                    where: { id: oldContract.id },
+                    data: {
+                        status: ContractStatus.EXPIRED,
+                        endDate: oldContract.endDate && oldContract.endDate < dayBeforeStart ? oldContract.endDate : dayBeforeStart,
+                    },
+                });
+            }
+        }
 
         return prisma.contract.update({
             where: { id },

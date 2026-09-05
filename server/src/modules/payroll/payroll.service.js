@@ -4,16 +4,6 @@ import { ContractsService } from '../contracts/contracts.service.js';
 import { AppError } from '../../middleware/error.middleware.js';
 import { PayslipPdfService } from './payslipPdf.service.js';
 
-const selectEmp = () => ({
-    select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        email: true,
-        employeeNumber: true,
-    },
-});
-
 export class PayrollService {
     // ==========================================
     // AUDIT LOG HELPER
@@ -127,7 +117,6 @@ export class PayrollService {
             throw new AppError('Period end date cannot be before period start date', 400, 'INVALID_PERIOD');
         }
 
-        // Validate salary structure exists
         if (data.salaryStructureId) {
             await this.getSalaryStructureById(data.salaryStructureId);
         }
@@ -192,7 +181,6 @@ export class PayrollService {
             try {
                 const contract = await ContractsService.findApplicableContract(employee.id, payrun.periodStart, payrun.periodEnd);
 
-                // Use payrun's salary structure if set, otherwise contract's
                 let salaryStructure = payrun.salaryStructure;
                 if (!salaryStructure) {
                     salaryStructure = contract.salaryStructure;
@@ -276,7 +264,6 @@ export class PayrollService {
                 });
             }
         }
-
 
         // Record warnings if any
         if (warnings.length > 0) {
