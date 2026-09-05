@@ -181,10 +181,7 @@ export class PayrollService {
             try {
                 const contract = await ContractsService.findApplicableContract(employee.id, payrun.periodStart, payrun.periodEnd);
 
-                let salaryStructure = payrun.salaryStructure;
-                if (!salaryStructure) {
-                    salaryStructure = contract.salaryStructure;
-                }
+                let salaryStructure = payrun.salaryStructure || contract.salaryStructure;
 
                 if (!salaryStructure) {
                     warnings.push({
