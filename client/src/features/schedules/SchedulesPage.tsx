@@ -37,12 +37,21 @@ export default function SchedulesPage() {
     return days.filter(d => form[d]).length;
   }, [form.monday, form.tuesday, form.wednesday, form.thursday, form.friday, form.saturday, form.sunday]);
 
-  // Automatic Weekly Hours Calculation: Daily Hours × Active Days
+  // Automatic Net Daily Hours & Weekly Hours Calculation
+  const computedDailyNetHours = useMemo(() => {
+    if (!form.startTime || !form.endTime) return 8;
+    const [startH, startM] = form.startTime.split(':').map(Number);
+    const [endH, endM] = form.endTime.split(':').map(Number);
+    const totalShiftMins = (endH * 60 + endM) - (startH * 60 + startM);
+    const breakMins = parseInt(form.breakMinutes) || 0;
+    const netMins = Math.max(0, totalShiftMins - breakMins);
+    return Math.round((netMins / 60) * 100) / 100;
+  }, [form.startTime, form.endTime, form.breakMinutes]);
+
   useEffect(() => {
-    const hrs = parseFloat(dailyHours) || 0;
-    const computedWeekly = (hrs * activeDaysCount).toString();
-    setForm(prev => ({ ...prev, weeklyHours: computedWeekly }));
-  }, [dailyHours, activeDaysCount]);
+    const computedWeekly = Math.round(computedDailyNetHours * activeDaysCount * 10) / 10;
+    setForm(prev => ({ ...prev, weeklyHours: computedWeekly.toString() }));
+  }, [computedDailyNetHours, activeDaysCount]);
 
   const handleSave = async () => {
     if (!form.name || !form.name.trim()) {
@@ -112,37 +121,52 @@ export default function SchedulesPage() {
       {error && <Alert message={error} />}
       {loading ? <LoadingPage /> : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {schedules.map(s => (
-            <Card key={s.id} className="p-6 hover:shadow-md transition-all border border-slate-200/80">
-              <div className="flex items-start justify-between mb-4">
-                <div>
-                  <h3 className="text-slate-900 font-extrabold text-base">{s.name}</h3>
-                  <div className="text-slate-500 text-xs font-medium mt-0.5">{s.weeklyHours} hrs/week • {s.startTime} — {s.endTime}</div>
-                </div>
-                <div className="w-9 h-9 rounded-xl bg-orange-50 border border-orange-200 flex items-center justify-center text-[#FF5E1E] shadow-xs">
-                  <Clock size={18} />
-                </div>
-              </div>
+          {schedules.map(s => {
+            const isFullTime = (s.weeklyHours || 0) >= 35;
+            const scheduleTypeLabel = isFullTime ? 'FULL-TIME' : 'PART-TIME / CUSTOM';
 
-              {/* Working days pill grid */}
-              <div className="flex gap-1.5 flex-wrap my-4">
-                {days.map(d => (
-                  <span
-                    key={d}
-                    className={`px-2 py-0.5 text-[11px] font-bold rounded-lg uppercase tracking-wider ${s[d] ? 'bg-orange-50 text-[#FF5E1E] border border-orange-200' : 'bg-slate-100 text-slate-400 border border-slate-200'
+            return (
+              <Card key={s.id} className="p-6 hover:shadow-md transition-all border border-slate-200/80">
+                <div className="flex items-start justify-between mb-4">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="text-slate-900 font-extrabold text-base">{s.name}</h3>
+                      <span className={`px-2 py-0.5 text-[10px] font-extrabold uppercase rounded-full border ${
+                        isFullTime ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                      }`}>
+                        {scheduleTypeLabel}
+                      </span>
+                    </div>
+                    <div className="text-slate-500 text-xs font-medium mt-0.5">
+                      <strong className="text-slate-900 font-black">{s.weeklyHours} hrs/week</strong> • {s.startTime} — {s.endTime}
+                    </div>
+                  </div>
+                  <div className="w-9 h-9 rounded-xl bg-orange-50 border border-orange-200 flex items-center justify-center text-[#FF5E1E] shadow-xs">
+                    <Clock size={18} />
+                  </div>
+                </div>
+
+                {/* Working days pill grid */}
+                <div className="flex gap-1.5 flex-wrap my-4">
+                  {days.map(d => (
+                    <span
+                      key={d}
+                      className={`px-2 py-0.5 text-[11px] font-bold rounded-lg uppercase tracking-wider ${
+                        s[d] ? 'bg-orange-50 text-[#FF5E1E] border border-orange-200' : 'bg-slate-100 text-slate-400 border border-slate-200'
                       }`}
-                  >
-                    {d.slice(0, 3)}
-                  </span>
-                ))}
-              </div>
+                    >
+                      {d.slice(0, 3)}
+                    </span>
+                  ))}
+                </div>
 
-              <div className="pt-3 border-t border-slate-100 flex justify-between text-xs text-slate-500 font-medium">
-                <span>Lunch Break: <strong className="text-slate-800">{s.breakMinutes} mins</strong></span>
-                <span>Assigned Employees: <strong className="text-slate-800">{s._count?.employees ?? 0}</strong></span>
-              </div>
-            </Card>
-          ))}
+                <div className="pt-3 border-t border-slate-100 flex justify-between text-xs text-slate-500 font-medium">
+                  <span>Lunch Break: <strong className="text-slate-800">{s.breakMinutes} mins</strong></span>
+                  <span>Assigned Employees: <strong className="text-slate-800">{s._count?.employees ?? 0}</strong></span>
+                </div>
+              </Card>
+            );
+          })}
         </div>
       )}
 
@@ -179,7 +203,7 @@ export default function SchedulesPage() {
                 className="w-full px-3.5 py-2.5 bg-slate-100/90 border border-slate-200 rounded-xl text-slate-900 font-extrabold text-sm focus:outline-none cursor-not-allowed shadow-xs"
               />
               <span className="text-[11px] text-slate-400 font-semibold mt-1 block">
-                Calculated: {dailyHours || 0} hrs × {activeDaysCount} active days
+                Calculated: {computedDailyNetHours} net hrs/day × {activeDaysCount} active days
               </span>
             </div>
 

@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, Link } from 'react-router-dom';
 import api from '../../api/client';
 import { Button, LoadingPage, Alert, Card, EmployeeStatusBadge, ContractStatusBadge, LeaveStatusBadge, Modal } from '../../components/ui';
-import { ArrowLeft, Edit, FileText, Clock, CalendarX, User, MapPin, Award } from 'lucide-react';
+import { ArrowLeft, Edit, FileText, Clock, CalendarX, User, MapPin, Award, ExternalLink } from 'lucide-react';
 
 export default function EmployeeDetail() {
   const { id } = useParams();
@@ -168,7 +168,15 @@ export default function EmployeeDetail() {
 
       {tab === 'contracts' && (
         <Card className="p-6">
-          <h3 className="text-slate-900 font-extrabold text-base mb-4">Contracts ({emp.contracts?.length || 0})</h3>
+          <div className="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
+            <h3 className="text-slate-900 font-extrabold text-base">Contracts ({emp.contracts?.length || 0})</h3>
+            <Link
+              to={`/contracts?employeeId=${emp.id}`}
+              className="text-xs font-bold text-[#FF5E1E] hover:text-[#E0480C] flex items-center gap-1 bg-orange-50 hover:bg-orange-100 px-3 py-1.5 rounded-xl transition-all"
+            >
+              Open Filtered Contracts Module <ExternalLink size={13} />
+            </Link>
+          </div>
           {emp.contracts?.length ? (
             <div className="space-y-3">
               {emp.contracts.map((c: any) => (
@@ -190,7 +198,15 @@ export default function EmployeeDetail() {
 
       {tab === 'attendance' && (
         <Card className="p-6">
-          <h3 className="text-slate-900 font-extrabold text-base mb-4">Attendance Logs ({emp.attendances?.length || 0})</h3>
+          <div className="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
+            <h3 className="text-slate-900 font-extrabold text-base">Attendance Logs ({emp.attendances?.length || 0})</h3>
+            <Link
+              to={`/attendance?employeeId=${emp.id}`}
+              className="text-xs font-bold text-teal-700 hover:text-teal-800 flex items-center gap-1 bg-teal-50 hover:bg-teal-100 px-3 py-1.5 rounded-xl transition-all"
+            >
+              Open Filtered Attendance Module <ExternalLink size={13} />
+            </Link>
+          </div>
           {emp.attendances?.length ? (
             <div className="space-y-3">
               {emp.attendances.map((a: any) => (
@@ -209,7 +225,15 @@ export default function EmployeeDetail() {
 
       {tab === 'leaves' && (
         <Card className="p-6">
-          <h3 className="text-slate-900 font-extrabold text-base mb-4">Time Off Requests ({emp.leaveRequests?.length || 0})</h3>
+          <div className="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
+            <h3 className="text-slate-900 font-extrabold text-base">Time Off Requests ({emp.leaveRequests?.length || 0})</h3>
+            <Link
+              to={`/leave?employeeId=${emp.id}`}
+              className="text-xs font-bold text-purple-700 hover:text-purple-800 flex items-center gap-1 bg-purple-50 hover:bg-purple-100 px-3 py-1.5 rounded-xl transition-all"
+            >
+              Open Filtered Time Off Module <ExternalLink size={13} />
+            </Link>
+          </div>
           {emp.leaveRequests?.length ? (
             <div className="space-y-3">
               {emp.leaveRequests.map((l: any) => (
@@ -228,7 +252,15 @@ export default function EmployeeDetail() {
 
       {tab === 'payslips' && (
         <Card className="p-6">
-          <h3 className="text-slate-900 font-extrabold text-base mb-4">Payslips ({emp.payslips?.length || 0})</h3>
+          <div className="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
+            <h3 className="text-slate-900 font-extrabold text-base">Payslips ({emp.payslips?.length || 0})</h3>
+            <Link
+              to={`/payroll?employeeId=${emp.id}`}
+              className="text-xs font-bold text-indigo-700 hover:text-indigo-800 flex items-center gap-1 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-xl transition-all"
+            >
+              Open Filtered Payroll Module <ExternalLink size={13} />
+            </Link>
+          </div>
           {emp.payslips?.length ? (
             <div className="space-y-3">
               {emp.payslips.map((p: any) => (

@@ -14,30 +14,60 @@ export default function PayrollPage() {
   const [error, setError] = useState('');
   const [showNew, setShowNew] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [wizardStep, setWizardStep] = useState<1 | 2>(1);
+  const [employeesList, setEmployeesList] = useState<any[]>([]);
+  const [selectedEmployeeIds, setSelectedEmployeeIds] = useState<string[]>([]);
+  const [empSearch, setEmpSearch] = useState('');
+  const [empDeptFilter, setEmpDeptFilter] = useState('');
+  const [departments, setDepartments] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState<'payruns' | 'payslips'>('payruns');
+  const [allPayslips, setAllPayslips] = useState<any[]>([]);
   const [newForm, setNewForm] = useState({
     payrunRef: '', name: '', salaryStructureId: '', periodStart: '', periodEnd: '',
   });
 
   const load = async () => {
-    const [prRes, strRes] = await Promise.all([api.payroll.payruns(), api.payroll.structures()]);
+    const [prRes, strRes, empRes, deptRes, psRes] = await Promise.all([
+      api.payroll.payruns(),
+      api.payroll.structures(),
+      api.employees.list({ limit: '500', status: 'ACTIVE' }),
+      api.departments.list(),
+      api.payroll.payslips(),
+    ]);
     if (prRes.success) setPayruns(prRes.data || []);
     if (strRes.success) setStructures(strRes.data || []);
+    if (empRes.success) {
+      const activeEmps = empRes.data?.employees || empRes.data || [];
+      setEmployeesList(activeEmps);
+      setSelectedEmployeeIds(activeEmps.map((e: any) => e.id));
+    }
+    if (deptRes.success) setDepartments(deptRes.data || []);
+    if (psRes.success) setAllPayslips(psRes.data || []);
     setLoading(false);
   };
 
   useEffect(() => { load(); }, []);
 
+  const handleOpenWizard = () => {
+    setWizardStep(1);
+    setNewForm({ payrunRef: `PR-${Date.now().toString().slice(-6)}`, name: '', salaryStructureId: '', periodStart: '', periodEnd: '' });
+    setSelectedEmployeeIds(employeesList.map(e => e.id));
+    setShowNew(true);
+  };
+
   const handleCreate = async () => {
     setSaving(true);
-    const payload: any = { ...newForm };
+    const payload: any = {
+      ...newForm,
+      employeeIds: selectedEmployeeIds,
+    };
     if (!payload.salaryStructureId) delete payload.salaryStructureId;
-    if (!payload.payrunRef) payload.payrunRef = `PR-${Date.now()}`;
     const res = await api.payroll.createPayrun(payload);
     setSaving(false);
     if (res.success) {
       toast.success('Payrun batch created successfully');
       setShowNew(false);
-      load();
+      navigate(`/payroll/payruns/${res.data.id}`);
     } else {
       const msg = res.error?.message || 'Failed to create payrun';
       setError(msg);
@@ -59,20 +89,56 @@ export default function PayrollPage() {
     }
   };
 
+  const filteredStaff = employeesList.filter(e => {
+    const nameMatches = `${e.firstName} ${e.lastName} ${e.employeeNumber}`.toLowerCase().includes(empSearch.toLowerCase());
+    const deptMatches = !empDeptFilter || e.departmentId === empDeptFilter || e.department?.id === empDeptFilter;
+    return nameMatches && deptMatches;
+  });
+
+  const toggleSelectAll = () => {
+    if (selectedEmployeeIds.length === filteredStaff.length) {
+      setSelectedEmployeeIds([]);
+    } else {
+      setSelectedEmployeeIds(filteredStaff.map(e => e.id));
+    }
+  };
+
+  const toggleEmployee = (id: string) => {
+    setSelectedEmployeeIds(prev =>
+      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+    );
+  };
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Payroll & Payruns" subtitle="Batch salary calculation, validation, and disbursement engine">
+      <PageHeader title="Payroll & Payslips" subtitle="Batch salary calculation, validation, and disbursement engine">
         <Button variant="secondary" onClick={() => navigate('/payroll/structures')}>
           Salary Structures & Rules
         </Button>
-        <Button onClick={() => setShowNew(true)}>
+        <Button onClick={handleOpenWizard}>
           <Plus size={16} /> New Payrun Batch
         </Button>
       </PageHeader>
 
+      <div className="flex border-b border-slate-200 gap-6">
+        <button
+          onClick={() => setActiveTab('payruns')}
+          className={`pb-3 font-extrabold text-sm border-b-2 transition-all ${
+            activeTab === 'payruns' ? 'border-[#FF5E1E] text-[#FF5E1E]' : 'border-transparent text-slate-500 hover:text-slate-800'
+          }`}
+        >
+          Payrun Batches ({payruns.length})
+        </button>
+        <button
+          onClick={() => setActiveTab('payslips')}
+          className={`pb-3 font-extrabold text-sm border-b-2 transition-all ${
+            activeTab === 'payslips' ? 'border-[#FF5E1E] text-[#FF5E1E]' : 'border-transparent text-slate-500 hover:text-slate-800'
+          }`}
+        >
+          Dedicated Payslips List View ({allPayslips.length})
+        </button>
+      </div>
 
-      {/* Stats Summary */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
           { label: 'Draft', count: payruns.filter(p => p.status === 'DRAFT').length, color: 'bg-slate-50 text-slate-700 border-slate-200' },
@@ -89,8 +155,7 @@ export default function PayrollPage() {
 
       {error && <Alert message={error} />}
 
-      {/* Salary Structures Panel */}
-      {structures.length > 0 && (
+      {structures.length > 0 && activeTab === 'payruns' && (
         <Card className="p-5 border border-slate-200/80">
           <h2 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider mb-3">Configured Salary Structures</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
@@ -107,8 +172,7 @@ export default function PayrollPage() {
         </Card>
       )}
 
-      {/* Payruns Table */}
-      {loading ? <LoadingPage /> : (
+      {loading ? <LoadingPage /> : activeTab === 'payruns' ? (
         <div>
           <h2 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider mb-3">Payrun Batches</h2>
           <Table
@@ -154,30 +218,172 @@ export default function PayrollPage() {
             ))}
           </Table>
         </div>
+      ) : (
+        <div>
+          <h2 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider mb-3">All Generated Payslips ({allPayslips.length})</h2>
+          <Table
+            headers={['Payslip #', 'Employee', 'Structure', 'Period', 'Gross Salary', 'Total Deductions', 'Net Salary', 'PDF']}
+            empty={allPayslips.length === 0}
+          >
+            {allPayslips.map(ps => (
+              <Tr key={ps.id}>
+                <Td className="font-mono text-xs font-bold text-[#FF5E1E]">{ps.number || ps.payslipRef || ps.id.slice(0, 8)}</Td>
+                <Td>
+                  <div className="font-extrabold text-slate-900">{ps.employee?.firstName} {ps.employee?.lastName}</div>
+                  <div className="text-xs text-slate-400 font-mono">{ps.employee?.employeeNumber}</div>
+                </Td>
+                <Td className="text-xs font-semibold text-slate-700">{ps.contract?.salaryStructure?.name || ps.salaryStructure?.name || 'Regular Salary'}</Td>
+                <Td className="text-xs text-slate-500 font-medium">{new Date(ps.periodStart).toLocaleDateString()} — {new Date(ps.periodEnd).toLocaleDateString()}</Td>
+                <Td className="font-semibold text-slate-800">₹{(ps.grossSalary || 0).toLocaleString()}</Td>
+                <Td className="text-red-600 font-semibold">-₹{(ps.totalDeductions || 0).toLocaleString()}</Td>
+                <Td className="font-extrabold text-emerald-700">₹{(ps.netSalary || 0).toLocaleString()}</Td>
+                <Td>
+                  <a
+                    href={`/api/payroll/payslips/${ps.id}/pdf`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="px-2.5 py-1 bg-white hover:bg-orange-50 text-slate-700 hover:text-[#FF5E1E] border border-slate-200 rounded-lg text-xs font-bold transition-all shadow-xs inline-flex items-center gap-1"
+                  >
+                    PDF
+                  </a>
+                </Td>
+              </Tr>
+            ))}
+          </Table>
+        </div>
       )}
 
-      {/* New Payrun Modal */}
-      <Modal open={showNew} onClose={() => setShowNew(false)} title="Create Payrun Batch">
-        <div className="space-y-4">
-          <Input label="Payrun Name *" value={newForm.name} onChange={e => setNewForm({ ...newForm, name: e.target.value })} placeholder="e.g. October 2026 Payroll" required />
-          <Input label="Reference Code" value={newForm.payrunRef} onChange={e => setNewForm({ ...newForm, payrunRef: e.target.value })} placeholder="PR-2026-10 (Auto-generated if blank)" />
-          <Select label="Salary Structure Override" value={newForm.salaryStructureId} onChange={e => setNewForm({ ...newForm, salaryStructureId: e.target.value })}>
-            <option value="">Default (From Employee Contracts)</option>
-            {structures.map(s => <option key={s.id} value={s.id}>{s.name} ({s.code})</option>)}
-          </Select>
-          <div className="grid grid-cols-2 gap-3">
-            <Input label="Period Start *" type="date" value={newForm.periodStart} onChange={e => setNewForm({ ...newForm, periodStart: e.target.value })} required />
-            <Input label="Period End *" type="date" value={newForm.periodEnd} onChange={e => setNewForm({ ...newForm, periodEnd: e.target.value })} required />
-          </div>
+      <Modal open={showNew} onClose={() => setShowNew(false)} title={`Payrun Setup Wizard — Step ${wizardStep} of 2`}>
+        {wizardStep === 1 ? (
+          <div className="space-y-4">
+            <p className="text-xs text-slate-500 font-medium border-b border-slate-100 pb-2">
+              Define payroll batch scope, reference code, structure override, and execution period.
+            </p>
+            <Input
+              label="Payrun Name *"
+              value={newForm.name}
+              onChange={e => setNewForm({ ...newForm, name: e.target.value })}
+              placeholder="e.g. September 2026 Regular Payroll"
+              required
+            />
+            <Input
+              label="Reference Code"
+              value={newForm.payrunRef}
+              onChange={e => setNewForm({ ...newForm, payrunRef: e.target.value })}
+              placeholder="PR-2026-09"
+            />
+            <Select
+              label="Salary Structure Scope"
+              value={newForm.salaryStructureId}
+              onChange={e => setNewForm({ ...newForm, salaryStructureId: e.target.value })}
+            >
+              <option value="">Default (Auto-resolve from Employee Contracts)</option>
+              {structures.map(s => (
+                <option key={s.id} value={s.id}>{s.name} ({s.code})</option>
+              ))}
+            </Select>
+            <div className="grid grid-cols-2 gap-3">
+              <Input
+                label="Period Start *"
+                type="date"
+                value={newForm.periodStart}
+                onChange={e => setNewForm({ ...newForm, periodStart: e.target.value })}
+                required
+              />
+              <Input
+                label="Period End *"
+                type="date"
+                value={newForm.periodEnd}
+                onChange={e => setNewForm({ ...newForm, periodEnd: e.target.value })}
+                required
+              />
+            </div>
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
-            <Button variant="secondary" onClick={() => setShowNew(false)}>Cancel</Button>
-            <Button onClick={handleCreate} disabled={saving || !newForm.name || !newForm.periodStart || !newForm.periodEnd}>
-              {saving ? <Loader2 size={16} className="animate-spin" /> : null}
-              {saving ? 'Creating...' : 'Create Payrun'}
-            </Button>
+            <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+              <Button variant="secondary" onClick={() => setShowNew(false)}>Cancel</Button>
+              <Button
+                onClick={() => setWizardStep(2)}
+                disabled={!newForm.name || !newForm.periodStart || !newForm.periodEnd}
+              >
+                Continue to Staff Selection <ChevronRight size={16} />
+              </Button>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="space-y-4">
+            <p className="text-xs text-slate-500 font-medium border-b border-slate-100 pb-2">
+              Filter and select eligible employees to include in this payroll batch processing.
+            </p>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <input
+                type="text"
+                placeholder="Search staff name or #..."
+                value={empSearch}
+                onChange={e => setEmpSearch(e.target.value)}
+                className="px-3 py-1.5 border border-slate-200 rounded-xl text-xs"
+              />
+              <select
+                value={empDeptFilter}
+                onChange={e => setEmpDeptFilter(e.target.value)}
+                className="px-3 py-1.5 border border-slate-200 rounded-xl text-xs bg-white"
+              >
+                <option value="">All Departments</option>
+                {departments.map(d => (
+                  <option key={d.id} value={d.id}>{d.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex items-center justify-between bg-slate-50 p-2.5 rounded-xl border border-slate-200/80 text-xs font-bold">
+              <span>{selectedEmployeeIds.length} of {filteredStaff.length} employees selected</span>
+              <button
+                type="button"
+                onClick={toggleSelectAll}
+                className="text-[#FF5E1E] hover:underline cursor-pointer"
+              >
+                {selectedEmployeeIds.length === filteredStaff.length ? 'Deselect All' : 'Select All'}
+              </button>
+            </div>
+
+            <div className="max-h-60 overflow-y-auto space-y-1.5 border border-slate-200 rounded-xl p-2">
+              {filteredStaff.map(emp => {
+                const isSelected = selectedEmployeeIds.includes(emp.id);
+                return (
+                  <div
+                    key={emp.id}
+                    onClick={() => toggleEmployee(emp.id)}
+                    className={`flex items-center justify-between p-2 rounded-lg text-xs cursor-pointer border transition-all ${
+                      isSelected ? 'bg-orange-50/60 border-orange-200 text-slate-900' : 'bg-white border-slate-100 text-slate-600 hover:bg-slate-50'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => {}}
+                        className="rounded border-slate-300 text-[#FF5E1E] focus:ring-[#FF5E1E]"
+                      />
+                      <span className="font-bold">{emp.firstName} {emp.lastName}</span>
+                      <span className="text-slate-400 font-mono">({emp.employeeNumber})</span>
+                    </div>
+                    <span className="text-slate-500 font-medium">{emp.department?.name || 'General'}</span>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="flex justify-between items-center pt-4 border-t border-slate-100">
+              <Button variant="secondary" onClick={() => setWizardStep(1)}>
+                ← Back to Scope
+              </Button>
+              <Button onClick={handleCreate} disabled={saving || selectedEmployeeIds.length === 0}>
+                {saving ? <Loader2 size={16} className="animate-spin" /> : null}
+                {saving ? 'Initializing...' : `Create Payrun (${selectedEmployeeIds.length} Staff)`}
+              </Button>
+            </div>
+          </div>
+        )}
       </Modal>
     </div>
   );
