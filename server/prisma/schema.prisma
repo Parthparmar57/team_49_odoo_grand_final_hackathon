@@ -232,20 +232,21 @@ model Attendance {
 }
 
 model LeaveType {
-  id                 String            @id @default(uuid())
-  name               String            @unique
-  code               String            @unique
-  unit               LeaveUnit         @default(DAYS)
-  requiresAllocation Boolean           @default(true)
-  approvalRequired   Boolean           @default(true)
-  payrollImpact      Boolean           @default(true) // Unpaid leaves affect payroll
-  description        String?
-  active             Boolean           @default(true)
-  createdAt          DateTime          @default(now())
-  updatedAt          DateTime          @updatedAt
+  id                   String            @id @default(uuid())
+  name                 String            @unique
+  code                 String            @unique
+  unit                 LeaveUnit         @default(DAYS)
+  requiresAllocation   Boolean           @default(true)
+  approvalRequired     Boolean           @default(true)
+  allowNegativeBalance Boolean           @default(false)
+  payrollImpact        Boolean           @default(true) // Unpaid leaves affect payroll
+  description          String?
+  active               Boolean           @default(true)
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
 
-  allocations        LeaveAllocation[]
-  requests           LeaveRequest[]
+  allocations          LeaveAllocation[]
+  requests             LeaveRequest[]
 }
 
 model LeaveAllocation {
@@ -267,28 +268,30 @@ model LeaveAllocation {
 }
 
 model LeaveRequest {
-  id            String             @id @default(uuid())
-  employeeId    String
-  employee      Employee           @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-  leaveTypeId   String
-  leaveType     LeaveType          @relation(fields: [leaveTypeId], references: [id])
+  id                 String             @id @default(uuid())
+  employeeId         String
+  employee           Employee           @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  leaveTypeId        String
+  leaveType          LeaveType          @relation(fields: [leaveTypeId], references: [id])
 
-  startDate     DateTime           @db.Date
-  endDate       DateTime           @db.Date
-  duration      Float
-  reason        String?
-  status        LeaveRequestStatus @default(PENDING)
-  source        LeaveSource        @default(MANUAL)
-  emailId       String?            @unique // Gmail message ID if from email
+  startDate          DateTime           @db.Date
+  endDate            DateTime           @db.Date
+  duration           Float
+  reason             String?
+  status             LeaveRequestStatus @default(PENDING)
+  source             LeaveSource        @default(MANUAL)
+  emailId            String?            @unique // Gmail message ID if from email
 
-  submittedAt   DateTime           @default(now())
-  reviewedAt    DateTime?
-  reviewedById  String?
-  reviewedBy    User?              @relation("ReviewedLeaves", fields: [reviewedById], references: [id])
-  reviewComment String?
+  submittedAt        DateTime           @default(now())
+  reviewedAt         DateTime?
+  reviewedById       String?
+  reviewedBy         User?              @relation("ReviewedLeaves", fields: [reviewedById], references: [id])
+  reviewComment      String?
+  cancelledAt        DateTime?
+  cancellationReason String?
 
-  createdAt     DateTime           @default(now())
-  updatedAt     DateTime           @updatedAt
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
 }
 
 model SalaryStructure {
