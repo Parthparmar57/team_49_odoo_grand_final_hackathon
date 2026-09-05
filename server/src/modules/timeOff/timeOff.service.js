@@ -1,4 +1,4 @@
-import { LeaveStatus } from '@prisma/client';
+import { LeaveRequestStatus } from '@prisma/client';
 import { prisma } from '../../config/prisma.js';
 import { AppError } from '../../middleware/error.middleware.js';
 
@@ -81,7 +81,7 @@ export class TimeOffService {
         const overlapping = await prisma.leaveRequest.findFirst({
             where: {
                 employeeId,
-                status: { in: [LeaveStatus.PENDING, LeaveStatus.APPROVED] },
+                status: { in: [LeaveRequestStatus.PENDING, LeaveRequestStatus.APPROVED] },
                 startDate: { lte: end },
                 endDate: { gte: start },
             },
@@ -113,7 +113,7 @@ export class TimeOffService {
                 endDate: end,
                 numberOfDays,
                 reason,
-                status: LeaveStatus.PENDING,
+                status: LeaveRequestStatus.PENDING,
             },
             include: { leaveType: true, employee: true },
         });
@@ -130,7 +130,7 @@ export class TimeOffService {
                 throw new AppError('Time off request not found', 404, 'REQUEST_NOT_FOUND');
             }
 
-            if (request.status !== LeaveStatus.PENDING) {
+            if (request.status !== LeaveRequestStatus.PENDING) {
                 throw new AppError(`Cannot approve leave request in status ${request.status}`, 400, 'INVALID_STATE_TRANSITION');
             }
 
@@ -149,7 +149,7 @@ export class TimeOffService {
             const updated = await tx.leaveRequest.update({
                 where: { id: requestId },
                 data: {
-                    status: LeaveStatus.APPROVED,
+                    status: LeaveRequestStatus.APPROVED,
                     reviewedById: reviewerUserId,
                     reviewedAt: new Date(),
                 },
@@ -163,7 +163,7 @@ export class TimeOffService {
                     entityId: requestId,
                     actorId: reviewerUserId,
                     oldValue: { status: request.status },
-                    newValue: { status: LeaveStatus.APPROVED },
+                    newValue: { status: LeaveRequestStatus.APPROVED },
                 },
             });
 
@@ -177,14 +177,14 @@ export class TimeOffService {
             throw new AppError('Time off request not found', 404, 'REQUEST_NOT_FOUND');
         }
 
-        if (request.status !== LeaveStatus.PENDING) {
+        if (request.status !== LeaveRequestStatus.PENDING) {
             throw new AppError(`Cannot refuse leave request in status ${request.status}`, 400, 'INVALID_STATE_TRANSITION');
         }
 
         const updated = await prisma.leaveRequest.update({
             where: { id: requestId },
             data: {
-                status: LeaveStatus.REJECTED,
+                status: LeaveRequestStatus.REFUSED,
                 reviewedById: reviewerUserId,
                 reviewedAt: new Date(),
                 rejectionReason,
@@ -199,7 +199,7 @@ export class TimeOffService {
                 entityId: requestId,
                 actorId: reviewerUserId,
                 oldValue: { status: request.status },
-                newValue: { status: LeaveStatus.REJECTED, rejectionReason },
+                newValue: { status: LeaveRequestStatus.REFUSED, rejectionReason },
             },
         });
 

@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
+import { apiClient } from '../../api/client';
 import {
   Sparkle,
   Lightning,
@@ -145,6 +146,9 @@ const LinkedInIcon = () => (
 );
 
 export const LandingPage: React.FC = () => {
+  // Backend API connection state
+  const [apiStatus, setApiStatus] = useState<'checking' | 'online' | 'offline'>('checking');
+
   // State for Live Sandbox Tab
   const [activeTab, setActiveTab] = useState<'dashboard' | 'email-demo' | 'payroll'>('dashboard');
   const [demoState, setDemoState] = useState<'idle' | 'extracting' | 'validating' | 'completed'>('idle');
@@ -156,6 +160,19 @@ export const LandingPage: React.FC = () => {
 
   // State for FAQ Accordion
   const [openFaq, setOpenFaq] = useState<number | null>(0);
+
+  // Check Backend Health on Mount
+  useEffect(() => {
+    apiClient.checkHealth()
+      .then((res) => {
+        if (res.success) {
+          setApiStatus('online');
+        } else {
+          setApiStatus('offline');
+        }
+      })
+      .catch(() => setApiStatus('offline'));
+  }, []);
 
   const sampleEmails = [
     {
@@ -176,14 +193,28 @@ export const LandingPage: React.FC = () => {
     }
   ];
 
-  const handleSimulateAI = () => {
+  const handleSimulateAI = async () => {
     setDemoState('extracting');
-    setTimeout(() => {
+    const email = sampleEmails[selectedSampleEmail];
+    
+    try {
+      await apiClient.sendInboundEmail({
+        senderEmail: email.sender,
+        subject: email.subject,
+        body: email.body,
+      });
       setDemoState('validating');
       setTimeout(() => {
         setDemoState('completed');
-      }, 1200);
-    }, 1200);
+      }, 800);
+    } catch {
+      setTimeout(() => {
+        setDemoState('validating');
+        setTimeout(() => {
+          setDemoState('completed');
+        }, 1000);
+      }, 1000);
+    }
   };
 
   const getPerEmployeeRate = () => {
@@ -344,6 +375,10 @@ export const LandingPage: React.FC = () => {
                   <div className="w-3 h-3 rounded-full bg-amber-400"></div>
                   <div className="w-3 h-3 rounded-full bg-emerald-400"></div>
                   <span className="ml-2 text-xs font-semibold text-slate-400">app.peoplepay360.com / workspace</span>
+                  <span className={`ml-2 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 border ${apiStatus === 'online' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-500 border-slate-200'}`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${apiStatus === 'online' ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`}></span>
+                    {apiStatus === 'online' ? 'Backend Connected' : 'Local Mode'}
+                  </span>
                 </div>
 
                 {/* Tab Switchers */}
