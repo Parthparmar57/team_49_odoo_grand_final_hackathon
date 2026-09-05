@@ -220,6 +220,7 @@ class ApiClient {
     computePayrun: (id: string) => this.request(`/payroll/payruns/${id}/compute`, { method: 'POST' }),
     validatePayrun: (id: string) => this.request(`/payroll/payruns/${id}/validate`, { method: 'POST' }),
     markPaid: (id: string) => this.request(`/payroll/payruns/${id}/pay`, { method: 'POST' }),
+    sendPayrunEmails: (id: string) => this.request(`/payroll/payruns/${id}/send-emails`, { method: 'POST' }),
     payslips: (params?: Record<string, string>) => this.request('/payroll/payslips', { params }),
     getPayslip: (id: string) => this.request(`/payroll/payslips/${id}`),
   };

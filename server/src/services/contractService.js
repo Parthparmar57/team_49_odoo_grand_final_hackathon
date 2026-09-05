@@ -105,8 +105,16 @@ export class ContractService {
             }
         }
 
+        const payload = { ...data };
+        if (payload.startDate && typeof payload.startDate === 'string') {
+            payload.startDate = new Date(payload.startDate);
+        }
+        if (payload.endDate && typeof payload.endDate === 'string') {
+            payload.endDate = new Date(payload.endDate);
+        }
+
         return prisma.contract.create({
-            data,
+            data: payload,
             include: { employee: true, department: true, schedule: true, salaryStructure: true },
         });
     }
@@ -114,9 +122,17 @@ export class ContractService {
     static async updateContract(id, data) {
         await this.getContractById(id);
 
+        const payload = { ...data };
+        if (payload.startDate && typeof payload.startDate === 'string') {
+            payload.startDate = new Date(payload.startDate);
+        }
+        if (payload.endDate && typeof payload.endDate === 'string') {
+            payload.endDate = new Date(payload.endDate);
+        }
+
         return prisma.contract.update({
             where: { id },
-            data,
+            data: payload,
             include: { employee: true, department: true, schedule: true, salaryStructure: true },
         });
     }

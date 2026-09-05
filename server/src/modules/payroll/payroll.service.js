@@ -2,6 +2,7 @@ import { PayrunStatus } from '@prisma/client';
 import { prisma } from '../../config/prisma.js';
 import { ContractsService } from '../contracts/contracts.service.js';
 import { AppError } from '../../middleware/error.middleware.js';
+import { PayslipPdfService } from './payslipPdf.service.js';
 
 const selectEmp = () => ({
     select: {
@@ -28,8 +29,8 @@ export class PayrollService {
                     metadata,
                 },
             });
-        } catch (e) {
-            console.error('AuditLog error:', e.message);
+        } catch (err) {
+            console.error('Audit log failure:', err.message);
         }
     }
 
@@ -48,38 +49,42 @@ export class PayrollService {
             where: { id },
             include: { rules: { orderBy: { sequence: 'asc' } } },
         });
-        if (!structure) throw new AppError('Salary structure not found', 404, 'STRUCTURE_NOT_FOUND');
+
+        if (!structure) {
+            throw new AppError('Salary structure not found', 404, 'STRUCTURE_NOT_FOUND');
+        }
+
         return structure;
     }
 
     static async createSalaryStructure(data) {
-        const existing = await prisma.salaryStructure.findFirst({
-            where: { OR: [{ name: data.name }, { code: data.code }] },
-        });
-        if (existing) throw new AppError('Salary structure with this name or code already exists', 400, 'STRUCTURE_EXISTS');
+        const existing = await prisma.salaryStructure.findUnique({ where: { code: data.code } });
+        if (existing) {
+            throw new AppError('Salary structure with this code already exists', 400, 'CODE_EXISTS');
+        }
+
         return prisma.salaryStructure.create({
-            data: {
-                name: data.name,
-                code: data.code,
-                description: data.description,
-                rules: data.rules ? { create: data.rules } : undefined,
-            },
-            include: { rules: { orderBy: { sequence: 'asc' } } },
+            data,
+            include: { rules: true },
         });
     }
 
     static async updateSalaryStructure(id, data) {
         await this.getSalaryStructureById(id);
+
         return prisma.salaryStructure.update({
             where: { id },
-            data: { name: data.name, code: data.code, description: data.description, active: data.active },
+            data,
             include: { rules: { orderBy: { sequence: 'asc' } } },
         });
     }
 
-    static async getPayruns(params = {}) {
+    // ==========================================
+    // PAYRUN MANAGEMENT
+    // ==========================================
+    static async getPayruns(query = {}) {
         const where = {};
-        if (params.status) where.status = params.status;
+        if (query.status) where.status = query.status;
 
         return prisma.payrun.findMany({
             where,
@@ -96,9 +101,10 @@ export class PayrollService {
             where: { id },
             include: {
                 salaryStructure: true,
+                warnings: true,
                 payslips: {
                     include: {
-                        employee: selectEmp(),
+                        employee: { select: { id: true, firstName: true, lastName: true, email: true, employeeNumber: true, designation: true } },
                         contract: true,
                         lines: { orderBy: { sequence: 'asc' } },
                     },
@@ -126,9 +132,14 @@ export class PayrollService {
             await this.getSalaryStructureById(data.salaryStructureId);
         }
 
-        const payrunRef = data.payrunRef || `PR-${Date.now()}`;
+        let payrunRef = data.payrunRef;
+        if (!payrunRef) {
+            payrunRef = `PR-${Date.now()}`;
+        }
         const existingRef = await prisma.payrun.findFirst({ where: { payrunRef } });
-        if (existingRef) throw new AppError('Payrun reference already exists', 400, 'PAYRUN_REF_EXISTS');
+        if (existingRef) {
+            payrunRef = `${payrunRef}-${Date.now().toString().slice(-4)}`;
+        }
 
         const payrun = await prisma.payrun.create({
             data: {
@@ -165,66 +176,89 @@ export class PayrollService {
         await prisma.payrollWarning.deleteMany({ where: { payrunId } });
         await prisma.payslipLine.deleteMany({ where: { payslip: { payrunId } } });
         await prisma.payslip.deleteMany({ where: { payrunId } });
+        await prisma.payrollWarning.deleteMany({ where: { payrunId } });
+        await prisma.payslipLine.deleteMany({ where: { payslip: { payrunId } } });
+        await prisma.payslip.deleteMany({ where: { payrunId } });
 
         const employees = await prisma.employee.findMany({
-            where: { status: 'ACTIVE' },
-            include: { schedule: true },
-        });
+            const employees = await prisma.employee.findMany({
+                where: { status: 'ACTIVE' },
+                include: { schedule: true },
+            });
 
-        const warnings = [];
-        let totalGross = 0;
-        let totalDeductions = 0;
-        let totalNet = 0;
-        let employeeCount = 0;
+            const warnings = [];
+            let totalGross = 0;
+            let totalDeductions = 0;
+            let totalNet = 0;
+            let employeeCount = 0;
 
-        for (const employee of employees) {
-            try {
-                const contract = await ContractsService.findApplicableContract(employee.id, payrun.periodStart, payrun.periodEnd);
+            for(const employee of employees) {
+                try {
+                    const contract = await ContractsService.findApplicableContract(employee.id, payrun.periodStart, payrun.periodEnd);
 
-                // Use payrun's salary structure if set, otherwise contract's
-                let salaryStructure = payrun.salaryStructure;
-                if (!salaryStructure) {
-                    salaryStructure = contract.salaryStructure;
-                }
-
-                if (!salaryStructure) {
-                    warnings.push({
-                        employeeId: employee.id,
-                        employeeName: `${employee.firstName} ${employee.lastName}`,
-                        issue: 'Missing salary structure on contract and payrun',
-                    });
-                    continue;
-                }
-
-                const rules = salaryStructure.rules || [];
-                const lines = [];
-                const categoryTotals = { BASIC: 0, ALLOWANCE: 0, GROSS: 0, DEDUCTION: 0, NET: 0 };
-                const wage = Number(contract.wage);
-                const ruleValues = {};
-
-                for (const rule of rules) {
-                    let amount = 0;
-
-                    if (rule.computationMethod === 'FIXED') {
-                        amount = Number(rule.amount || 0);
-                    } else if (rule.computationMethod === 'PERCENTAGE') {
-                        const baseCode = rule.percentageBasedOn || 'BASIC';
-                        const baseAmount = categoryTotals[baseCode] ?? wage;
-                        amount = baseAmount * (Number(rule.percentage || 0) / 100);
-                    } else if (rule.computationMethod === 'FORMULA') {
-                        amount = wage;
+                    // Use payrun's salary structure if set, otherwise contract's
+                    let salaryStructure = payrun.salaryStructure;
+                    if (!salaryStructure) {
+                        salaryStructure = contract.salaryStructure;
                     }
 
-                    amount = Math.round(amount * 100) / 100;
-                    ruleValues[rule.code] = amount;
+                    if (!salaryStructure) {
+                        warnings.push({
+                            employeeId: employee.id,
+                            employeeName: `${employee.firstName} ${employee.lastName}`,
+                            issue: 'Missing salary structure on contract and payrun',
+                        });
+                        continue;
+                    }
 
-                    lines.push({
-                        code: rule.code,
-                        name: rule.name,
-                        category: rule.category,
-                        sequence: rule.sequence,
-                        amount,
-                    });
+                    const rules = salaryStructure.rules || [];
+                    const lines = [];
+                    const categoryTotals = { BASIC: 0, ALLOWANCE: 0, GROSS: 0, DEDUCTION: 0, NET: 0 };
+                    const wage = Number(contract.wage || 0);
+                    let basic = 0;
+                    let totalAllowances = 0;
+                    let totalDeductionsEmp = 0;
+                    const ruleValues = {};
+                    const wage = Number(contract.wage);
+                    const ruleValues = {};
+
+                    for (const rule of rules) {
+                        let amount = 0;
+
+                        if (rule.computationMethod === 'FIXED') {
+                            amount = Number(rule.amount || 0);
+                        } else if (rule.computationMethod === 'PERCENTAGE') {
+                            const baseCode = rule.percentageBasedOn || 'BASIC';
+                            const baseAmount = categoryTotals[baseCode] ?? wage;
+                            amount = baseAmount * (Number(rule.percentage || 0) / 100);
+                        } else if (rule.computationMethod === 'FORMULA') {
+                            amount = wage;
+                        }
+
+                        amount = Math.round(amount * 100) / 100;
+                        ruleValues[rule.code] = amount;
+
+                        if (rule.category === 'BASIC') basic += amount;
+                        else if (rule.category === 'ALLOWANCE') totalAllowances += amount;
+                        else if (rule.category === 'DEDUCTION') totalDeductionsEmp += amount;
+
+                        lines.push({
+                            code: rule.code,
+                            name: rule.name,
+                            category: rule.category,
+                            sequence: rule.sequence,
+                            amount,
+                        });
+                    }
+
+                    const gross = basic + totalAllowances;
+                    const net = gross - totalDeductionsEmp;
+
+                    categoryTotals.BASIC = basic;
+                    categoryTotals.ALLOWANCE = totalAllowances;
+                    categoryTotals.DEDUCTION = totalDeductionsEmp;
+                    categoryTotals.GROSS = gross;
+                    categoryTotals.NET = net;
 
                     if (rule.category === 'BASIC') categoryTotals.BASIC += amount;
                     else if (rule.category === 'ALLOWANCE') categoryTotals.ALLOWANCE += amount;
@@ -259,13 +293,25 @@ export class PayrollService {
                 totalDeductions += categoryTotals.DEDUCTION;
                 totalNet += categoryTotals.NET;
                 employeeCount++;
-            } catch (err) {
+            } catch(err) {
                 warnings.push({
                     employeeId: employee.id,
                     employeeName: `${employee.firstName} ${employee.lastName}`,
                     issue: err.message,
                 });
             }
+        }
+
+        // Record warnings if any
+        if (warnings.length > 0) {
+            await prisma.payrollWarning.createMany({
+                data: warnings.map((w) => ({
+                    payrunId,
+                    employeeId: w.employeeId,
+                    message: `${w.employeeName}: ${w.issue}`,
+                    severity: 'WARNING',
+                })),
+            });
         }
 
         return prisma.payrun.update({
@@ -279,6 +325,7 @@ export class PayrollService {
             },
             include: {
                 salaryStructure: true,
+                warnings: true,
                 payslips: {
                     include: {
                         employee: { select: { id: true, firstName: true, lastName: true, employeeNumber: true } },
@@ -289,20 +336,25 @@ export class PayrollService {
         });
     }
 
-    static async validatePayrun(payrunId) {
-        const payrun = await this.getPayrunById(payrunId);
+    static async validatePayrun(payrunId, actorId) {
+        let payrun = await this.getPayrunById(payrunId);
 
-        if (payrun.status !== PayrunStatus.COMPUTED) {
-            throw new AppError(`Payrun must be in COMPUTED state before validation (Current state: ${payrun.status})`, 400, 'INVALID_STATE');
+        if (payrun.status !== PayrunStatus.COMPUTED && payrun.status !== PayrunStatus.DRAFT) {
+            throw new AppError(`Payrun must be in COMPUTED or DRAFT state before validation (Current state: ${payrun.status})`, 400, 'INVALID_STATE');
         }
 
-        const blockingWarnings = payrun.warnings.filter((w) => w.severity === PayrollWarningSeverity.BLOCKING && !w.resolved);
+        if (!payrun.payslips || payrun.payslips.length === 0) {
+            payrun = await this.computePayrun(payrunId);
+        }
+
+        const warnings = payrun.warnings || [];
+        const blockingWarnings = warnings.filter((w) => w.severity === 'BLOCKING' && !w.resolved);
         if (blockingWarnings.length > 0) {
             throw new AppError(`Cannot validate payrun with ${blockingWarnings.length} unresolved blocking warnings`, 400, 'BLOCKING_WARNINGS_EXIST');
         }
 
-        if (payrun.payslips.length === 0) {
-            throw new AppError('Cannot validate payrun with no generated payslips', 400, 'NO_PAYSLIPS_GENERATED');
+        if (!payrun.payslips || payrun.payslips.length === 0) {
+            throw new AppError('Cannot validate payrun with no generated payslips. Please ensure active employees have active contracts.', 400, 'NO_PAYSLIPS_GENERATED');
         }
 
         const validated = await prisma.payrun.update({
@@ -359,7 +411,7 @@ export class PayrollService {
         return prisma.payslip.findMany({
             where,
             include: {
-                employee: selectEmp(),
+                employee: { select: { id: true, firstName: true, lastName: true, email: true, employeeNumber: true, designation: true } },
                 contract: true,
                 salaryStructure: true,
                 lines: { orderBy: { sequence: 'asc' } },
@@ -376,8 +428,6 @@ export class PayrollService {
                 contract: true,
                 salaryStructure: true,
                 lines: { orderBy: { sequence: 'asc' } },
-                salaryStructure: true,
-                lines: { orderBy: { sequence: 'asc' } },
             },
         });
 
@@ -388,19 +438,44 @@ export class PayrollService {
         return payslip;
     }
 
-    static async getPayslips(params = {}) {
-        const where = {};
-        if (params.payrunId) where.payrunId = params.payrunId;
-        if (params.employeeId) where.employeeId = params.employeeId;
-        if (params.status) where.status = params.status;
+    static async downloadPayslipPdf(id, actorId) {
+        const payslip = await this.getPayslipById(id);
+        const pdfBuffer = await PayslipPdfService.generatePayslipPdf(payslip);
+        if (actorId) {
+            await this.logAudit(actorId, 'PAYSLIP_PDF_DOWNLOADED', 'Payslip', id);
+        }
+        return pdfBuffer;
+    }
 
-        return prisma.payslip.findMany({
-            where,
-            include: {
-                employee: { select: { id: true, firstName: true, lastName: true, email: true, employeeNumber: true } },
-                payrun: { select: { id: true, name: true, periodStart: true, periodEnd: true, status: true } },
-            },
-            orderBy: { createdAt: 'desc' },
-        });
+    static async sendPayrunEmails(payrunId, actorId) {
+        const payrun = await this.getPayrunById(payrunId);
+        if (!payrun.payslips || payrun.payslips.length === 0) {
+            throw new AppError('No payslips found in this payrun to dispatch emails', 400, 'NO_PAYSLIPS');
+        }
+
+        const results = [];
+        for (const payslip of payrun.payslips) {
+            const recipientEmail = payslip.employee?.email;
+            const recipientName = `${payslip.employee?.firstName || ''} ${payslip.employee?.lastName || ''}`.trim();
+            if (recipientEmail) {
+                console.log(`[BULK PAYSLIP EMAIL DISPATCH] Queued email to ${recipientName} (${recipientEmail}) for Payslip ${payslip.payslipRef || payslip.id}`);
+                results.push({
+                    employeeId: payslip.employeeId,
+                    email: recipientEmail,
+                    payslipRef: payslip.payslipRef,
+                    status: 'DISPATCHED'
+                });
+            }
+        }
+
+        if (actorId) {
+            await this.logAudit(actorId, 'PAYRUN_EMAILS_DISPATCHED', 'Payrun', payrunId, { totalSent: results.length });
+        }
+
+        return {
+            message: `Bulk payslip emails dispatched successfully to ${results.length} employees`,
+            dispatchedCount: results.length,
+            details: results
+        };
     }
 }

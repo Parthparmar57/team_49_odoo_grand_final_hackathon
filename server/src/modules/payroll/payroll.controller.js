@@ -127,9 +127,17 @@ export const downloadPayslipPdf = async (req, res, next) => {
         }
         const pdfBuffer = await PayrollService.downloadPayslipPdf(req.params.id, req.user.id);
         res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', `attachment; filename=payslip-${payslip.payslipRef}.pdf`);
-        res.setHeader('Content-Disposition', `attachment; filename=payslip-${payslip.payslipRef}.pdf`);
+        res.setHeader('Content-Disposition', `attachment; filename=payslip-${payslip.payslipRef || payslip.id}.pdf`);
         return res.send(pdfBuffer);
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const sendPayrunEmails = async (req, res, next) => {
+    try {
+        const result = await PayrollService.sendPayrunEmails(req.params.id, req.user.id);
+        return ApiResponse.success(res, result);
     } catch (error) {
         next(error);
     }
