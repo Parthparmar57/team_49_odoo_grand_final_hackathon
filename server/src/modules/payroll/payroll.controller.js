@@ -10,6 +10,33 @@ export const getSalaryStructures = async (req, res, next) => {
     }
 };
 
+export const getSalaryStructureById = async (req, res, next) => {
+    try {
+        const structure = await PayrollService.getSalaryStructureById(req.params.id);
+        return ApiResponse.success(res, structure);
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const createSalaryStructure = async (req, res, next) => {
+    try {
+        const structure = await PayrollService.createSalaryStructure(req.body);
+        return ApiResponse.success(res, structure, 201);
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const updateSalaryStructure = async (req, res, next) => {
+    try {
+        const structure = await PayrollService.updateSalaryStructure(req.params.id, req.body);
+        return ApiResponse.success(res, structure);
+    } catch (error) {
+        next(error);
+    }
+};
+
 export const getPayruns = async (req, res, next) => {
     try {
         const payruns = await PayrollService.getPayruns();
@@ -64,6 +91,19 @@ export const markPayrunPaid = async (req, res, next) => {
     }
 };
 
+export const getPayslips = async (req, res, next) => {
+    try {
+        const query = { ...req.query };
+        if (req.user.role === 'EMPLOYEE') {
+            query.employeeId = req.user.employeeId;
+        }
+        const payslips = await PayrollService.getPayslips(query);
+        return ApiResponse.success(res, payslips);
+    } catch (error) {
+        next(error);
+    }
+};
+
 export const getPayslipById = async (req, res, next) => {
     try {
         const payslip = await PayrollService.getPayslipById(req.params.id);
@@ -84,7 +124,7 @@ export const downloadPayslipPdf = async (req, res, next) => {
         }
         const pdfBuffer = await PayrollService.downloadPayslipPdf(req.params.id);
         res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', `attachment; filename=payslip-${payslip.payslipNumber}.pdf`);
+        res.setHeader('Content-Disposition', `attachment; filename=payslip-${payslip.payslipRef}.pdf`);
         return res.send(pdfBuffer);
     } catch (error) {
         next(error);

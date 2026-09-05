@@ -10,26 +10,13 @@ export class AuthService {
             throw new AppError('User with this email already exists', 400, 'USER_EXISTS');
         }
 
-        const hashedPassword = await bcrypt.hash(data.password, 10);
+        const passwordHash = await bcrypt.hash(data.password, 10);
 
         const user = await prisma.user.create({
             data: {
                 email: data.email,
-                password: hashedPassword,
-                role: data.role,
-                ...(data.employeeNumber && {
-                    employee: {
-                        create: {
-                            employeeNumber: data.employeeNumber,
-                            firstName: data.firstName || 'First',
-                            lastName: data.lastName || 'Last',
-                            email: data.email,
-                            designation: data.designation || 'Staff',
-                            joiningDate: new Date(),
-                            ...(data.departmentId && { departmentId: data.departmentId }),
-                        },
-                    },
-                }),
+                passwordHash,
+                role: data.role || 'EMPLOYEE',
             },
             include: { employee: true },
         });
@@ -41,7 +28,7 @@ export class AuthService {
             employeeId: user.employee?.id,
         });
 
-        const { password, ...userWithoutPassword } = user;
+        const { passwordHash: _, ...userWithoutPassword } = user;
         return { user: userWithoutPassword, token };
     }
 
@@ -55,7 +42,7 @@ export class AuthService {
             throw new AppError('Invalid credentials', 401, 'INVALID_CREDENTIALS');
         }
 
-        const isValid = await bcrypt.compare(data.password, user.password);
+        const isValid = await bcrypt.compare(data.password, user.passwordHash);
         if (!isValid) {
             throw new AppError('Invalid credentials', 401, 'INVALID_CREDENTIALS');
         }
@@ -67,7 +54,7 @@ export class AuthService {
             employeeId: user.employee?.id,
         });
 
-        const { password, ...userWithoutPassword } = user;
+        const { passwordHash: _, ...userWithoutPassword } = user;
         return { user: userWithoutPassword, token };
     }
 
@@ -78,7 +65,7 @@ export class AuthService {
                 employee: {
                     include: {
                         department: true,
-                        workingSchedule: true,
+                        schedule: true,
                         contracts: { orderBy: { startDate: 'desc' } },
                     },
                 },
@@ -89,7 +76,7 @@ export class AuthService {
             throw new AppError('User not found', 404, 'USER_NOT_FOUND');
         }
 
-        const { password, ...userWithoutPassword } = user;
+        const { passwordHash: _, ...userWithoutPassword } = user;
         return userWithoutPassword;
     }
 

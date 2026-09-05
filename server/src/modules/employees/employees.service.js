@@ -27,7 +27,7 @@ export class EmployeesService {
                 include: {
                     department: true,
                     manager: { select: { id: true, firstName: true, lastName: true, email: true } },
-                    workingSchedule: true,
+                    schedule: true,
                 },
                 orderBy: { createdAt: 'desc' },
             }),
@@ -54,9 +54,10 @@ export class EmployeesService {
                 manager: { select: { id: true, firstName: true, lastName: true, email: true } },
                 subordinates: { select: { id: true, firstName: true, lastName: true, designation: true } },
                 contracts: { orderBy: { startDate: 'desc' } },
-                workingSchedule: true,
-                attendance: { take: 30, orderBy: { date: 'desc' } },
+                schedule: true,
+                attendances: { take: 30, orderBy: { date: 'desc' } },
                 leaveRequests: { take: 10, orderBy: { startDate: 'desc' } },
+                leaveAllocations: { include: { leaveType: true } },
                 payslips: { take: 12, orderBy: { createdAt: 'desc' } },
             },
         });
@@ -81,7 +82,7 @@ export class EmployeesService {
 
         return prisma.employee.create({
             data,
-            include: { department: true, workingSchedule: true },
+            include: { department: true, schedule: true },
         });
     }
 
@@ -107,7 +108,7 @@ export class EmployeesService {
         return prisma.employee.update({
             where: { id },
             data,
-            include: { department: true, workingSchedule: true },
+            include: { department: true, schedule: true },
         });
     }
 

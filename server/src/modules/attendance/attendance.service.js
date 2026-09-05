@@ -163,8 +163,7 @@ export class AttendanceService {
                 entity: 'Attendance',
                 entityId: id,
                 actorId,
-                oldValue: existing,
-                newValue: updated,
+                metadata: { before: existing, after: updated },
             },
         });
 

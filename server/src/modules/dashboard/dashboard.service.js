@@ -2,12 +2,56 @@ import { prisma } from '../../config/prisma.js';
 
 export class DashboardService {
     static async getOverview() {
-        const [totalEmployees, activeEmployees, totalDepartments, activeContracts, pendingLeaves] = await Promise.all([
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const [
+            totalEmployees,
+            activeEmployees,
+            totalDepartments,
+            activeContracts,
+            pendingLeaveRequests,
+            monthPayruns,
+            recentAttendance,
+            pendingLeaves,
+            onLeaveToday,
+        ] = await Promise.all([
             prisma.employee.count(),
             prisma.employee.count({ where: { status: 'ACTIVE' } }),
             prisma.department.count(),
             prisma.contract.count({ where: { status: 'ACTIVE' } }),
             prisma.leaveRequest.count({ where: { status: 'PENDING' } }),
+            prisma.payrun.count({
+                where: {
+                    createdAt: {
+                        gte: new Date(today.getFullYear(), today.getMonth(), 1),
+                        lte: new Date(today.getFullYear(), today.getMonth() + 1, 0),
+                    },
+                },
+            }),
+            prisma.attendance.findMany({
+                take: 10,
+                orderBy: { date: 'desc' },
+                include: {
+                    employee: { select: { id: true, firstName: true, lastName: true, employeeNumber: true } },
+                },
+            }),
+            prisma.leaveRequest.findMany({
+                where: { status: 'PENDING' },
+                take: 5,
+                orderBy: { submittedAt: 'desc' },
+                include: {
+                    employee: { select: { id: true, firstName: true, lastName: true } },
+                    leaveType: { select: { name: true } },
+                },
+            }),
+            prisma.leaveRequest.count({
+                where: {
+                    status: 'APPROVED',
+                    startDate: { lte: today },
+                    endDate: { gte: today },
+                },
+            }),
         ]);
 
         return {
@@ -15,7 +59,11 @@ export class DashboardService {
             activeEmployees,
             totalDepartments,
             activeContracts,
+            pendingLeaveRequests,
+            monthPayruns,
+            recentAttendance,
             pendingLeaves,
+            onLeaveToday,
         };
     }
 
@@ -27,8 +75,6 @@ export class DashboardService {
             prisma.contract.aggregate({ _avg: { wage: true }, where: { status: 'ACTIVE' } }),
         ]);
 
-        const warnings = latestPayrun?.warnings || [];
-
         return {
             totalNetSalaryPaid: totalNetPaid._sum.totalNet || 0,
             payslipsGenerated: totalPayslipsGenerated,
@@ -39,10 +85,9 @@ export class DashboardService {
                     name: latestPayrun.name,
                     status: latestPayrun.status,
                     totalNet: latestPayrun.totalNet,
-                    warningsCount: Array.isArray(warnings) ? warnings.length : 0,
+                    payslipCount: latestPayrun._count.payslips,
                 }
                 : null,
-            payrollWarnings: warnings,
         };
     }
 
@@ -70,16 +115,16 @@ export class DashboardService {
     }
 
     static async getTimeOffMetrics() {
-        const [pendingRequests, approvedRequests, rejectedRequests] = await Promise.all([
+        const [pendingRequests, approvedRequests, refusedRequests] = await Promise.all([
             prisma.leaveRequest.count({ where: { status: 'PENDING' } }),
             prisma.leaveRequest.count({ where: { status: 'APPROVED' } }),
-            prisma.leaveRequest.count({ where: { status: 'REJECTED' } }),
+            prisma.leaveRequest.count({ where: { status: 'REFUSED' } }),
         ]);
 
         return {
             pendingRequests,
             approvedRequests,
-            rejectedRequests,
+            refusedRequests,
         };
     }
 }

@@ -1,8 +1,3 @@
-import React from 'react';
-import { LandingPage as LandingPageFeature } from '../features/landingpage/LandingPage';
-
-export const LandingPage: React.FC = () => {
-  return <LandingPageFeature />;
-};
-
+import { LandingPage } from '../features/landingpage/LandingPage';
 export default LandingPage;
+export { LandingPage };

@@ -12,7 +12,7 @@ export class PayslipPdfService {
 
                 // Header
                 doc.fontSize(20).text('PeoplePay360 HR & Payroll', { align: 'center' });
-                doc.fontSize(14).text(`PAYSLIP - ${payslip.payslipNumber}`, { align: 'center' });
+                doc.fontSize(14).text(`PAYSLIP - ${payslip.payslipRef}`, { align: 'center' });
                 doc.moveDown();
 
                 // Employee Info
@@ -36,7 +36,7 @@ export class PayslipPdfService {
 
                 // Totals
                 doc.fontSize(12).text(`Gross Salary: $${payslip.grossSalary.toFixed(2)}`, { align: 'right' });
-                doc.text(`Total Deductions: $${payslip.totalDeduction.toFixed(2)}`, { align: 'right' });
+                doc.text(`Total Deductions: $${payslip.totalDeductions.toFixed(2)}`, { align: 'right' });
                 doc.fontSize(14).text(`NET SALARY: $${payslip.netSalary.toFixed(2)}`, { align: 'right', bold: true });
 
                 doc.end();
