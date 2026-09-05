@@ -648,14 +648,6 @@ graph LR
     A --> L5
 ```
 
-| Role | Self-Service | HR Ops | Payroll Ops | Payroll Mgmt | Admin |
-|---|---|---|---|---|---|
-| **EMPLOYEE** | ✅ | ❌ | ❌ | ❌ | ❌ |
-| **HR_MANAGER** | ✅ | ✅ | ✅ | ❌ | ❌ |
-| **HR_PAYROLL_USER** | ✅ | ❌ | ✅ | ❌ | ❌ |
-| **HR_PAYROLL_MANAGER** | ✅ | ✅ | ✅ | ✅ | ❌ |
-| **ADMIN** | ✅ | ✅ | ✅ | ✅ | ✅ |
-
 ---
 
 ## 📖 Documentation
