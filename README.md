@@ -48,7 +48,7 @@ PeoplePay360 leverages a specialized multi-agent framework built with **LangGrap
 ├── client/      # Frontend React + Vite Dashboard App
 ├── docs/        # Complete Specification, PRD & Architecture Documentation
 ├── mcp-server/  # Model Context Protocol Server (Gmail & Tool Interfaces)
-├── server/      # Backend REST API & Database Services (Node.js + Prisma)
+├── server/      # Backend REST API & Database Services (Node.js + Prisma+ postgreqsql)
 └── worker/      # Asynchronous Background Processing Workers (BullMQ + Redis)
 ```
 
