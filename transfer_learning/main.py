@@ -85,6 +85,25 @@ def save_logs():
     except Exception as e:
         print(f"[WARN] Failed to save logs: {e}")
 
+def notify_backend_punch(emp_number, action, confidence, entry_id=None, time_str=None, iso_now=None, worked_hours=0.0):
+    try:
+        import urllib.request
+        url = "http://127.0.0.1:5000/api/attendance/live-punch"
+        payload = json.dumps({
+            "employeeNumber": emp_number,
+            "action": action,
+            "matchConfidence": confidence,
+            "entryId": entry_id,
+            "timeStr": time_str,
+            "isoNow": iso_now,
+            "workedHours": worked_hours
+        }).encode("utf-8")
+        req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"})
+        with urllib.request.urlopen(req, timeout=2.0) as resp:
+            pass
+    except Exception:
+        pass # Non-blocking; local JSON log is primary source
+
 def match_face(target_embedding, threshold=0.45):
     best_match = None
     highest_sim = -1.0
@@ -348,23 +367,59 @@ def main():
                     date_str = now.strftime("%Y-%m-%d")
                     time_str = now.strftime("%I:%M:%S %p")
                     day_str = now.strftime("%A")
-                    timestamp_str = now.strftime("%Y-%m-%d %H:%M:%S")
+                    iso_now = now.strftime("%Y-%m-%dT%H:%M:%S")
 
-                    log_entry = {
-                        "id": f"ATT-{int(time.time())}",
-                        "type": "CHECK_IN",
-                        "employeeNumber": rec["employeeNumber"],
-                        "name": rec["name"],
-                        "role": rec.get("role", "Employee"),
-                        "date": date_str,
-                        "time": time_str,
-                        "day": day_str,
-                        "timestamp": timestamp_str,
-                        "confidence": round(sim * 100, 1),
-                        "status": "SUCCESS"
-                    }
-                    ATTENDANCE_LOGS.insert(0, log_entry)
+                    parts = rec["name"].split(" ", 1)
+                    first_name = parts[0]
+                    last_name = parts[1] if len(parts) > 1 else ""
+
+                    # Check if there is an OPEN (unfinished) session for this employee today
+                    open_entry = None
+                    for entry in ATTENDANCE_LOGS:
+                        if entry.get("employeeNumber") == rec["employeeNumber"] and entry.get("date") == date_str:
+                            if not entry.get("checkOut"):
+                                open_entry = entry
+                                break
+
+                    active_id = None
+                    if open_entry:
+                        # Still open session: update checkIn timestamp
+                        open_entry["checkIn"] = iso_now
+                        open_entry["checkInTime"] = time_str
+                        open_entry["matchConfidence"] = round(sim * 100, 1)
+                        open_entry["status"] = "PRESENT"
+                        active_id = open_entry.get("id")
+                    else:
+                        # Prior session completed or new scan: ALWAYS ADD A BRAND NEW ENTRY!
+                        active_id = f"ATT-{int(time.time()*1000)}"
+                        new_entry = {
+                            "id": active_id,
+                            "employee": {
+                                "firstName": first_name,
+                                "lastName": last_name,
+                                "employeeNumber": rec["employeeNumber"]
+                            },
+                            "employeeNumber": rec["employeeNumber"],
+                            "name": rec["name"],
+                            "date": date_str,
+                            "checkIn": iso_now,
+                            "checkInTime": time_str,
+                            "checkOut": "",
+                            "checkOutTime": "",
+                            "workedHours": 0.0,
+                            "overtimeHours": 0.0,
+                            "status": "PRESENT",
+                            "actions": "",
+                            "matchConfidence": round(sim * 100, 1)
+                        }
+                        ATTENDANCE_LOGS.insert(0, new_entry)
+
                     save_logs()
+                    threading.Thread(
+                        target=notify_backend_punch, 
+                        args=(rec["employeeNumber"], "CHECK_IN", round(sim * 100, 1), active_id, time_str, iso_now), 
+                        daemon=True
+                    ).start()
                     role_tag = f" [{rec['role']}]" if rec.get('role') else ""
                     hud_banner = f"CHECK-IN SUCCESS: {rec['name']}{role_tag} at {time_str} ({day_str})"
                     hud_banner_color = (0, 255, 120) # bright green
@@ -388,28 +443,88 @@ def main():
                     date_str = now.strftime("%Y-%m-%d")
                     time_str = now.strftime("%I:%M:%S %p")
                     day_str = now.strftime("%A")
-                    timestamp_str = now.strftime("%Y-%m-%d %H:%M:%S")
+                    iso_now = now.strftime("%Y-%m-%dT%H:%M:%S")
 
-                    log_entry = {
-                        "id": f"ATT-{int(time.time())}",
-                        "type": "CHECK_OUT",
-                        "employeeNumber": rec["employeeNumber"],
-                        "name": rec["name"],
-                        "role": rec.get("role", "Employee"),
-                        "date": date_str,
-                        "time": time_str,
-                        "day": day_str,
-                        "timestamp": timestamp_str,
-                        "confidence": round(sim * 100, 1),
-                        "status": "SUCCESS"
-                    }
-                    ATTENDANCE_LOGS.insert(0, log_entry)
+                    parts = rec["name"].split(" ", 1)
+                    first_name = parts[0]
+                    last_name = parts[1] if len(parts) > 1 else ""
+
+                    # Find the most recent OPEN entry today for this employee
+                    open_entry = None
+                    for entry in ATTENDANCE_LOGS:
+                        if entry.get("employeeNumber") == rec["employeeNumber"] and entry.get("date") == date_str:
+                            if not entry.get("checkOut"):
+                                open_entry = entry
+                                break
+
+                    active_id = None
+                    worked_hours = 8.0
+                    if open_entry:
+                        open_entry["checkOut"] = iso_now
+                        open_entry["checkOutTime"] = time_str
+                        open_entry["matchConfidence"] = round(sim * 100, 1)
+                        open_entry["status"] = "PRESENT"
+
+                        # DYNAMIC TIME DIFFERENCE CALCULATION
+                        if open_entry.get("checkIn"):
+                            try:
+                                ci_raw = open_entry["checkIn"]
+                                if "T" in ci_raw:
+                                    ci_dt = datetime.datetime.fromisoformat(ci_raw)
+                                else:
+                                    ci_dt = datetime.datetime.strptime(f"{open_entry['date']} {open_entry.get('checkInTime')}", "%Y-%m-%d %I:%M:%S %p")
+                                diff_seconds = max(0, (now - ci_dt).total_seconds())
+                                worked_hours = max(0.01, round(diff_seconds / 3600.0, 2))
+                            except Exception:
+                                worked_hours = 8.0
+                        else:
+                            ci_dt = now - datetime.timedelta(hours=8)
+                            open_entry["checkIn"] = ci_dt.strftime("%Y-%m-%dT%H:%M:%S")
+                            open_entry["checkInTime"] = ci_dt.strftime("%I:%M:%S %p")
+                            worked_hours = 8.0
+
+                        overtime_hours = max(0.0, round(worked_hours - 8.0, 2))
+                        open_entry["workedHours"] = worked_hours
+                        open_entry["overtimeHours"] = overtime_hours
+                        active_id = open_entry.get("id")
+                    else:
+                        # If no open check-in today, create complete new record
+                        ci_dt = now - datetime.timedelta(minutes=1)
+                        worked_hours = 0.01
+                        active_id = f"ATT-{int(time.time()*1000)}"
+                        new_entry = {
+                            "id": active_id,
+                            "employee": {
+                                "firstName": first_name,
+                                "lastName": last_name,
+                                "employeeNumber": rec["employeeNumber"]
+                            },
+                            "employeeNumber": rec["employeeNumber"],
+                            "name": rec["name"],
+                            "date": date_str,
+                            "checkIn": ci_dt.strftime("%Y-%m-%dT%H:%M:%S"),
+                            "checkInTime": ci_dt.strftime("%I:%M:%S %p"),
+                            "checkOut": iso_now,
+                            "checkOutTime": time_str,
+                            "workedHours": worked_hours,
+                            "overtimeHours": 0.0,
+                            "status": "PRESENT",
+                            "actions": "",
+                            "matchConfidence": round(sim * 100, 1)
+                        }
+                        ATTENDANCE_LOGS.insert(0, new_entry)
+
                     save_logs()
+                    threading.Thread(
+                        target=notify_backend_punch, 
+                        args=(rec["employeeNumber"], "CHECK_OUT", round(sim * 100, 1), active_id, time_str, iso_now, worked_hours), 
+                        daemon=True
+                    ).start()
                     role_tag = f" [{rec['role']}]" if rec.get('role') else ""
-                    hud_banner = f"CHECK-OUT SUCCESS: {rec['name']}{role_tag} at {time_str} ({day_str})"
+                    hud_banner = f"CHECK-OUT SUCCESS: {rec['name']}{role_tag} at {time_str} ({worked_hours} hrs)"
                     hud_banner_color = (255, 200, 0) # cyan/yellow
                     hud_banner_timer = time.time() + 3.5
-                    print(f"[ATTENDANCE] Checked OUT: {rec['name']} - {rec.get('role', '')} ({rec['employeeNumber']}) on {day_str}, {date_str} at {time_str} - Match: {sim*100:.1f}%")
+                    print(f"[ATTENDANCE] Checked OUT: {rec['name']} - {rec.get('role', '')} ({rec['employeeNumber']}) on {day_str}, {date_str} at {time_str} | Worked: {worked_hours} hrs - Match: {sim*100:.1f}%")
                 else:
                     hud_banner = "Face not recognized. Press [R] to register!"
                     hud_banner_color = (0, 140, 255)

@@ -12,7 +12,7 @@ async function startServer() {
         await prisma.$queryRaw`SELECT 1`;
         logger.info('✅ PostgreSQL database connection verified successfully.');
 
-        const server = app.listen(PORT, () => {
+        const server = app.listen(PORT, '0.0.0.0', () => {
             logger.info(`🚀 PeoplePay360 Express Server (Phase 1) running on port ${PORT} [${env.NODE_ENV}]`);
             logger.info(`📊 Health check: http://localhost:${PORT}/api/health`);
         });
