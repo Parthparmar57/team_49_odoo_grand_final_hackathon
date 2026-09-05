@@ -118,7 +118,7 @@ export const AppLayout: React.FC = () => {
     <div className="min-h-screen bg-[#FAF9F6] text-slate-900 font-sans flex flex-col selection:bg-orange-100 selection:text-orange-600">
       {/* Top Navbar */}
       <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200/80 shadow-xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        <div className="w-full px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           {/* Logo & Brand */}
           <div className="flex items-center gap-3">
             <Link to="/dashboard" className="flex items-center">
@@ -245,7 +245,7 @@ export const AppLayout: React.FC = () => {
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+      <main className="flex-1 w-full p-4 sm:p-6 lg:p-8">
         <Outlet />
       </main>
 

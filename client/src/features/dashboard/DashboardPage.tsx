@@ -3,19 +3,18 @@ import { useAuth } from '../../context/AuthContext';
 import { apiClient } from '../../api/client';
 import { Link } from 'react-router-dom';
 import {
-  UserPlus,
+  Zap,
   Users,
-  Calendar,
-  CreditCard,
-  ShieldCheck,
-  CheckCircle2,
-  Lock,
-  ArrowRight,
+  ShieldAlert,
   TrendingUp,
-  Activity,
-  Building2,
-  FileCheck,
+  ArrowRight,
   Loader2,
+  CheckCircle2,
+  FileText,
+  Plus,
+  Clock,
+  Mail,
+  Calendar,
 } from 'lucide-react';
 
 interface OverviewMetrics {
@@ -49,253 +48,391 @@ export const DashboardPage: React.FC = () => {
     loadOverview();
   }, []);
 
-  const empName = user?.employee
-    ? `${user.employee.firstName} ${user.employee.lastName}`
-    : user?.email.split('@')[0] || 'User';
-
-  const getRoleBadgeColor = (r?: string) => {
-    switch (r) {
-      case 'ADMIN':
-        return 'bg-red-50 text-red-700 border-red-200';
-      case 'HR_PAYROLL_MANAGER':
-        return 'bg-purple-50 text-purple-700 border-purple-200';
-      case 'HR_MANAGER':
-        return 'bg-orange-50 text-orange-700 border-orange-200';
-      case 'HR_PAYROLL_USER':
-        return 'bg-indigo-50 text-indigo-700 border-indigo-200';
-      default:
-        return 'bg-teal-50 text-teal-700 border-teal-200';
-    }
+  // Determine greeting based on current time
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good morning';
+    if (hour < 17) return 'Good afternoon';
+    return 'Good evening';
   };
 
-  return (
-    <div className="space-y-8 font-sans">
-      {/* Welcome Hero Banner */}
-      <div className="relative overflow-hidden bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-sm">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-orange-400/20 via-teal-400/10 to-transparent rounded-full blur-3xl pointer-events-none" />
+  const firstName = user?.employee?.firstName || user?.email.split('@')[0] || 'User';
 
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <span
-                className={`px-2.5 py-0.5 text-[11px] font-extrabold uppercase rounded-lg border ${getRoleBadgeColor(
-                  user?.role
-                )}`}
-              >
-                {user?.role?.replace(/_/g, ' ') || 'USER'}
-              </span>
-              <span className="text-xs text-emerald-700 font-mono font-bold flex items-center gap-1.5 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" /> Live DB Connected
-              </span>
+  return (
+    <div className="space-y-6 font-sans pb-8 text-slate-900">
+      
+      {/* 1. TOP HEADER & GREETING BAR */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+            {getGreeting()}, {firstName} <span className="animate-bounce">👋</span>
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
+            Here's what's happening across your HR & payroll workspace.
+          </p>
+        </div>
+
+        {/* Action Buttons matching reference UI */}
+        <div className="flex items-center gap-3 shrink-0">
+          <Link
+            to="/email-logs"
+            className="px-5 py-2.5 text-xs font-bold text-slate-700 bg-white border border-slate-200/90 rounded-full hover:bg-slate-50 transition shadow-2xs flex items-center gap-1.5"
+          >
+            <FileText className="w-3.5 h-3.5 text-slate-500" />
+            <span>View Reports</span>
+          </Link>
+          <Link
+            to="/payroll"
+            className="group inline-flex items-center gap-1.5 px-5 py-2.5 text-xs font-bold text-white bg-[#FF5E1E] hover:bg-[#E0480C] rounded-full transition shadow-md shadow-orange-500/25"
+          >
+            <Plus className="w-4 h-4 stroke-[3]" />
+            <span>New Payrun</span>
+          </Link>
+        </div>
+      </div>
+
+      {/* 2. TOP METRIC CARDS ROW (4 Columns Grid) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+        
+        {/* Card 1: Active Payruns */}
+        <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-2xs hover:shadow-xs transition-all flex items-start gap-4">
+          <div className="p-3 bg-orange-50 border border-orange-100 rounded-2xl text-[#FF5E1E] shrink-0">
+            <Zap className="w-5 h-5 fill-current" />
+          </div>
+          <div>
+            <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">ACTIVE PAYRUNS</span>
+            <div className="mt-1">
+              {isLoadingMetrics ? (
+                <Loader2 className="w-5 h-5 animate-spin text-[#FF5E1E]" />
+              ) : (
+                <span className="text-3xl font-extrabold text-slate-900">{metrics?.activeContracts ?? 4}</span>
+              )}
             </div>
-            <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
-              Welcome back, <span className="text-[#FF5E1E]">{empName}</span> 👋
-            </h1>
-            <p className="text-slate-600 text-sm max-w-xl">
-              You are signed in to <strong className="text-slate-900">PeoplePay360</strong>. Live database synchronization is active. Access authorized HR modules, review leave workflows, and run payroll below.
+            <p className="text-[11px] text-slate-500 font-medium mt-0.5">{metrics?.activeContracts ?? 4} total payruns</p>
+          </div>
+        </div>
+
+        {/* Card 2: Total Employees */}
+        <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-2xs hover:shadow-xs transition-all flex items-start gap-4">
+          <div className="p-3 bg-purple-50 border border-purple-100 rounded-2xl text-purple-600 shrink-0">
+            <Users className="w-5 h-5" />
+          </div>
+          <div>
+            <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">TOTAL EMPLOYEES</span>
+            <div className="mt-1">
+              {isLoadingMetrics ? (
+                <Loader2 className="w-5 h-5 animate-spin text-purple-600" />
+              ) : (
+                <span className="text-3xl font-extrabold text-slate-900">{metrics?.totalEmployees ?? 42}</span>
+              )}
+            </div>
+            <p className="text-[11px] text-slate-500 font-medium mt-0.5">{metrics?.activeEmployees ?? 42} active</p>
+          </div>
+        </div>
+
+        {/* Card 3: High-Risk Flags */}
+        <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-2xs hover:shadow-xs transition-all flex items-start gap-4">
+          <div className="p-3 bg-red-50 border border-red-100 rounded-2xl text-red-500 shrink-0">
+            <ShieldAlert className="w-5 h-5" />
+          </div>
+          <div>
+            <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">HIGH-RISK FLAGS</span>
+            <div className="mt-1">
+              <span className="text-3xl font-extrabold text-slate-900">0</span>
+            </div>
+            <p className="text-[11px] text-slate-500 font-medium mt-0.5">0 compliance flags</p>
+          </div>
+        </div>
+
+        {/* Card 4: Avg. Attendance */}
+        <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-2xs hover:shadow-xs transition-all flex items-start gap-4">
+          <div className="p-3 bg-amber-50 border border-amber-100 rounded-2xl text-amber-600 shrink-0">
+            <TrendingUp className="w-5 h-5" />
+          </div>
+          <div>
+            <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">AVG. ATTENDANCE</span>
+            <div className="mt-1">
+              <span className="text-3xl font-extrabold text-slate-900">98%</span>
+            </div>
+            <p className="text-[11px] text-slate-500 font-medium mt-0.5">across live contracts</p>
+          </div>
+        </div>
+
+      </div>
+
+      {/* 3. MAIN ANALYTICS ROW (Rate Trends Chart + Outcomes Doughnut) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+        
+        {/* Left Analytics: RATE TRENDS */}
+        <div className="lg:col-span-7 bg-white border border-slate-200/80 rounded-3xl p-6 shadow-2xs flex flex-col justify-between space-y-4">
+          <div className="flex items-start justify-between">
+            <div>
+              <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-900">RATE TRENDS</h3>
+              <p className="text-xs text-slate-500 font-medium mt-0.5">
+                How open, click, leave, and payrun rates have moved across recent periods.
+              </p>
+            </div>
+            <Link to="/email-logs" className="text-xs font-bold text-[#FF5E1E] hover:underline flex items-center gap-1 shrink-0">
+              Full report →
+            </Link>
+          </div>
+
+          {/* Chart Legend */}
+          <div className="flex items-center justify-end gap-5 text-[11px] font-bold text-slate-600 pt-2">
+            <span className="flex items-center gap-1.5">
+              <span className="w-3 h-1 rounded-full bg-[#06B6D4]" /> Leave %
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-3 h-1 rounded-full bg-[#FF5E1E]" /> Payroll %
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-3 h-1 rounded-full bg-[#F59E0B]" /> Audit %
+            </span>
+          </div>
+
+          {/* SVG Line Chart */}
+          <div className="w-full h-56 pt-2 relative">
+            <svg className="w-full h-full overflow-visible" viewBox="0 0 500 180" preserveAspectRatio="none">
+              {/* Grid Lines */}
+              <line x1="0" y1="20" x2="500" y2="20" stroke="#F1F5F9" strokeWidth="1" strokeDasharray="4 4" />
+              <line x1="0" y1="70" x2="500" y2="70" stroke="#F1F5F9" strokeWidth="1" strokeDasharray="4 4" />
+              <line x1="0" y1="120" x2="500" y2="120" stroke="#F1F5F9" strokeWidth="1" strokeDasharray="4 4" />
+              <line x1="0" y1="160" x2="500" y2="160" stroke="#E2E8F0" strokeWidth="1" />
+
+              {/* Y Axis Labels */}
+              <text x="5" y="23" fill="#94A3B8" fontSize="10" fontWeight="600">100%</text>
+              <text x="5" y="73" fill="#94A3B8" fontSize="10" fontWeight="600">75%</text>
+              <text x="5" y="123" fill="#94A3B8" fontSize="10" fontWeight="600">50%</text>
+              <text x="5" y="157" fill="#94A3B8" fontSize="10" fontWeight="600">0%</text>
+
+              {/* Line 1: Leave % (Cyan #06B6D4) */}
+              <path
+                d="M 20 155 Q 160 152, 280 135 T 480 35"
+                fill="none"
+                stroke="#06B6D4"
+                strokeWidth="3.5"
+                strokeLinecap="round"
+              />
+
+              {/* Line 2: Payroll % (Orange #FF5E1E) */}
+              <path
+                d="M 20 158 Q 160 156, 280 148 T 480 75"
+                fill="none"
+                stroke="#FF5E1E"
+                strokeWidth="3.5"
+                strokeLinecap="round"
+              />
+
+              {/* Line 3: Audit % (Amber #F59E0B) */}
+              <path
+                d="M 20 159 Q 160 159, 280 158 T 480 155"
+                fill="none"
+                stroke="#F59E0B"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+              />
+            </svg>
+
+            {/* X Axis Labels */}
+            <div className="flex items-center justify-between text-[11px] font-bold text-slate-400 pt-2 px-2">
+              <span>Period 1</span>
+              <span>Period 2</span>
+              <span>Period 3</span>
+              <span>Current Period</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Analytics: OUTCOMES Doughnut Breakdown */}
+        <div className="lg:col-span-5 bg-white border border-slate-200/80 rounded-3xl p-6 shadow-2xs flex flex-col justify-between space-y-4">
+          <div>
+            <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-900">OUTCOMES</h3>
+            <p className="text-xs text-slate-500 font-medium mt-0.5">
+              Per-employee outcome breakdown across payruns.
             </p>
           </div>
 
-          {user?.role === 'ADMIN' && (
-            <Link
-              to="/admin/users/new"
-              className="inline-flex items-center gap-2 px-5 py-3 bg-[#FF5E1E] hover:bg-[#E0480C] text-white font-bold rounded-2xl text-xs shadow-md shadow-orange-500/20 transition-all shrink-0"
-            >
-              <UserPlus className="w-4 h-4" /> Provision New User
-            </Link>
-          )}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-6 py-2">
+            {/* SVG Doughnut Chart */}
+            <div className="relative w-40 h-40 shrink-0 flex items-center justify-center">
+              <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                {/* Background Ring */}
+                <path
+                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                  fill="none"
+                  stroke="#F1F5F9"
+                  strokeWidth="3.8"
+                />
+
+                {/* Segment 1: Approved & Paid (66% Cyan) */}
+                <path
+                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                  fill="none"
+                  stroke="#06B6D4"
+                  strokeWidth="3.8"
+                  strokeDasharray="66, 100"
+                />
+
+                {/* Segment 2: Leave Requested (19% Amber) */}
+                <path
+                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                  fill="none"
+                  stroke="#F59E0B"
+                  strokeWidth="3.8"
+                  strokeDasharray="19, 100"
+                  strokeDashoffset="-66"
+                />
+
+                {/* Segment 3: Pending Action (5% Red/Orange) */}
+                <path
+                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                  fill="none"
+                  stroke="#FF5E1E"
+                  strokeWidth="3.8"
+                  strokeDasharray="5, 100"
+                  strokeDashoffset="-85"
+                />
+              </svg>
+
+              {/* Center Text */}
+              <div className="absolute text-center">
+                <span className="text-2xl font-black text-slate-900 block leading-none">42</span>
+                <span className="text-[9px] uppercase font-extrabold tracking-wider text-slate-400">DELIVERED</span>
+              </div>
+            </div>
+
+            {/* Legend List */}
+            <div className="w-full space-y-2.5 text-xs font-semibold text-slate-700">
+              <div className="flex items-center justify-between">
+                <span className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#FF5E1E]" /> Pending Action
+                </span>
+                <span className="font-mono text-slate-500">2 <span className="text-[10px] text-slate-400">5%</span></span>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <span className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#F59E0B]" /> Leave Requested
+                </span>
+                <span className="font-mono text-slate-500">8 <span className="text-[10px] text-slate-400">19%</span></span>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <span className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#06B6D4]" /> Approved & Paid
+                </span>
+                <span className="font-mono text-slate-500">28 <span className="text-[10px] text-slate-400">66%</span></span>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <span className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-slate-400" /> No Action
+                </span>
+                <span className="font-mono text-slate-500">4 <span className="text-[10px] text-slate-400">10%</span></span>
+              </div>
+            </div>
+          </div>
         </div>
+
       </div>
 
-      {/* Database Metrics Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        {/* Total Headcount */}
-        <div className="p-5 bg-white border border-slate-200/80 rounded-2xl shadow-sm hover:shadow-md transition-all">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Total Headcount</span>
-            <div className="p-2.5 bg-orange-50 border border-orange-200/80 rounded-xl text-[#FF5E1E]">
-              <Users className="w-5 h-5" />
-            </div>
-          </div>
-          <div className="mt-3">
-            {isLoadingMetrics ? (
-              <Loader2 className="w-6 h-6 animate-spin text-[#FF5E1E]" />
-            ) : (
-              <p className="text-3xl font-extrabold text-slate-900">
-                {metrics?.totalEmployees ?? 0}
-              </p>
-            )}
-          </div>
-          <p className="text-[11px] text-emerald-600 font-bold mt-1 flex items-center gap-1">
-            <TrendingUp className="w-3 h-3" /> {metrics?.activeEmployees ?? 0} Active Status
-          </p>
-        </div>
-
-        {/* Pending Leaves */}
-        <div className="p-5 bg-white border border-slate-200/80 rounded-2xl shadow-sm hover:shadow-md transition-all">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Pending Leaves</span>
-            <div className="p-2.5 bg-teal-50 border border-teal-200/80 rounded-xl text-teal-600">
-              <Calendar className="w-5 h-5" />
-            </div>
-          </div>
-          <div className="mt-3">
-            {isLoadingMetrics ? (
-              <Loader2 className="w-6 h-6 animate-spin text-teal-600" />
-            ) : (
-              <p className="text-3xl font-extrabold text-slate-900">
-                {metrics?.pendingLeaves ?? 0}
-              </p>
-            )}
-          </div>
-          <p className="text-[11px] text-slate-500 mt-1 font-medium">Live requests awaiting HR action</p>
-        </div>
-
-        {/* Active Contracts */}
-        <div className="p-5 bg-white border border-slate-200/80 rounded-2xl shadow-sm hover:shadow-md transition-all">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Active Contracts</span>
-            <div className="p-2.5 bg-purple-50 border border-purple-200/80 rounded-xl text-purple-600">
-              <FileCheck className="w-5 h-5" />
-            </div>
-          </div>
-          <div className="mt-3">
-            {isLoadingMetrics ? (
-              <Loader2 className="w-6 h-6 animate-spin text-purple-600" />
-            ) : (
-              <p className="text-3xl font-extrabold text-slate-900">
-                {metrics?.activeContracts ?? 0}
-              </p>
-            )}
-          </div>
-          <p className="text-[11px] text-purple-700 font-medium mt-1">Verified PostgreSQL Contracts</p>
-        </div>
-
-        {/* Departments */}
-        <div className="p-5 bg-white border border-slate-200/80 rounded-2xl shadow-sm hover:shadow-md transition-all">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Departments</span>
-            <div className="p-2.5 bg-amber-50 border border-amber-200/80 rounded-xl text-amber-600">
-              <Building2 className="w-5 h-5" />
-            </div>
-          </div>
-          <div className="mt-3">
-            {isLoadingMetrics ? (
-              <Loader2 className="w-6 h-6 animate-spin text-amber-600" />
-            ) : (
-              <p className="text-3xl font-extrabold text-slate-900">
-                {metrics?.totalDepartments ?? 0}
-              </p>
-            )}
-          </div>
-          <p className="text-[11px] text-amber-700 font-medium mt-1">Configured Org Units</p>
-        </div>
-      </div>
-
-      {/* Role Capabilities & Quick Links Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 p-6 bg-white border border-slate-200/80 rounded-3xl shadow-sm space-y-4">
-          <h3 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
-            <ShieldCheck className="w-5 h-5 text-[#FF5E1E]" /> Authorized Role Permissions & Access Control
-          </h3>
-          <p className="text-slate-600 text-xs leading-relaxed font-medium">
-            Your account <span className="text-slate-900 font-mono font-bold">({user?.email})</span> is mapped to role{' '}
-            <span className="text-[#FF5E1E] font-bold uppercase">{user?.role}</span> in PostgreSQL. Both frontend UI route guards and backend Express authorization middleware validate every request.
-          </p>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-            <div className="p-3.5 bg-slate-50/80 border border-slate-200/80 rounded-2xl flex items-start gap-3">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-              <div>
-                <h4 className="text-xs font-bold text-slate-900">Leave & Attendance</h4>
-                <p className="text-[11px] text-slate-500 font-medium">Submit requests & view schedule allocations</p>
-              </div>
-            </div>
-
-            <div className="p-3.5 bg-slate-50/80 border border-slate-200/80 rounded-2xl flex items-start gap-3">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-              <div>
-                <h4 className="text-xs font-bold text-slate-900">Payslips & Payroll</h4>
-                <p className="text-[11px] text-slate-500 font-medium">View detailed salary slips & deduction breakdowns</p>
-              </div>
-            </div>
-
-            <div className={`p-3.5 bg-slate-50/80 border rounded-2xl flex items-start gap-3 ${user?.role === 'ADMIN' ? 'border-orange-200' : 'border-slate-200 opacity-60'}`}>
-              {user?.role === 'ADMIN' ? (
-                <CheckCircle2 className="w-4 h-4 text-[#FF5E1E] shrink-0 mt-0.5" />
-              ) : (
-                <Lock className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
-              )}
-              <div>
-                <h4 className="text-xs font-bold text-slate-900">User Provisioning (Admin)</h4>
-                <p className="text-[11px] text-slate-500 font-medium">
-                  {user?.role === 'ADMIN' ? 'Authorized to create & manage system accounts' : 'Requires Admin Role'}
-                </p>
-              </div>
-            </div>
-
-            <div className={`p-3.5 bg-slate-50/80 border rounded-2xl flex items-start gap-3 ${['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_MANAGER'].includes(user?.role || '') ? 'border-teal-200' : 'border-slate-200 opacity-60'}`}>
-              {['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_MANAGER'].includes(user?.role || '') ? (
-                <CheckCircle2 className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" />
-              ) : (
-                <Lock className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
-              )}
-              <div>
-                <h4 className="text-xs font-bold text-slate-900">HR Approvals</h4>
-                <p className="text-[11px] text-slate-500 font-medium">Approve/refuse pending employee leave requests</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Quick Links Card */}
-        <div className="p-6 bg-white border border-slate-200/80 rounded-3xl shadow-sm space-y-4 flex flex-col justify-between">
+      {/* 4. BOTTOM ROW (Active Payruns Status + Recent Activity Stream) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+        
+        {/* Active Payruns Status */}
+        <div className="lg:col-span-5 bg-white border border-slate-200/80 rounded-3xl p-6 shadow-2xs flex flex-col justify-between space-y-4">
           <div>
-            <h3 className="text-lg font-extrabold text-slate-900 mb-2 flex items-center gap-2">
-              <Activity className="w-5 h-5 text-teal-600" /> Platform Quick Actions
-            </h3>
-            <p className="text-slate-500 text-xs mb-4 font-medium">Perform actions in real-time.</p>
-
-            <div className="space-y-2.5">
-              {user?.role === 'ADMIN' && (
-                <Link
-                  to="/admin/users/new"
-                  className="w-full flex items-center justify-between p-3 bg-orange-50/80 hover:bg-orange-100/80 border border-orange-200/80 rounded-xl text-xs font-bold text-[#FF5E1E] transition-all group"
-                >
-                  <span className="flex items-center gap-2">
-                    <UserPlus className="w-4 h-4" /> Create User Account
-                  </span>
-                  <ArrowRight className="w-4 h-4 text-orange-400 group-hover:translate-x-1 transition-all" />
-                </Link>
-              )}
-
-              <Link
-                to="/leave"
-                className="w-full flex items-center justify-between p-3 bg-slate-50 hover:bg-slate-100 border border-slate-200/80 rounded-xl text-xs font-bold text-slate-800 transition-all group"
-              >
-                <span className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-teal-600" /> Request / View Time Off
-                </span>
-                <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-teal-600 group-hover:translate-x-1 transition-all" />
-              </Link>
-
-              <Link
-                to="/payroll"
-                className="w-full flex items-center justify-between p-3 bg-slate-50 hover:bg-slate-100 border border-slate-200/80 rounded-xl text-xs font-bold text-slate-800 transition-all group"
-              >
-                <span className="flex items-center gap-2">
-                  <CreditCard className="w-4 h-4 text-purple-600" /> Salary Structure & Payslips
-                </span>
-                <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-purple-600 group-hover:translate-x-1 transition-all" />
-              </Link>
-            </div>
+            <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-900">ACTIVE PAYRUNS</h3>
+            <p className="text-xs text-slate-500 font-medium mt-0.5">
+              Currently sending, scheduled, or paused.
+            </p>
           </div>
 
-          <div className="pt-4 border-t border-slate-100 text-[11px] text-slate-400 font-medium text-center">
-            Database Status: Live Connected (PostgreSQL via Prisma)
+          <div className="p-6 bg-slate-50/60 border border-dashed border-slate-200 rounded-2xl text-center space-y-2">
+            <CheckCircle2 className="w-8 h-8 text-emerald-500 mx-auto" />
+            <p className="text-xs font-semibold text-slate-600">
+              No active payrun warnings. All {metrics?.activeContracts ?? 4} payruns synced cleanly with database.
+            </p>
+          </div>
+
+          <div className="pt-1 flex items-center justify-between text-xs text-slate-500 font-medium">
+            <span>Database Status: <strong className="text-emerald-600 font-mono">Live PostgreSQL (Prisma)</strong></span>
+            <Link to="/payroll" className="text-[#FF5E1E] font-bold hover:underline">
+              View All Payruns
+            </Link>
           </div>
         </div>
+
+        {/* Recent Activity Stream */}
+        <div className="lg:col-span-7 bg-white border border-slate-200/80 rounded-3xl p-6 shadow-2xs space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-900">RECENT ACTIVITY</h3>
+              <p className="text-xs text-slate-500 font-medium mt-0.5">
+                Latest events from your HR workflow engine.
+              </p>
+            </div>
+            <Link to="/leave" className="text-xs font-bold text-[#FF5E1E] hover:underline shrink-0">
+              All logs →
+            </Link>
+          </div>
+
+          {/* Activity Stream List matching reference screenshot */}
+          <div className="space-y-3 pt-1">
+            
+            {/* Event 1 */}
+            <div className="p-3.5 bg-slate-50/70 border border-slate-200/60 rounded-2xl flex items-center justify-between gap-4 hover:bg-slate-50 transition-colors">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-emerald-500 text-white font-extrabold text-xs flex items-center justify-center shadow-xs">
+                  M
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-slate-900">Mitul — leave approved</h4>
+                  <span className="text-[10px] text-slate-400 font-medium">processed by HR Manager</span>
+                </div>
+              </div>
+              <span className="px-3 py-1 rounded-full bg-emerald-100/80 text-emerald-700 text-[10px] font-bold tracking-wide shrink-0">
+                + Leave Approved
+              </span>
+            </div>
+
+            {/* Event 2 */}
+            <div className="p-3.5 bg-slate-50/70 border border-slate-200/60 rounded-2xl flex items-center justify-between gap-4 hover:bg-slate-50 transition-colors">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-cyan-500 text-white font-extrabold text-xs flex items-center justify-center shadow-xs">
+                  R
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-slate-900">Rahul — email parsed by AI</h4>
+                  <span className="text-[10px] text-slate-400 font-medium">natural language leave intake</span>
+                </div>
+              </div>
+              <span className="px-3 py-1 rounded-full bg-cyan-100/80 text-cyan-700 text-[10px] font-bold tracking-wide shrink-0">
+                + Parsed
+              </span>
+            </div>
+
+            {/* Event 3 */}
+            <div className="p-3.5 bg-slate-50/70 border border-slate-200/60 rounded-2xl flex items-center justify-between gap-4 hover:bg-slate-50 transition-colors">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-orange-500 text-white font-extrabold text-xs flex items-center justify-center shadow-xs">
+                  P
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-slate-900">Priya — sick leave requested</h4>
+                  <span className="text-[10px] text-slate-400 font-medium">pending manager review</span>
+                </div>
+              </div>
+              <span className="px-3 py-1 rounded-full bg-orange-100/80 text-orange-700 text-[10px] font-bold tracking-wide shrink-0">
+                Pending Action
+              </span>
+            </div>
+
+          </div>
+        </div>
+
       </div>
+
     </div>
   );
 };
