@@ -3,6 +3,16 @@ import { prisma } from '../../config/prisma.js';
 import { ContractsService } from '../contracts/contracts.service.js';
 import { AppError } from '../../middleware/error.middleware.js';
 
+const selectEmp = () => ({
+    select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        employeeNumber: true,
+    },
+});
+
 export class PayrollService {
     // ==========================================
     // AUDIT LOG HELPER
@@ -91,7 +101,6 @@ export class PayrollService {
                         employee: selectEmp(),
                         contract: true,
                         lines: { orderBy: { sequence: 'asc' } },
-                        lines: { orderBy: { sequence: 'asc' } },
                     },
                 },
             },
@@ -153,11 +162,11 @@ export class PayrollService {
         }
 
         // Clear previous calculations & warnings
-        await tx.payrollWarning.deleteMany({ where: { payrunId } });
-        await tx.payslipLine.deleteMany({ where: { payslip: { payrunId } } });
-        await tx.payslip.deleteMany({ where: { payrunId } });
+        await prisma.payrollWarning.deleteMany({ where: { payrunId } });
+        await prisma.payslipLine.deleteMany({ where: { payslip: { payrunId } } });
+        await prisma.payslip.deleteMany({ where: { payrunId } });
 
-        const employees = await tx.employee.findMany({
+        const employees = await prisma.employee.findMany({
             where: { status: 'ACTIVE' },
             include: { schedule: true },
         });
@@ -167,10 +176,6 @@ export class PayrollService {
         let totalDeductions = 0;
         let totalNet = 0;
         let employeeCount = 0;
-
-        // Clean existing payslips for recompute
-        await prisma.payslipLine.deleteMany({ where: { payslip: { payrunId } } });
-        await prisma.payslip.deleteMany({ where: { payrunId } });
 
         for (const employee of employees) {
             try {
@@ -195,6 +200,7 @@ export class PayrollService {
                 const lines = [];
                 const categoryTotals = { BASIC: 0, ALLOWANCE: 0, GROSS: 0, DEDUCTION: 0, NET: 0 };
                 const wage = Number(contract.wage);
+                const ruleValues = {};
 
                 for (const rule of rules) {
                     let amount = 0;
@@ -206,22 +212,16 @@ export class PayrollService {
                         const baseAmount = categoryTotals[baseCode] ?? wage;
                         amount = baseAmount * (Number(rule.percentage || 0) / 100);
                     } else if (rule.computationMethod === 'FORMULA') {
-                        // Simple formula: treat as wage for now
                         amount = wage;
                     }
 
                     amount = Math.round(amount * 100) / 100;
                     ruleValues[rule.code] = amount;
 
-                    if (rule.category === 'BASIC') basic += amount;
-                    if (rule.category === 'ALLOWANCE') totalAllowances += amount;
-                    if (rule.category === 'DEDUCTION') totalDeductionsEmp += amount;
-
                     lines.push({
                         code: rule.code,
                         name: rule.name,
                         category: rule.category,
-                        sequence: rule.sequence,
                         sequence: rule.sequence,
                         amount,
                     });
@@ -231,8 +231,8 @@ export class PayrollService {
                     else if (rule.category === 'DEDUCTION') categoryTotals.DEDUCTION += amount;
                 }
 
-                gross = basic + totalAllowances;
-                net = gross - totalDeductionsEmp;
+                categoryTotals.GROSS = categoryTotals.BASIC + categoryTotals.ALLOWANCE;
+                categoryTotals.NET = Math.max(0, categoryTotals.GROSS - categoryTotals.DEDUCTION);
 
                 const payslipRef = `PS-${payrunId.slice(-6)}-${employee.employeeNumber}`;
 
