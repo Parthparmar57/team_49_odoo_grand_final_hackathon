@@ -20,8 +20,8 @@ export const errorHandler = (err, req, res, next) => {
         method: req.method,
     });
 
-    if (err instanceof AppError) {
-        return ApiResponse.error(res, err.message, err.code, err.statusCode, err.details);
+    if (err instanceof AppError || err.name === 'AppError' || err.isOperational) {
+        return ApiResponse.error(res, err.message, err.code || 'BAD_REQUEST', err.statusCode || 400, err.details);
     }
 
     // Zod Validation Error
@@ -37,6 +37,10 @@ export const errorHandler = (err, req, res, next) => {
             'DUPLICATE_ENTRY',
             400
         );
+    }
+
+    if (err.code === 'P2003') {
+        return ApiResponse.error(res, 'Foreign key constraint failed: referenced entity does not exist', 'FOREIGN_KEY_VIOLATION', 400);
     }
 
     if (err.code === 'P2025') {

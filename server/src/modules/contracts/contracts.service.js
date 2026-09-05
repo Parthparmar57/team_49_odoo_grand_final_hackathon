@@ -74,23 +74,29 @@ export class ContractsService {
     }
 
     static async createContract(data) {
-        const existingRef = await prisma.contract.findUnique({ where: { contractRef: data.contractRef } });
+        const cleanedData = Object.fromEntries(
+            Object.entries(data).filter(([_, v]) => v !== undefined)
+        );
+
+        const existingRef = await prisma.contract.findUnique({ where: { contractRef: cleanedData.contractRef } });
         if (existingRef) {
             throw new AppError('Contract reference number already exists', 400, 'CONTRACT_REF_EXISTS');
         }
 
-        if (data.status === ContractStatus.ACTIVE || !data.status) {
-            const startDate = new Date(data.startDate);
-            const endDate = data.endDate ? new Date(data.endDate) : null;
+        if (cleanedData.status === ContractStatus.ACTIVE || !cleanedData.status) {
+            const startDate = new Date(cleanedData.startDate);
+            const endDate = cleanedData.endDate ? new Date(cleanedData.endDate) : null;
 
-            const overlapping = await prisma.contract.findFirst({
-                where: {
-                    employeeId: data.employeeId,
-                    status: ContractStatus.ACTIVE,
-                    startDate: endDate ? { lte: endDate } : undefined,
-                    OR: [{ endDate: null }, { endDate: { gte: startDate } }],
-                },
-            });
+            const whereClause = {
+                employeeId: cleanedData.employeeId,
+                status: ContractStatus.ACTIVE,
+                OR: [{ endDate: null }, { endDate: { gte: startDate } }],
+            };
+            if (endDate) {
+                whereClause.startDate = { lte: endDate };
+            }
+
+            const overlapping = await prisma.contract.findFirst({ where: whereClause });
 
             if (overlapping) {
                 throw new AppError(
@@ -102,7 +108,7 @@ export class ContractsService {
         }
 
         return prisma.contract.create({
-            data,
+            data: cleanedData,
             include: { employee: true, department: true, schedule: true, salaryStructure: true },
         });
     }

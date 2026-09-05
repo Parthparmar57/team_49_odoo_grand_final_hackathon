@@ -4,6 +4,28 @@ import { ContractsService } from '../contracts/contracts.service.js';
 import { AppError } from '../../middleware/error.middleware.js';
 
 export class PayrollService {
+    // ==========================================
+    // AUDIT LOG HELPER
+    // ==========================================
+    static async logAudit(actorId, action, entity, entityId, metadata = {}) {
+        try {
+            await prisma.auditLog.create({
+                data: {
+                    actorId: actorId || null,
+                    action,
+                    entity,
+                    entityId,
+                    metadata,
+                },
+            });
+        } catch (e) {
+            console.error('AuditLog error:', e.message);
+        }
+    }
+
+    // ==========================================
+    // SALARY STRUCTURES
+    // ==========================================
     static async getSalaryStructures() {
         return prisma.salaryStructure.findMany({
             include: { rules: { orderBy: { sequence: 'asc' } } },
@@ -45,8 +67,12 @@ export class PayrollService {
         });
     }
 
-    static async getPayruns() {
+    static async getPayruns(params = {}) {
+        const where = {};
+        if (params.status) where.status = params.status;
+
         return prisma.payrun.findMany({
+            where,
             include: {
                 salaryStructure: true,
                 _count: { select: { payslips: true } },
@@ -62,8 +88,9 @@ export class PayrollService {
                 salaryStructure: true,
                 payslips: {
                     include: {
-                        employee: { select: { id: true, firstName: true, lastName: true, email: true, employeeNumber: true } },
+                        employee: selectEmp(),
                         contract: true,
+                        lines: { orderBy: { sequence: 'asc' } },
                         lines: { orderBy: { sequence: 'asc' } },
                     },
                 },
@@ -121,9 +148,18 @@ export class PayrollService {
             throw new AppError('Cannot recompute a PAID payrun', 400, 'PAYRUN_PAID');
         }
 
-        const employees = await prisma.employee.findMany({
+        if (payrun.status === PayrunStatus.VALIDATED) {
+            throw new AppError('Cannot recompute a VALIDATED payrun directly', 400, 'INVALID_STATE');
+        }
+
+        // Clear previous calculations & warnings
+        await tx.payrollWarning.deleteMany({ where: { payrunId } });
+        await tx.payslipLine.deleteMany({ where: { payslip: { payrunId } } });
+        await tx.payslip.deleteMany({ where: { payrunId } });
+
+        const employees = await tx.employee.findMany({
             where: { status: 'ACTIVE' },
-            include: { department: true },
+            include: { schedule: true },
         });
 
         const warnings = [];
@@ -175,10 +211,17 @@ export class PayrollService {
                     }
 
                     amount = Math.round(amount * 100) / 100;
+                    ruleValues[rule.code] = amount;
+
+                    if (rule.category === 'BASIC') basic += amount;
+                    if (rule.category === 'ALLOWANCE') totalAllowances += amount;
+                    if (rule.category === 'DEDUCTION') totalDeductionsEmp += amount;
+
                     lines.push({
                         code: rule.code,
                         name: rule.name,
                         category: rule.category,
+                        sequence: rule.sequence,
                         sequence: rule.sequence,
                         amount,
                     });
@@ -188,8 +231,8 @@ export class PayrollService {
                     else if (rule.category === 'DEDUCTION') categoryTotals.DEDUCTION += amount;
                 }
 
-                categoryTotals.GROSS = categoryTotals.BASIC + categoryTotals.ALLOWANCE;
-                categoryTotals.NET = categoryTotals.GROSS - categoryTotals.DEDUCTION;
+                gross = basic + totalAllowances;
+                net = gross - totalDeductionsEmp;
 
                 const payslipRef = `PS-${payrunId.slice(-6)}-${employee.employeeNumber}`;
 
@@ -248,30 +291,80 @@ export class PayrollService {
 
     static async validatePayrun(payrunId) {
         const payrun = await this.getPayrunById(payrunId);
+
         if (payrun.status !== PayrunStatus.COMPUTED) {
-            throw new AppError(`Payrun must be in COMPUTED state before validation (Current: ${payrun.status})`, 400, 'INVALID_STATE');
+            throw new AppError(`Payrun must be in COMPUTED state before validation (Current state: ${payrun.status})`, 400, 'INVALID_STATE');
         }
 
-        return prisma.payrun.update({
+        const blockingWarnings = payrun.warnings.filter((w) => w.severity === PayrollWarningSeverity.BLOCKING && !w.resolved);
+        if (blockingWarnings.length > 0) {
+            throw new AppError(`Cannot validate payrun with ${blockingWarnings.length} unresolved blocking warnings`, 400, 'BLOCKING_WARNINGS_EXIST');
+        }
+
+        if (payrun.payslips.length === 0) {
+            throw new AppError('Cannot validate payrun with no generated payslips', 400, 'NO_PAYSLIPS_GENERATED');
+        }
+
+        const validated = await prisma.payrun.update({
             where: { id: payrunId },
-            data: { status: PayrunStatus.VALIDATED },
+            data: {
+                status: PayrunStatus.VALIDATED,
+                validatedAt: new Date(),
+            },
+            include: { salaryStructure: true, payslips: true, warnings: true },
+        });
+
+        await this.logAudit(actorId, 'PAYRUN_VALIDATED', 'Payrun', payrunId, { validatedAt: validated.validatedAt });
+        return validated;
+    }
+
+    // ==========================================
+    // MARK PAYRUN PAID
+    // ==========================================
+    static async markPayrunPaid(payrunId, actorId) {
+        const payrun = await this.getPayrunById(payrunId);
+
+        if (payrun.status !== PayrunStatus.VALIDATED) {
+            throw new AppError(`Payrun must be in VALIDATED state before marking as paid (Current state: ${payrun.status})`, 400, 'INVALID_STATE');
+        }
+
+        return prisma.$transaction(async (tx) => {
+            await tx.payslip.updateMany({
+                where: { payrunId },
+                data: { status: 'PAID' },
+            });
+
+            const paidPayrun = await tx.payrun.update({
+                where: { id: payrunId },
+                data: {
+                    status: PayrunStatus.PAID,
+                    paidAt: new Date(),
+                },
+                include: { salaryStructure: true, payslips: true },
+            });
+
+            await this.logAudit(actorId, 'PAYRUN_MARKED_PAID', 'Payrun', payrunId, { paidAt: paidPayrun.paidAt });
+            return paidPayrun;
         });
     }
 
-    static async markPayrunPaid(payrunId) {
-        const payrun = await this.getPayrunById(payrunId);
-        if (payrun.status !== PayrunStatus.VALIDATED) {
-            throw new AppError(`Payrun must be in VALIDATED state before payment (Current: ${payrun.status})`, 400, 'INVALID_STATE');
-        }
+    // ==========================================
+    // PAYSLIPS & PDF
+    // ==========================================
+    static async getPayslips(query = {}) {
+        const where = {};
+        if (query.employeeId) where.employeeId = query.employeeId;
+        if (query.payrunId) where.payrunId = query.payrunId;
 
-        await prisma.payslip.updateMany({
-            where: { payrunId },
-            data: { status: 'PAID' },
-        });
-
-        return prisma.payrun.update({
-            where: { id: payrunId },
-            data: { status: PayrunStatus.PAID },
+        return prisma.payslip.findMany({
+            where,
+            include: {
+                employee: selectEmp(),
+                contract: true,
+                salaryStructure: true,
+                lines: { orderBy: { sequence: 'asc' } },
+            },
+            orderBy: { periodStart: 'desc' },
         });
     }
 
@@ -281,6 +374,8 @@ export class PayrollService {
             include: {
                 employee: { select: { id: true, firstName: true, lastName: true, email: true, employeeNumber: true, department: true } },
                 contract: true,
+                salaryStructure: true,
+                lines: { orderBy: { sequence: 'asc' } },
                 salaryStructure: true,
                 lines: { orderBy: { sequence: 'asc' } },
             },

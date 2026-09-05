@@ -38,6 +38,7 @@ export const createContract = async (req, res, next) => {
         const contract = await ContractsService.createContract(data);
         return ApiResponse.success(res, contract, 201);
     } catch (error) {
+        console.error('CREATE CONTRACT ERROR:', error);
         next(error);
     }
 };

@@ -28,6 +28,7 @@ export class EmployeesService {
                     department: true,
                     manager: { select: { id: true, firstName: true, lastName: true, email: true } },
                     schedule: true,
+                    schedule: true,
                 },
                 orderBy: { createdAt: 'desc' },
             }),
@@ -83,6 +84,7 @@ export class EmployeesService {
         return prisma.employee.create({
             data,
             include: { department: true, schedule: true },
+            include: { department: true, schedule: true },
         });
     }
 
@@ -108,6 +110,7 @@ export class EmployeesService {
         return prisma.employee.update({
             where: { id },
             data,
+            include: { department: true, schedule: true },
             include: { department: true, schedule: true },
         });
     }

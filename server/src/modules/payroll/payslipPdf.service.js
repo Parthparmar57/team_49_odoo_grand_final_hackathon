@@ -10,6 +10,8 @@ export class PayslipPdfService {
                 doc.on('data', (buffer) => buffers.push(buffer));
                 doc.on('end', () => resolve(Buffer.concat(buffers)));
 
+                const ref = payslip.payslipRef || payslip.id;
+
                 // Header
                 doc.fontSize(20).text('PeoplePay360 HR & Payroll', { align: 'center' });
                 doc.fontSize(14).text(`PAYSLIP - ${payslip.payslipRef}`, { align: 'center' });
@@ -21,6 +23,7 @@ export class PayslipPdfService {
                 doc.text(`Employee Number: ${payslip.employee?.employeeNumber || 'N/A'}`);
                 doc.text(`Period: ${new Date(payslip.periodStart).toLocaleDateString()} to ${new Date(payslip.periodEnd).toLocaleDateString()}`);
                 doc.text(`Contract Ref: ${payslip.contract?.contractRef || 'N/A'}`);
+                doc.text(`Worked Days: ${payslip.workedDays || 0} | Leave Days: ${payslip.leaveDays || 0}`);
                 doc.moveDown();
 
                 // Table Header
@@ -29,7 +32,7 @@ export class PayslipPdfService {
 
                 if (payslip.lines && payslip.lines.length > 0) {
                     payslip.lines.forEach((line) => {
-                        doc.text(`${line.code} - ${line.name} (${line.category}): $${line.amount.toFixed(2)}`);
+                        doc.text(`${line.code} - ${line.name} (${line.category}): $${Number(line.amount || 0).toFixed(2)}`);
                     });
                 }
                 doc.moveDown();

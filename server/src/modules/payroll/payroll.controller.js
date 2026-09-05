@@ -1,6 +1,9 @@
 import { PayrollService } from './payroll.service.js';
 import { ApiResponse } from '../../utils/apiResponse.js';
 
+// ==========================================
+// SALARY STRUCTURES
+// ==========================================
 export const getSalaryStructures = async (req, res, next) => {
     try {
         const structures = await PayrollService.getSalaryStructures();
@@ -39,7 +42,7 @@ export const updateSalaryStructure = async (req, res, next) => {
 
 export const getPayruns = async (req, res, next) => {
     try {
-        const payruns = await PayrollService.getPayruns();
+        const payruns = await PayrollService.getPayruns(req.query);
         return ApiResponse.success(res, payruns);
     } catch (error) {
         next(error);
@@ -48,7 +51,7 @@ export const getPayruns = async (req, res, next) => {
 
 export const createPayrun = async (req, res, next) => {
     try {
-        const payrun = await PayrollService.createPayrun(req.body);
+        const payrun = await PayrollService.createPayrun(req.body, req.user.id);
         return ApiResponse.success(res, payrun, 201);
     } catch (error) {
         next(error);
@@ -66,7 +69,7 @@ export const getPayrunById = async (req, res, next) => {
 
 export const computePayrun = async (req, res, next) => {
     try {
-        const payrun = await PayrollService.computePayrun(req.params.id);
+        const payrun = await PayrollService.computePayrun(req.params.id, req.user.id);
         return ApiResponse.success(res, payrun);
     } catch (error) {
         next(error);
@@ -75,7 +78,7 @@ export const computePayrun = async (req, res, next) => {
 
 export const validatePayrun = async (req, res, next) => {
     try {
-        const payrun = await PayrollService.validatePayrun(req.params.id);
+        const payrun = await PayrollService.validatePayrun(req.params.id, req.user.id);
         return ApiResponse.success(res, payrun);
     } catch (error) {
         next(error);
@@ -84,7 +87,7 @@ export const validatePayrun = async (req, res, next) => {
 
 export const markPayrunPaid = async (req, res, next) => {
     try {
-        const payrun = await PayrollService.markPayrunPaid(req.params.id);
+        const payrun = await PayrollService.markPayrunPaid(req.params.id, req.user.id);
         return ApiResponse.success(res, payrun);
     } catch (error) {
         next(error);
@@ -122,8 +125,9 @@ export const downloadPayslipPdf = async (req, res, next) => {
         if (req.user.role === 'EMPLOYEE' && payslip.employeeId !== req.user.employeeId) {
             return ApiResponse.error(res, 'Unauthorized access to payslip', 'FORBIDDEN', 403);
         }
-        const pdfBuffer = await PayrollService.downloadPayslipPdf(req.params.id);
+        const pdfBuffer = await PayrollService.downloadPayslipPdf(req.params.id, req.user.id);
         res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename=payslip-${payslip.payslipRef}.pdf`);
         res.setHeader('Content-Disposition', `attachment; filename=payslip-${payslip.payslipRef}.pdf`);
         return res.send(pdfBuffer);
     } catch (error) {

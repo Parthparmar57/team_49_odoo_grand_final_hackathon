@@ -2,6 +2,14 @@ import { Router } from 'express';
 import * as payrollController from './payroll.controller.js';
 import { authenticate } from '../../middleware/auth.middleware.js';
 import { authorize } from '../../middleware/rbac.middleware.js';
+import { validate } from '../../middleware/validate.middleware.js';
+import {
+    createSalaryStructureSchema,
+    updateSalaryStructureSchema,
+    createSalaryRuleSchema,
+    updateSalaryRuleSchema,
+    createPayrunSchema,
+} from './payroll.validator.js';
 
 const router = Router();
 

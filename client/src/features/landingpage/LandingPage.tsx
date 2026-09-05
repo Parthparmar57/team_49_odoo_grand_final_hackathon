@@ -23,13 +23,13 @@ import {
 // --- SILKY CINEMATIC FRAMER MOTION ANIMATION VARIANTS ---
 const fadeInUpVariants: Variants = {
   hidden: { opacity: 0, y: 40, filter: 'blur(4px)' },
-  visible: { 
-    opacity: 1, 
+  visible: {
+    opacity: 1,
     y: 0,
     filter: 'blur(0px)',
-    transition: { 
-      duration: 1.05, 
-      ease: [0.16, 1, 0.3, 1] 
+    transition: {
+      duration: 1.05,
+      ease: [0.16, 1, 0.3, 1]
     }
   }
 };
@@ -52,8 +52,8 @@ const heroScaleVariants: Variants = {
     y: 0,
     scale: 1,
     filter: 'blur(0px)',
-    transition: { 
-      duration: 1.3, 
+    transition: {
+      duration: 1.3,
       ease: [0.16, 1, 0.3, 1],
       delay: 0.2
     }
@@ -214,7 +214,7 @@ export const LandingPage: React.FC = () => {
   const handleSimulateAI = async () => {
     setDemoState('extracting');
     const email = sampleEmails[selectedSampleEmail];
-    
+
     try {
       await apiClient.sendInboundEmail({
         senderEmail: email.sender,
@@ -272,7 +272,7 @@ export const LandingPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#FAF9F6] text-slate-900 font-sans selection:bg-orange-100 selection:text-orange-600 flex flex-col">
-      
+
       {/* 1. TOP ANNOUNCEMENT BANNER */}
       <div className="bg-slate-900 text-white text-xs py-2 px-4 text-center font-medium flex items-center justify-center gap-2">
         <span className="bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold px-2 py-0.5 rounded-full text-[10px] uppercase tracking-wider flex items-center gap-1">
@@ -285,24 +285,22 @@ export const LandingPage: React.FC = () => {
       </div>
 
       {/* 2. DYNAMIC NAVIGATION BAR (Full-screen rectangle at top, Circular pill when scrolled) */}
-      <motion.header 
+      <motion.header
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-        className={`sticky z-50 transition-all duration-300 w-full ${
-          isScrolled 
-            ? 'top-3 max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 mt-2' 
-            : 'top-0 max-w-full px-0 mt-0'
-        }`}
-      >
-        <nav 
-          className={`transition-all duration-300 flex items-center justify-between ${
-            isScrolled
-              ? 'bg-white/90 backdrop-blur-md border border-slate-200/80 rounded-full px-6 py-3 shadow-lg hover:shadow-xl'
-              : 'bg-white/95 backdrop-blur-md border-b border-slate-200/80 rounded-none px-6 sm:px-12 py-4 shadow-sm'
+        className={`sticky z-50 transition-all duration-300 w-full ${isScrolled
+          ? 'top-3 max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 mt-2'
+          : 'top-0 max-w-full px-0 mt-0'
           }`}
+      >
+        <nav
+          className={`transition-all duration-300 flex items-center justify-between ${isScrolled
+            ? 'bg-white/90 backdrop-blur-md border border-slate-200/80 rounded-full px-6 py-3 shadow-lg hover:shadow-xl'
+            : 'bg-white/95 backdrop-blur-md border-b border-slate-200/80 rounded-none px-6 sm:px-12 py-4 shadow-sm'
+            }`}
         >
-          
+
           {/* Logo */}
           <div className="flex items-center">
             <a href="#home">
@@ -324,9 +322,12 @@ export const LandingPage: React.FC = () => {
           <div className="flex items-center gap-3">
             <Link
               to="/auth/login"
-              className="inline-flex items-center justify-center px-4.5 py-2 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-full transition border border-slate-200"
+              className="group inline-flex items-center justify-center px-5 py-2 text-xs font-bold text-white bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-500 hover:to-amber-600 rounded-full transition shadow-md shadow-orange-500/25"
             >
-              Sign In
+              <span>Sign In</span>
+              <div className="w-4 h-4 ml-1.5 rounded-full bg-white/20 flex items-center justify-center group-hover:translate-x-0.5 transition-transform">
+                <ArrowRightIcon />
+              </div>
             </Link>
             <Link
               to="/auth/login"
@@ -343,16 +344,16 @@ export const LandingPage: React.FC = () => {
 
       {/* MAIN CONTENT AREA */}
       <main className="flex-grow">
-        
-        {/* 3. HERO SECTION */}
-        <section id="home" className="relative pt-12 pb-16 md:pt-16 md:pb-24 overflow-hidden hero-gradient-bg">
-          <motion.div 
+
+        {/* 3. HERO SECTION (FIRST VIEWPORT) */}
+        <section id="home" className="relative min-h-[calc(100vh-80px)] md:min-h-[calc(100vh-90px)] flex flex-col items-center justify-center py-12 md:py-16 overflow-hidden hero-gradient-bg">
+          <motion.div
             initial="hidden"
             animate="visible"
             variants={staggerContainerVariants}
-            className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10"
+            className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10 my-auto"
           >
-            
+
             {/* Tag Pill */}
             <motion.div variants={fadeInUpVariants} className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-orange-50 border border-orange-200/80 mb-6 text-xs font-semibold text-orange-700 shadow-sm animate-pulse-slow">
               <span className="bg-orange-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">New</span>
@@ -361,7 +362,7 @@ export const LandingPage: React.FC = () => {
 
             {/* Main Headline */}
             <motion.h1 variants={fadeInUpVariants} className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-950 leading-[1.12]">
-              <span className="gradient-text-brand">PeoplePay360</span> — Transform Employee Emails Into <span className="underline decoration-orange-400/60 decoration-wavy">Automated Workflows</span>
+              <span className="gradient-text-brand">PeoplePay360</span> — Transform Employee Emails Into <span>Automated Workflows</span>
             </motion.h1>
 
             {/* Subtitle */}
@@ -369,39 +370,68 @@ export const LandingPage: React.FC = () => {
               Simulate real-world leave requests from natural-language emails, automate entity extraction, connect period-specific contracts to payroll, and maintain human authorization effortlessly.
             </motion.p>
 
-            {/* CTA Buttons */}
-            <motion.div variants={fadeInUpVariants} className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
+            {/* Centered Hero CTA with Decorative SVG Line Container */}
+            <motion.div variants={fadeInUpVariants} className="relative mt-9 mb-8 flex items-center justify-center">
+              {/* Decorative Outlined SVG Line Treatment */}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
+                <svg className="w-full max-w-4xl h-24 overflow-visible" viewBox="0 0 800 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <defs>
+                    <linearGradient id="heroLineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stopColor="#06B6D4" stopOpacity="0.12" />
+                      <stop offset="25%" stopColor="#FF5E1E" stopOpacity="0.35" />
+                      <stop offset="50%" stopColor="#F59E0B" stopOpacity="0.5" />
+                      <stop offset="75%" stopColor="#FF5E1E" stopOpacity="0.35" />
+                      <stop offset="100%" stopColor="#06B6D4" stopOpacity="0.12" />
+                    </linearGradient>
+                  </defs>
+
+                  {/* Top & Bottom Angular Notch Lines */}
+                  <path
+                    d="M 0 40 H 270 L 310 12 H 490 L 530 40 H 800"
+                    stroke="url(#heroLineGrad)"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                  />
+                  <path
+                    d="M 0 40 H 270 L 310 68 H 490 L 530 40 H 800"
+                    stroke="url(#heroLineGrad)"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                  />
+
+                  {/* Vertex Accent Dots */}
+                  <circle cx="310" cy="12" r="2" fill="#FF5E1E" fillOpacity="0.5" />
+                  <circle cx="490" cy="12" r="2" fill="#F59E0B" fillOpacity="0.5" />
+                  <circle cx="310" cy="68" r="2" fill="#FF5E1E" fillOpacity="0.5" />
+                  <circle cx="490" cy="68" r="2" fill="#F59E0B" fillOpacity="0.5" />
+                </svg>
+              </div>
+
+              {/* Single Centered Premium Hero CTA Pill Button */}
               <Link
                 to="/auth/login"
-                className="w-full sm:w-auto group inline-flex items-center justify-center px-7 py-3.5 text-sm font-bold text-white bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-500 hover:to-amber-600 rounded-full shadow-lg shadow-orange-500/30 hover:shadow-xl hover:shadow-orange-500/40 transition duration-200"
+                className="relative z-10 group inline-flex items-center gap-3 px-6 py-2.5 sm:px-7 sm:py-3 text-sm font-bold text-white bg-gradient-to-r from-orange-600 via-amber-500 to-orange-600 bg-[length:200%_auto] hover:bg-right rounded-full shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 border border-white/20"
               >
-                <span>Sign In to Platform</span>
-                <ArrowRightIcon />
+                <span className="tracking-wide">Get Started</span>
+                <div className="w-6 h-6 sm:w-6.5 sm:h-6.5 rounded-full bg-white text-orange-600 flex items-center justify-center shadow-xs group-hover:translate-x-1 transition-transform">
+                  <ArrowRight weight="bold" className="w-3.5 h-3.5 fill-current" />
+                </div>
               </Link>
-              <a href="#agents" className="w-full sm:w-auto inline-flex items-center justify-center px-7 py-3.5 text-sm font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200/90 rounded-full shadow-sm hover:shadow transition">
-                <SparklesIcon />
-                <span>Explore 5-Agent Architecture</span>
-              </a>
-            </motion.div>
-
-            {/* Trust Highlights */}
-            <motion.div variants={fadeInUpVariants} className="mt-8 flex items-center justify-center gap-6 text-xs text-slate-500 font-medium">
-              <span className="flex items-center"><CheckIcon /> 100% Human-in-the-Loop Control</span>
-              <span className="flex items-center"><CheckIcon /> Gmail API + MCP Integration</span>
-              <span className="flex items-center"><CheckIcon /> BullMQ Async Queues</span>
             </motion.div>
           </motion.div>
+        </section>
 
-          {/* 4. LIVE INTERACTIVE DASHBOARD PREVIEW CONTAINER */}
-          <motion.div 
-            id="demo" 
+        {/* 4. LIVE INTERACTIVE DASHBOARD PREVIEW SECTION (NEXT SECTION BELOW HERO) */}
+        <section id="demo" className="pt-16 pb-24 md:pt-20 md:pb-32 hero-gradient-bg">
+          <motion.div
             initial="hidden"
-            animate="visible"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
             variants={heroScaleVariants}
-            className="mt-12 max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8"
+            className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8"
           >
             <div className="card-hero-glow rounded-3xl p-4 sm:p-6 shadow-2xl relative overflow-hidden border border-slate-200">
-              
+
               {/* Top Preview Control Header */}
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-4 mb-4 border-b border-slate-200/80 gap-3">
                 <div className="flex items-center gap-2">
@@ -417,21 +447,21 @@ export const LandingPage: React.FC = () => {
 
                 {/* Tab Switchers */}
                 <div className="flex items-center bg-slate-100/80 p-1 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600">
-                  <button 
+                  <button
                     onClick={() => setActiveTab('dashboard')}
                     className={`px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 ${activeTab === 'dashboard' ? 'bg-white text-orange-600 shadow-sm font-bold' : 'hover:text-slate-900'}`}
                   >
                     <ChartBarIcon className="w-3.5 h-3.5" />
                     <span>Live Dashboard</span>
                   </button>
-                  <button 
+                  <button
                     onClick={() => setActiveTab('email-demo')}
                     className={`px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 ${activeTab === 'email-demo' ? 'bg-white text-orange-600 shadow-sm font-bold' : 'hover:text-slate-900'}`}
                   >
                     <ZapIcon className="w-3.5 h-3.5" />
                     <span>AI Email Sandbox</span>
                   </button>
-                  <button 
+                  <button
                     onClick={() => setActiveTab('payroll')}
                     className={`px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 ${activeTab === 'payroll' ? 'bg-white text-orange-600 shadow-sm font-bold' : 'hover:text-slate-900'}`}
                   >
@@ -444,7 +474,7 @@ export const LandingPage: React.FC = () => {
               {/* TAB 1: LIVE DASHBOARD PREVIEW MATCHING SCREENSHOT EXACTLY */}
               {activeTab === 'dashboard' && (
                 <div className="bg-white/95 text-slate-900 p-6 sm:p-8 rounded-2xl border border-slate-200/90 shadow-xl font-sans text-xs space-y-7 text-left">
-                  
+
                   {/* Top Welcome Header Bar */}
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-5 border-b border-slate-100 gap-4">
                     <div>
@@ -468,7 +498,7 @@ export const LandingPage: React.FC = () => {
 
                   {/* 4 Top Stat KPI Metric Cards */}
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    
+
                     {/* Card 1: Active Payruns */}
                     <div className="bg-slate-50/70 p-4 rounded-2xl border border-slate-200/70 shadow-2xs flex items-center gap-3 hover:bg-slate-50 transition">
                       <div className="w-10 h-10 rounded-xl bg-orange-100/80 text-orange-600 flex items-center justify-center shrink-0">
@@ -521,7 +551,7 @@ export const LandingPage: React.FC = () => {
 
                   {/* Middle Grid: Left RATE TRENDS Chart & Right OUTCOMES Donut Chart */}
                   <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                    
+
                     {/* RATE TRENDS Line Chart (8/12 span) */}
                     <div className="lg:col-span-7 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs flex flex-col justify-between space-y-4">
                       <div>
@@ -630,7 +660,7 @@ export const LandingPage: React.FC = () => {
 
                   {/* Bottom Grid: ACTIVE PAYRUNS & RECENT ACTIVITY */}
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    
+
                     {/* Active Payruns */}
                     <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs space-y-3">
                       <div>
@@ -692,7 +722,7 @@ export const LandingPage: React.FC = () => {
                     </div>
                     <div className="flex gap-2">
                       {sampleEmails.map((_, idx) => (
-                        <button 
+                        <button
                           key={idx}
                           onClick={() => { setSelectedSampleEmail(idx); setDemoState('idle'); }}
                           className={`px-3 py-1 text-xs font-semibold rounded-lg border ${selectedSampleEmail === idx ? 'bg-orange-600 text-white border-orange-600' : 'bg-slate-50 text-slate-700 border-slate-200'}`}
@@ -712,7 +742,7 @@ export const LandingPage: React.FC = () => {
                         <hr className="my-2 border-slate-100" />
                         <div className="whitespace-pre-line text-slate-700 font-sans text-xs">{sampleEmails[selectedSampleEmail].body}</div>
                       </div>
-                      <button 
+                      <button
                         onClick={handleSimulateAI}
                         disabled={demoState !== 'idle'}
                         className="w-full py-2.5 bg-gradient-to-r from-orange-600 to-amber-500 text-white font-sans text-xs font-bold rounded-lg shadow-md hover:opacity-95 transition disabled:opacity-50 flex items-center justify-center gap-1.5"
@@ -752,13 +782,13 @@ export const LandingPage: React.FC = () => {
                         <div className="space-y-2 font-mono text-[11px]">
                           <div className="text-emerald-400 font-bold">✓ Extraction & Business Validation Complete</div>
                           <pre className="bg-slate-950 p-3 rounded-lg border border-slate-800 text-slate-300 overflow-x-auto">
-{JSON.stringify({
-  employee: sampleEmails[selectedSampleEmail].sender,
-  leaveType: sampleEmails[selectedSampleEmail].type,
-  dates: sampleEmails[selectedSampleEmail].dates,
-  confidence: sampleEmails[selectedSampleEmail].confidence,
-  status: "READY_FOR_HR_APPROVAL"
-}, null, 2)}
+                            {JSON.stringify({
+                              employee: sampleEmails[selectedSampleEmail].sender,
+                              leaveType: sampleEmails[selectedSampleEmail].type,
+                              dates: sampleEmails[selectedSampleEmail].dates,
+                              confidence: sampleEmails[selectedSampleEmail].confidence,
+                              status: "READY_FOR_HR_APPROVAL"
+                            }, null, 2)}
                           </pre>
                         </div>
                       )}
@@ -831,14 +861,14 @@ export const LandingPage: React.FC = () => {
 
         {/* 5. PROBLEM & SOLUTION COMPARISON CARDS (ULTRA-CLEAN & MODERN) */}
         <section id="benefits" className="py-16 md:py-24 bg-gradient-to-b from-[#FAF9F6] via-white to-white">
-          <motion.div 
+          <motion.div
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, margin: "-60px" }}
             variants={staggerContainerVariants}
             className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 space-y-16"
           >
-            
+
             {/* Header */}
             <motion.div variants={fadeInUpVariants} className="text-center max-w-3xl mx-auto space-y-4">
               <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-orange-100/80 text-orange-700 font-bold text-[11px] uppercase tracking-wider border border-orange-200/80">
@@ -846,7 +876,7 @@ export const LandingPage: React.FC = () => {
                 <span>THE PAIN POINT</span>
               </div>
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-950 tracking-tight leading-tight">
-                Why Traditional HR Systems <span className="text-rose-500 underline decoration-rose-300 decoration-wavy">Break Down</span>
+                Why Traditional HR Systems <span className="text-rose-500">Break Down</span>
               </h2>
               <p className="text-slate-600 text-sm sm:text-base leading-relaxed max-w-xl mx-auto font-normal">
                 Manual email copying, miscalculated leave balances, and rigid contract dates create endless compliance risk.
@@ -855,9 +885,9 @@ export const LandingPage: React.FC = () => {
 
             {/* 2-Column Clean Comparison Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              
+
               {/* Legacy Manual HR Bottlenecks Card */}
-              <motion.div 
+              <motion.div
                 variants={fadeInUpVariants}
                 whileHover={{ y: -4, transition: { duration: 0.2 } }}
                 className="bg-gradient-to-b from-rose-50/70 via-white to-slate-50/40 border border-rose-200/80 p-8 rounded-3xl shadow-sm hover:shadow-md transition space-y-6 text-left relative overflow-hidden group"
@@ -893,7 +923,7 @@ export const LandingPage: React.FC = () => {
               </motion.div>
 
               {/* The PeoplePay360 Solution Card */}
-              <motion.div 
+              <motion.div
                 variants={fadeInUpVariants}
                 whileHover={{ y: -4, transition: { duration: 0.2 } }}
                 className="bg-gradient-to-b from-emerald-50/80 via-white to-slate-50/40 border border-emerald-200/80 p-8 rounded-3xl shadow-md hover:shadow-lg transition space-y-6 text-left relative overflow-hidden group"
@@ -931,11 +961,11 @@ export const LandingPage: React.FC = () => {
             </div>
 
             {/* Bottom Card Container: 5 Pill Cards for Vulnerabilities */}
-            <motion.div 
+            <motion.div
               variants={fadeInUpVariants}
               className="bg-slate-50/70 p-8 sm:p-12 rounded-3xl border border-slate-200/90 shadow-xl relative overflow-hidden text-center space-y-8"
             >
-              
+
               {/* Subtle Ambient Mesh Glow inside card corners */}
               <div className="absolute top-0 left-0 w-48 h-48 bg-teal-200/20 rounded-full blur-3xl pointer-events-none"></div>
               <div className="absolute top-0 right-0 w-48 h-48 bg-orange-200/30 rounded-full blur-3xl pointer-events-none"></div>
@@ -947,7 +977,7 @@ export const LandingPage: React.FC = () => {
 
               {/* 5 Pill Cards Row */}
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 relative z-10">
-                
+
                 {/* Pill 1 */}
                 <motion.div whileHover={{ scale: 1.04, y: -2 }} className="bg-white p-5 rounded-2xl border border-slate-200/80 hover:border-orange-300 hover:shadow-md transition flex flex-col items-center justify-center space-y-3 group">
                   <div className="w-10 h-10 rounded-xl bg-orange-100/80 text-orange-600 flex items-center justify-center group-hover:scale-105 transition-transform">
@@ -1002,19 +1032,19 @@ export const LandingPage: React.FC = () => {
 
         {/* 6. KEY DIFFERENTIATORS (HIGH-IMPACT MODERN GLASSMORPHISM SECTION) */}
         <section id="differentiators" className="py-20 md:py-28 bg-[#0A0E1A] text-white relative overflow-hidden">
-          
+
           {/* Ambient Mesh Background Glow Effects */}
           <div className="absolute -top-32 -left-32 w-96 h-96 bg-orange-600/15 rounded-full blur-3xl pointer-events-none"></div>
           <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-cyan-600/15 rounded-full blur-3xl pointer-events-none"></div>
 
-          <motion.div 
+          <motion.div
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, margin: "-60px" }}
             variants={staggerContainerVariants}
             className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-16"
           >
-            
+
             {/* Header */}
             <motion.div variants={fadeInUpVariants} className="text-center max-w-3xl mx-auto space-y-4">
               <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-orange-500/20 text-orange-400 font-bold text-[11px] uppercase tracking-wider border border-orange-500/30 shadow-md">
@@ -1031,9 +1061,9 @@ export const LandingPage: React.FC = () => {
 
             {/* 3 Glassmorphism Cards Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              
+
               {/* Card 1: Validity Window Contracts */}
-              <motion.div 
+              <motion.div
                 variants={fadeInUpVariants}
                 whileHover={{ y: -6, transition: { duration: 0.25 } }}
                 className="bg-slate-900/80 backdrop-blur-xl p-8 rounded-3xl border border-slate-800 hover:border-orange-500/60 shadow-2xl transition-all duration-300 space-y-6 text-left group"
@@ -1059,7 +1089,7 @@ export const LandingPage: React.FC = () => {
               </motion.div>
 
               {/* Card 2: MCP Tool-Based Execution */}
-              <motion.div 
+              <motion.div
                 variants={fadeInUpVariants}
                 whileHover={{ y: -6, transition: { duration: 0.25 } }}
                 className="bg-slate-900/80 backdrop-blur-xl p-8 rounded-3xl border border-slate-800 hover:border-amber-500/60 shadow-2xl transition-all duration-300 space-y-6 text-left group"
@@ -1083,7 +1113,7 @@ export const LandingPage: React.FC = () => {
               </motion.div>
 
               {/* Card 3: Deterministic Rule Engine */}
-              <motion.div 
+              <motion.div
                 variants={fadeInUpVariants}
                 whileHover={{ y: -6, transition: { duration: 0.25 } }}
                 className="bg-slate-900/80 backdrop-blur-xl p-8 rounded-3xl border border-slate-800 hover:border-cyan-500/60 shadow-2xl transition-all duration-300 space-y-6 text-left group"
@@ -1125,7 +1155,7 @@ export const LandingPage: React.FC = () => {
         {/* 7. FEATURES BENTO GRID */}
         <section id="features" className="py-16 md:py-24 bg-slate-50/50">
           <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
-            
+
             <div className="text-center max-w-3xl mx-auto mb-16">
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-100 text-orange-700 font-bold text-[11px] uppercase tracking-wider mb-4">
                 <ZapIcon className="w-3 h-3" />
@@ -1141,7 +1171,7 @@ export const LandingPage: React.FC = () => {
 
             {/* 4 Feature Bento Grid Cards Matching Screenshot 1 UI/UX Exactly */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-left">
-              
+
               {/* Card 1: Natural-Language Email Intake (Orange Top Border Accent + Template List) */}
               <div className="bg-white rounded-3xl p-8 border border-slate-200/90 border-t-4 border-t-orange-500 shadow-md hover:shadow-xl transition-all duration-300 space-y-6 relative overflow-hidden group">
                 <div className="w-10 h-10 rounded-2xl bg-orange-100 text-orange-600 flex items-center justify-center shadow-2xs group-hover:scale-105 transition-transform">
@@ -1213,7 +1243,7 @@ export const LandingPage: React.FC = () => {
                     </div>
                     <div className="w-12 h-2 bg-orange-500 rounded-full mb-1"></div>
                     <div className="w-8 h-1.5 bg-slate-200 rounded-full"></div>
-                    
+
                     {/* Magnifying Glass Icon Overlay */}
                     <div className="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-purple-600 text-white flex items-center justify-center shadow-md">
                       <SparklesIcon />
@@ -1288,7 +1318,7 @@ export const LandingPage: React.FC = () => {
         {/* 8. 5-AGENT AI SYSTEM SHOWCASE (MATCHING ATTACHED SCREENSHOT MASONRY LAYOUT EXACTLY) */}
         <section id="agents" className="py-20 md:py-28 bg-white">
           <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
-            
+
             {/* Header */}
             <div className="text-center max-w-3xl mx-auto space-y-4">
               <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-orange-100/80 text-orange-700 font-bold text-[11px] uppercase tracking-wider border border-orange-200">
@@ -1305,7 +1335,7 @@ export const LandingPage: React.FC = () => {
 
             {/* Staggered 3-Column Bento Grid Matching Screenshot Layout */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left items-start">
-              
+
               {/* COLUMN 1: Agent 1 (Tall Card with Pill Chips) */}
               <div className="bg-slate-50/80 hover:bg-white border border-slate-200/90 rounded-3xl p-8 shadow-sm hover:shadow-md transition space-y-6 flex flex-col justify-between h-full group">
                 <div className="space-y-4">
@@ -1333,7 +1363,7 @@ export const LandingPage: React.FC = () => {
 
               {/* COLUMN 2: Agent 2 & Agent 3 (Stacked 2 Cards) */}
               <div className="space-y-6">
-                
+
                 {/* Agent 2: Email Intelligence Agent */}
                 <div className="bg-slate-50/80 hover:bg-white border border-slate-200/90 rounded-3xl p-8 shadow-sm hover:shadow-md transition space-y-5 group">
                   <div className="w-10 h-10 rounded-2xl bg-orange-100 text-orange-600 flex items-center justify-center font-bold shadow-2xs group-hover:scale-105 transition-transform">
@@ -1379,7 +1409,7 @@ export const LandingPage: React.FC = () => {
 
               {/* COLUMN 3: Agent 4 & Agent 5 (Stacked 2 Cards) */}
               <div className="space-y-6">
-                
+
                 {/* Agent 4: Payroll Agent */}
                 <div className="bg-slate-50/80 hover:bg-white border border-slate-200/90 rounded-3xl p-8 shadow-sm hover:shadow-md transition space-y-4 group">
                   <div className="w-10 h-10 rounded-2xl bg-orange-100 text-orange-600 flex items-center justify-center font-bold shadow-2xs group-hover:scale-105 transition-transform">
@@ -1422,7 +1452,7 @@ export const LandingPage: React.FC = () => {
         {/* 9. INTERACTIVE PRICING CALCULATOR SECTION */}
         <section id="pricing" className="py-16 md:py-24 hero-gradient-bg">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            
+
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-100 text-orange-700 font-bold text-[11px] uppercase tracking-wider mb-4">
               <TagIcon className="w-3.5 h-3.5" />
               <span>PRICING</span>
@@ -1435,7 +1465,7 @@ export const LandingPage: React.FC = () => {
             </p>
 
             <div className="mt-10 bg-white rounded-3xl p-6 sm:p-10 border border-orange-200 shadow-2xl max-w-2xl mx-auto text-left relative overflow-hidden">
-              
+
               <div className="flex items-center justify-between pb-4 border-b border-slate-100">
                 <div className="flex items-center gap-2">
                   <SparklesIcon />
@@ -1453,21 +1483,21 @@ export const LandingPage: React.FC = () => {
                 <div className="mt-6 bg-slate-50 p-4 rounded-2xl border border-slate-200/80 space-y-4">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-semibold text-slate-600">Number of employees</span>
-                    
+
                     <div className="flex items-center bg-white border border-slate-300 rounded-full px-2 py-1 shadow-2xs">
-                      <button 
+                      <button
                         onClick={() => setEmployeeCount(Math.max(10, employeeCount - 5))}
                         className="w-6 h-6 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center transition"
                       >
                         -
                       </button>
-                      <input 
+                      <input
                         type="number"
                         value={employeeCount}
                         onChange={(e) => setEmployeeCount(Math.max(10, parseInt(e.target.value) || 10))}
                         className="w-12 text-center text-xs font-bold text-slate-900 border-none focus:outline-none"
                       />
-                      <button 
+                      <button
                         onClick={() => setEmployeeCount(employeeCount + 5)}
                         className="w-6 h-6 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center transition"
                       >
@@ -1476,7 +1506,7 @@ export const LandingPage: React.FC = () => {
                     </div>
                   </div>
 
-                  <input 
+                  <input
                     type="range"
                     min="10"
                     max="500"
@@ -1541,7 +1571,7 @@ export const LandingPage: React.FC = () => {
 
         {/* 10. FREQUENTLY ASKED QUESTIONS SECTION */}
         <section id="faq" className="py-16 md:py-24 bg-white">
-          <motion.div 
+          <motion.div
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, margin: "-60px" }}
@@ -1549,7 +1579,7 @@ export const LandingPage: React.FC = () => {
             className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
           >
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-              
+
               <motion.div variants={fadeInUpVariants} className="lg:col-span-5 text-left space-y-4">
                 <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-100 text-orange-700 font-bold text-[11px] uppercase tracking-wider">
                   <MessageSquareIcon className="w-3.5 h-3.5" />
@@ -1569,12 +1599,12 @@ export const LandingPage: React.FC = () => {
 
               <div className="lg:col-span-7 space-y-3">
                 {faqs.map((faq, index) => (
-                  <motion.div 
+                  <motion.div
                     key={index}
                     variants={fadeInUpVariants}
                     className="bg-slate-50 rounded-2xl border border-slate-200/90 overflow-hidden transition"
                   >
-                    <button 
+                    <button
                       onClick={() => setOpenFaq(openFaq === index ? null : index)}
                       className="w-full p-4 text-left font-bold text-xs sm:text-sm text-slate-900 flex items-center justify-between gap-2 hover:text-orange-600 transition"
                     >
@@ -1585,7 +1615,7 @@ export const LandingPage: React.FC = () => {
                     </button>
                     <AnimatePresence>
                       {openFaq === index && (
-                        <motion.div 
+                        <motion.div
                           initial={{ height: 0, opacity: 0 }}
                           animate={{ height: "auto", opacity: 1 }}
                           exit={{ height: 0, opacity: 0 }}
@@ -1610,12 +1640,12 @@ export const LandingPage: React.FC = () => {
 
       {/* 11. FOOTER MATCHING SCREENSHOT EXACTLY */}
       <footer className="bg-[#0A0E17] text-slate-400 text-xs relative overflow-hidden pt-16 pb-8 border-t border-slate-800">
-        
+
         {/* Main Footer Container */}
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8 pb-12 border-b border-slate-800/80">
-            
+
             {/* Column 1: Brand & Subtitle */}
             <div className="lg:col-span-2 space-y-4">
               <div className="flex items-center">
@@ -1676,7 +1706,7 @@ export const LandingPage: React.FC = () => {
 
           {/* Bottom Bar with Socials & Legal links */}
           <div className="pt-8 pb-12 flex flex-col sm:flex-row items-center justify-between gap-4 text-slate-400 text-xs">
-            
+
             {/* Left Social Icons & Copyright */}
             <div className="space-y-2">
               <div className="flex items-center gap-3 text-slate-400">
