@@ -74,8 +74,8 @@ export const adminCreateUser = async (req, res, next) => {
 
 export const getUsers = async (req, res, next) => {
     try {
-        const users = await AuthService.getUsers();
-        return ApiResponse.success(res, users, 200);
+        const result = await AuthService.getUsers(req.query);
+        return ApiResponse.success(res, result.users, 200, result.pagination);
     } catch (error) {
         next(error);
     }

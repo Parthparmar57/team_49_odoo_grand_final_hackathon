@@ -46,8 +46,9 @@ export const LoginPage: React.FC = () => {
     const result = await login({ email, password });
     setIsSubmitting(false);
 
-    if (result.success) {
-      navigate(from, { replace: true });
+    if (result.success && result.user) {
+      const targetPath = from !== '/dashboard' ? from : (result.user.role === 'ADMIN' ? '/admin/users' : '/dashboard');
+      navigate(targetPath, { replace: true });
     } else {
       setError(result.error || 'Failed to sign in. Please verify your credentials.');
     }

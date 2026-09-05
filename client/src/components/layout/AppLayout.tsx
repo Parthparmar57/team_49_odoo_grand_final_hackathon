@@ -71,8 +71,8 @@ const navItems: NavItem[] = [
     icon: Mail,
   },
   {
-    label: 'Create User',
-    path: '/admin/users/new',
+    label: 'User Management',
+    path: '/admin/users',
     icon: UserPlus,
     roles: ['ADMIN'],
   },

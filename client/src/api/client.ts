@@ -115,8 +115,15 @@ class ApiClient {
     });
   }
 
-  async getAdminUsers(): Promise<ApiResponse<User[]>> {
-    return this.request<User[]>('/auth/users');
+  async getAdminUsers(params?: { page?: number; limit?: number; search?: string; role?: string }): Promise<ApiResponse<any>> {
+    const query = new URLSearchParams();
+    if (params?.page) query.append('page', params.page.toString());
+    if (params?.limit) query.append('limit', params.limit.toString());
+    if (params?.search) query.append('search', params.search);
+    if (params?.role && params.role !== 'ALL') query.append('role', params.role);
+
+    const queryString = query.toString() ? `?${query.toString()}` : '';
+    return this.request(`/auth/users${queryString}`);
   }
 
   async getEmployees(): Promise<ApiResponse<any[]>> {

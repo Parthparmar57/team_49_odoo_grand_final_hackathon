@@ -219,20 +219,68 @@ export class AuthService {
         };
     }
 
-    static async getUsers() {
-        const users = await prisma.user.findMany({
-            include: {
-                employee: {
-                    include: { department: true }
-                }
-            },
-            orderBy: { createdAt: 'desc' }
-        });
+    static async getUsers(queryParams = {}) {
+        const page = Math.max(1, parseInt(queryParams.page) || 1);
+        const limit = Math.max(1, Math.min(100, parseInt(queryParams.limit) || 10));
+        const skip = (page - 1) * limit;
 
-        return users.map(user => {
+        const { search, role } = queryParams;
+
+        const where = {};
+
+        if (role && role !== 'ALL') {
+            where.role = role;
+        }
+
+        if (search && search.trim()) {
+            const query = search.trim();
+            where.OR = [
+                { email: { contains: query, mode: 'insensitive' } },
+                {
+                    employee: {
+                        OR: [
+                            { firstName: { contains: query, mode: 'insensitive' } },
+                            { lastName: { contains: query, mode: 'insensitive' } },
+                            { designation: { contains: query, mode: 'insensitive' } },
+                        ]
+                    }
+                }
+            ];
+        }
+
+        const [totalUsers, users] = await Promise.all([
+            prisma.user.count({ where }),
+            prisma.user.findMany({
+                where,
+                skip,
+                take: limit,
+                include: {
+                    employee: {
+                        include: { department: true }
+                    }
+                },
+                orderBy: { createdAt: 'desc' }
+            })
+        ]);
+
+        const formattedUsers = users.map(user => {
             const { passwordHash, ...userWithoutPassword } = user;
             return userWithoutPassword;
         });
+
+        const totalPages = Math.ceil(totalUsers / limit) || 1;
+
+        return {
+            users: formattedUsers,
+            pagination: {
+                total: totalUsers,
+                page,
+                limit,
+                totalPages,
+                hasNextPage: page < totalPages,
+                hasPrevPage: page > 1,
+            }
+        };
     }
 }
 

@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { apiClient } from '../../api/client';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
+import { CreateUserPage } from '../admin/CreateUserPage';
 import {
   Zap,
   Users,
@@ -15,6 +16,8 @@ import {
   Clock,
   Mail,
   Calendar,
+  Shield,
+  LayoutDashboard,
 } from 'lucide-react';
 
 interface OverviewMetrics {
@@ -27,8 +30,14 @@ interface OverviewMetrics {
 
 export const DashboardPage: React.FC = () => {
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
   const [metrics, setMetrics] = useState<OverviewMetrics | null>(null);
   const [isLoadingMetrics, setIsLoadingMetrics] = useState<boolean>(true);
+
+  // If URL query string specifies ?role=admin, render Admin User Access & RBAC page directly
+  if (searchParams.get('role')?.toLowerCase() === 'admin') {
+    return <CreateUserPage />;
+  }
 
   useEffect(() => {
     const loadOverview = async () => {
@@ -64,16 +73,34 @@ export const DashboardPage: React.FC = () => {
       {/* 1. TOP HEADER & GREETING BAR */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-            {getGreeting()}, {firstName} <span className="animate-bounce">👋</span>
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
-            Here's what's happening across your HR & payroll workspace.
+          <div className="flex items-center gap-2 mb-1">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+              {getGreeting()}, {firstName} <span className="animate-bounce">👋</span>
+            </h1>
+            {user?.role === 'ADMIN' && (
+              <span className="px-2.5 py-0.5 text-[10px] font-extrabold uppercase bg-red-100/90 text-red-700 border border-red-200 rounded-full">
+                ADMIN
+              </span>
+            )}
+          </div>
+          <p className="text-xs sm:text-sm text-slate-500 font-medium">
+            {user?.role === 'ADMIN'
+              ? 'Administrator Workspace — manage system accounts, RBAC permissions, and HR payroll operations.'
+              : "Here's what's happening across your HR & payroll workspace."}
           </p>
         </div>
 
         {/* Action Buttons matching reference UI */}
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex items-center gap-3 shrink-0 flex-wrap">
+          {user?.role === 'ADMIN' && (
+            <Link
+              to="/admin/users"
+              className="px-5 py-2.5 text-xs font-bold text-white bg-[#FF5E1E] hover:bg-[#E0480C] rounded-full transition shadow-md shadow-orange-500/25 flex items-center gap-2 cursor-pointer"
+            >
+              <Shield className="w-4 h-4" />
+              <span>User Access & RBAC Panel</span>
+            </Link>
+          )}
           <Link
             to="/email-logs"
             className="px-5 py-2.5 text-xs font-bold text-slate-700 bg-white border border-slate-200/90 rounded-full hover:bg-slate-50 transition shadow-2xs flex items-center gap-1.5"

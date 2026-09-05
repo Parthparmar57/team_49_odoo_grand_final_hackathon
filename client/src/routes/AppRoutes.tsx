@@ -66,9 +66,25 @@ export const AppRoutes: React.FC = () => {
       >
         <Route path="/dashboard" element={<DashboardPage />} />
 
-        {/* Admin Only Route */}
+        {/* Admin Only Routes */}
         <Route
           path="/admin/users/new"
+          element={
+            <RoleGuard allowedRoles={['ADMIN']}>
+              <CreateUserPage />
+            </RoleGuard>
+          }
+        />
+        <Route
+          path="/admin/users"
+          element={
+            <RoleGuard allowedRoles={['ADMIN']}>
+              <CreateUserPage />
+            </RoleGuard>
+          }
+        />
+        <Route
+          path="/admin"
           element={
             <RoleGuard allowedRoles={['ADMIN']}>
               <CreateUserPage />
