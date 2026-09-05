@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../../api/client';
-import { Button, LoadingPage, Alert, Card, EmployeeStatusBadge, ContractStatusBadge, LeaveStatusBadge } from '../../components/ui';
-import { ArrowLeft, Edit, FileText, Clock, CalendarX, User, MapPin } from 'lucide-react';
+import { Button, LoadingPage, Alert, Card, EmployeeStatusBadge, ContractStatusBadge, LeaveStatusBadge, Modal } from '../../components/ui';
+import { ArrowLeft, Edit, FileText, Clock, CalendarX, User, MapPin, Award } from 'lucide-react';
 
 export default function EmployeeDetail() {
   const { id } = useParams();
@@ -11,6 +11,7 @@ export default function EmployeeDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [tab, setTab] = useState<'overview' | 'contracts' | 'attendance' | 'leaves' | 'payslips'>('overview');
+  const [showAllocationModal, setShowAllocationModal] = useState(false);
 
   useEffect(() => {
     api.employees.get(id!).then(res => {
@@ -24,6 +25,12 @@ export default function EmployeeDetail() {
   if (error) return <Alert message={error} />;
 
   const emp = employee;
+  const allocations = emp.leaveAllocations || emp.allocations || [];
+  const contractsCount = emp.contracts?.length || 0;
+  const attendanceCount = emp.attendances?.length || 0;
+  const leaveRequestsCount = emp.leaveRequests?.length || 0;
+  const allocationsCount = allocations.length;
+
   const tabs = ['overview', 'contracts', 'attendance', 'leaves', 'payslips'] as const;
 
   return (
@@ -56,16 +63,19 @@ export default function EmployeeDetail() {
         </div>
       </div>
 
-      {/* Quick navigation links */}
-      <div className="flex items-center gap-2 flex-wrap">
-        <button onClick={() => navigate('/contracts?employeeId=' + id)} className="flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-orange-50 border border-slate-200 hover:border-orange-200 rounded-xl text-xs font-bold text-slate-700 hover:text-[#FF5E1E] shadow-xs transition-all">
-          <FileText size={14} className="text-[#FF5E1E]" /> View Contracts
+      {/* 4 Smart Buttons with exact live database counts */}
+      <div className="flex items-center gap-2.5 flex-wrap">
+        <button onClick={() => navigate('/contracts?employeeId=' + id)} className="flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-orange-50 border border-slate-200 hover:border-orange-200 rounded-xl text-xs font-bold text-slate-700 hover:text-[#FF5E1E] shadow-2xs transition-all">
+          <FileText size={14} className="text-[#FF5E1E]" /> Contracts ({contractsCount})
         </button>
-        <button onClick={() => navigate('/attendance?employeeId=' + id)} className="flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-orange-50 border border-slate-200 hover:border-orange-200 rounded-xl text-xs font-bold text-slate-700 hover:text-[#FF5E1E] shadow-xs transition-all">
-          <Clock size={14} className="text-teal-600" /> Attendance History
+        <button onClick={() => navigate('/attendance?employeeId=' + id)} className="flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-orange-50 border border-slate-200 hover:border-orange-200 rounded-xl text-xs font-bold text-slate-700 hover:text-[#FF5E1E] shadow-2xs transition-all">
+          <Clock size={14} className="text-teal-600" /> Attendance ({attendanceCount})
         </button>
-        <button onClick={() => navigate('/leave?employeeId=' + id)} className="flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-orange-50 border border-slate-200 hover:border-orange-200 rounded-xl text-xs font-bold text-slate-700 hover:text-[#FF5E1E] shadow-xs transition-all">
-          <CalendarX size={14} className="text-purple-600" /> Time Off Requests
+        <button onClick={() => navigate('/leave?employeeId=' + id)} className="flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-orange-50 border border-slate-200 hover:border-orange-200 rounded-xl text-xs font-bold text-slate-700 hover:text-[#FF5E1E] shadow-2xs transition-all">
+          <CalendarX size={14} className="text-purple-600" /> Time Off Requests ({leaveRequestsCount})
+        </button>
+        <button onClick={() => setShowAllocationModal(true)} className="flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-orange-50 border border-slate-200 hover:border-orange-200 rounded-xl text-xs font-bold text-slate-700 hover:text-[#FF5E1E] shadow-2xs transition-all">
+          <Award size={14} className="text-amber-500" /> Leave Allocations ({allocationsCount})
         </button>
       </div>
 
@@ -212,6 +222,60 @@ export default function EmployeeDetail() {
           ) : <p className="text-slate-500 text-sm">No payslips generated yet.</p>}
         </Card>
       )}
+
+      {/* Leave Allocations Modal */}
+      <Modal open={showAllocationModal} onClose={() => setShowAllocationModal(false)} title={`Leave Allocations — ${emp.firstName} ${emp.lastName}`}>
+        <div className="space-y-4">
+          <p className="text-xs text-slate-500 font-medium">
+            Active time off allowances and remaining leave balance for this employee.
+          </p>
+          {allocations.length > 0 ? (
+            <div className="space-y-3">
+              {allocations.map((alloc: any) => {
+                const allocated = alloc.allocatedAmount ?? alloc.allocatedDays ?? 0;
+                const used = alloc.usedAmount ?? alloc.usedDays ?? 0;
+                const remaining = alloc.remainingAmount ?? (allocated - used);
+                const leaveTypeName = alloc.leaveType?.name || 'Standard Leave';
+
+                return (
+                  <div key={alloc.id || leaveTypeName} className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="font-extrabold text-sm text-slate-900">{leaveTypeName}</span>
+                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
+                        Active Allocation
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 text-center pt-1">
+                      <div className="p-2 bg-white border border-slate-200/60 rounded-xl">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase block">Allocated</span>
+                        <span className="text-sm font-black text-slate-900">{allocated} days</span>
+                      </div>
+                      <div className="p-2 bg-white border border-slate-200/60 rounded-xl">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase block">Used</span>
+                        <span className="text-sm font-black text-amber-600">{used} days</span>
+                      </div>
+                      <div className="p-2 bg-white border border-slate-200/60 rounded-xl">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase block">Remaining</span>
+                        <span className="text-sm font-black text-emerald-600">{remaining} days</span>
+                      </div>
+                    </div>
+                    {alloc.periodStart && alloc.periodEnd && (
+                      <p className="text-[10px] text-slate-400 font-medium text-right pt-1">
+                        Validity: {new Date(alloc.periodStart).toLocaleDateString()} – {new Date(alloc.periodEnd).toLocaleDateString()}
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="py-8 text-center bg-slate-50 border border-dashed border-slate-200 rounded-2xl">
+              <Award className="w-8 h-8 text-slate-400 mx-auto mb-2" />
+              <p className="text-xs text-slate-500 font-medium">No leave allocations configured for this employee.</p>
+            </div>
+          )}
+        </div>
+      </Modal>
     </div>
   );
 }

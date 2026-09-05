@@ -3,7 +3,7 @@ import { ApiResponse } from '../../utils/apiResponse.js';
 
 export const getOverview = async (req, res, next) => {
     try {
-        const overview = await DashboardService.getOverview();
+        const overview = await DashboardService.getOverview(req.query);
         return ApiResponse.success(res, overview);
     } catch (error) {
         next(error);

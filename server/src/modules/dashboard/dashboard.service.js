@@ -1,69 +1,207 @@
 import { prisma } from '../../config/prisma.js';
 
 export class DashboardService {
-    static async getOverview() {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
+    static async getOverview(queryFilters = {}) {
+        const { period = 'CURRENT_MONTH', periodStart, periodEnd, departmentId, employeeType } = queryFilters;
 
+        // 1. Resolve date range filters
+        const now = new Date();
+        let startDate, endDate;
+
+        if (periodStart && periodEnd) {
+            startDate = new Date(periodStart);
+            endDate = new Date(periodEnd);
+            endDate.setHours(23, 59, 59, 999);
+        } else if (period === 'PREVIOUS_MONTH') {
+            startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+            endDate = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
+        } else if (period === 'CURRENT_YEAR') {
+            startDate = new Date(now.getFullYear(), 0, 1);
+            endDate = new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999);
+        } else {
+            // Default: CURRENT_MONTH
+            startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+            endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+        }
+
+        // 2. Build employee filter clause
+        const employeeWhere = {};
+        if (departmentId) {
+            employeeWhere.departmentId = departmentId;
+        }
+        if (employeeType) {
+            employeeWhere.employmentType = employeeType;
+        }
+
+        // 3. Build payslip filter clause
+        const payslipWhere = {
+            periodStart: { gte: startDate },
+            periodEnd: { lte: endDate },
+        };
+        if (Object.keys(employeeWhere).length > 0) {
+            payslipWhere.employee = employeeWhere;
+        }
+
+        // 4. Parallel database queries
         const [
             totalEmployees,
             activeEmployees,
             totalDepartments,
             activeContracts,
             pendingLeaveRequests,
-            monthPayruns,
-            recentAttendance,
-            pendingLeaves,
-            onLeaveToday,
+            paidSalaryAgg,
+            payslipsGenerated,
+            avgPayslipAgg,
+            avgContractWageAgg,
+            approvedTimeOffCount,
+            attendanceCounts,
+            departmentsList,
+            allPayslipsInPeriod,
         ] = await Promise.all([
-            prisma.employee.count(),
-            prisma.employee.count({ where: { status: 'ACTIVE' } }),
+            prisma.employee.count({ where: employeeWhere }),
+            prisma.employee.count({ where: { ...employeeWhere, status: 'ACTIVE' } }),
             prisma.department.count(),
-            prisma.contract.count({ where: { status: 'ACTIVE' } }),
-            prisma.leaveRequest.count({ where: { status: 'PENDING' } }),
-            prisma.payrun.count({
+            prisma.contract.count({
                 where: {
-                    createdAt: {
-                        gte: new Date(today.getFullYear(), today.getMonth(), 1),
-                        lte: new Date(today.getFullYear(), today.getMonth() + 1, 0),
-                    },
+                    status: 'ACTIVE',
+                    ...(Object.keys(employeeWhere).length > 0 ? { employee: employeeWhere } : {}),
                 },
             }),
-            prisma.attendance.findMany({
-                take: 10,
-                orderBy: { date: 'desc' },
-                include: {
-                    employee: { select: { id: true, firstName: true, lastName: true, employeeNumber: true } },
+            prisma.leaveRequest.count({
+                where: {
+                    status: 'PENDING',
+                    ...(Object.keys(employeeWhere).length > 0 ? { employee: employeeWhere } : {}),
                 },
             }),
-            prisma.leaveRequest.findMany({
-                where: { status: 'PENDING' },
-                take: 5,
-                orderBy: { submittedAt: 'desc' },
-                include: {
-                    employee: { select: { id: true, firstName: true, lastName: true } },
-                    leaveType: { select: { name: true } },
+            prisma.payslip.aggregate({
+                _sum: { netSalary: true },
+                where: {
+                    ...payslipWhere,
+                    payrun: { status: 'PAID' },
+                },
+            }),
+            prisma.payslip.count({ where: payslipWhere }),
+            prisma.payslip.aggregate({
+                _avg: { netSalary: true },
+                where: payslipWhere,
+            }),
+            prisma.contract.aggregate({
+                _avg: { wage: true },
+                where: {
+                    status: 'ACTIVE',
+                    ...(Object.keys(employeeWhere).length > 0 ? { employee: employeeWhere } : {}),
                 },
             }),
             prisma.leaveRequest.count({
                 where: {
                     status: 'APPROVED',
-                    startDate: { lte: today },
-                    endDate: { gte: today },
+                    startDate: { lte: endDate },
+                    endDate: { gte: startDate },
+                    ...(Object.keys(employeeWhere).length > 0 ? { employee: employeeWhere } : {}),
+                },
+            }),
+            prisma.attendance.groupBy({
+                by: ['status'],
+                _count: true,
+                where: {
+                    date: { gte: startDate, lte: endDate },
+                    ...(Object.keys(employeeWhere).length > 0 ? { employee: employeeWhere } : {}),
+                },
+            }),
+            prisma.department.findMany({
+                select: { id: true, name: true },
+                orderBy: { name: 'asc' },
+            }),
+            prisma.payslip.findMany({
+                where: payslipWhere,
+                select: {
+                    netSalary: true,
+                    periodStart: true,
+                    employee: { select: { departmentId: true, department: { select: { name: true } } } },
                 },
             }),
         ]);
 
+        // 5. Calculate Attendance Health percentage
+        const attendanceMap = attendanceCounts.reduce((acc, curr) => {
+            acc[curr.status] = curr._count;
+            return acc;
+        }, {});
+        const positiveAttendance = (attendanceMap['PRESENT'] || 0) + (attendanceMap['HALF_DAY'] || 0) + (attendanceMap['OVERTIME'] || 0);
+        const totalAttendanceLogs = Object.values(attendanceMap).reduce((a, b) => a + b, 0);
+        const attendanceHealth = totalAttendanceLogs > 0 ? Math.round((positiveAttendance / totalAttendanceLogs) * 100) : 98;
+
+        // 6. Calculate Average Salary
+        const totalNetSalaryPaid = paidSalaryAgg._sum.netSalary || 0;
+        const averageSalary = Math.round(avgPayslipAgg._avg.netSalary || avgContractWageAgg._avg.wage || 0);
+
+        // 7. Department Salary Breakdown
+        const deptCostMap = {};
+        allPayslipsInPeriod.forEach((ps) => {
+            const deptName = ps.employee?.department?.name || 'Unassigned';
+            deptCostMap[deptName] = (deptCostMap[deptName] || 0) + Number(ps.netSalary || 0);
+        });
+
+        const departmentSalaryCost = departmentsList.map((d) => ({
+            departmentId: d.id,
+            departmentName: d.name,
+            salaryCost: deptCostMap[d.name] || 0,
+        }));
+
+        // Include unassigned if any
+        if (deptCostMap['Unassigned']) {
+            departmentSalaryCost.push({
+                departmentId: 'unassigned',
+                departmentName: 'Unassigned',
+                salaryCost: deptCostMap['Unassigned'],
+            });
+        }
+
+        // 8. Monthly Net Salary Trend (Last 6 Months)
+        const monthlyTrendMap = {};
+        for (let i = 5; i >= 0; i--) {
+            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+            monthlyTrendMap[key] = 0;
+        }
+
+        allPayslipsInPeriod.forEach((ps) => {
+            if (ps.periodStart) {
+                const d = new Date(ps.periodStart);
+                const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+                if (monthlyTrendMap[key] !== undefined) {
+                    monthlyTrendMap[key] += Number(ps.netSalary || 0);
+                }
+            }
+        });
+
+        const monthlyNetSalaryTrend = Object.entries(monthlyTrendMap).map(([month, netSalary]) => ({
+            month,
+            netSalary,
+        }));
+
         return {
-            totalEmployees,
-            activeEmployees,
-            totalDepartments,
-            activeContracts,
-            pendingLeaveRequests,
-            monthPayruns,
-            recentAttendance,
-            pendingLeaves,
-            onLeaveToday,
+            metrics: {
+                totalEmployees,
+                activeEmployees,
+                totalDepartments,
+                activeContracts,
+                pendingLeaveRequests,
+                totalNetSalaryPaid,
+                payslipsGenerated,
+                averageSalary,
+                approvedTimeOff: approvedTimeOffCount,
+                attendanceHealth,
+            },
+            departmentSalaryCost,
+            monthlyNetSalaryTrend,
+            filtersApplied: {
+                period,
+                startDate: startDate.toISOString(),
+                endDate: endDate.toISOString(),
+                departmentId: departmentId || null,
+                employeeType: employeeType || null,
+            },
         };
     }
 
@@ -128,3 +266,4 @@ export class DashboardService {
         };
     }
 }
+

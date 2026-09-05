@@ -130,8 +130,8 @@ class ApiClient {
     return this.request<any[]>('/employees');
   }
 
-  async getDashboardOverview(): Promise<ApiResponse<any>> {
-    return this.request('/dashboard/overview');
+  async getDashboardOverview(params?: Record<string, string>): Promise<ApiResponse<any>> {
+    return this.request('/dashboard/overview', { params });
   }
 
   async checkHealth(): Promise<ApiResponse<any>> {
