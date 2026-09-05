@@ -270,6 +270,7 @@ export class PayrollService {
                 data: warnings.map((w) => ({
                     payrunId,
                     employeeId: w.employeeId,
+                    type: w.type || 'NO_CONTRACT',
                     message: `${w.employeeName}: ${w.issue}`,
                     severity: 'WARNING',
                 })),

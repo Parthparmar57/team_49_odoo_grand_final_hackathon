@@ -19,8 +19,8 @@ export default function PayrunDetail() {
       if (res.success) setPayrun(res.data);
       else {
         const msg = res.error?.message || 'Payrun not found';
-        setError(msg);
         toast.error(msg);
+        navigate('/payroll');
       }
       setLoading(false);
     });
@@ -37,7 +37,6 @@ export default function PayrunDetail() {
       load();
     } else {
       const msg = res.error?.message || `Failed to ${action}`;
-      setError(msg);
       toast.error(msg);
     }
   };
@@ -51,7 +50,6 @@ export default function PayrunDetail() {
   };
 
   if (loading) return <LoadingPage />;
-  if (error) return <Alert message={error} />;
   if (!payrun) return null;
 
   // Audit warnings for pre-finalization checks

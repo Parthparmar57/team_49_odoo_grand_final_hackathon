@@ -62,6 +62,7 @@ export const DashboardPage: React.FC = () => {
   const [empAllocations, setEmpAllocations] = useState<any[]>([]);
   const [empRequests, setEmpRequests] = useState<any[]>([]);
   const [empPayslips, setEmpPayslips] = useState<any[]>([]);
+  const [empAttendance, setEmpAttendance] = useState<any[]>([]);
 
   // HR Manager Live Leave Requests State
   const [hrRequests, setHrRequests] = useState<any[]>([]);
@@ -97,8 +98,9 @@ export const DashboardPage: React.FC = () => {
         api.timeOff.allocations(empId ? { employeeId: empId } : {}),
         api.timeOff.requests(empId ? { employeeId: empId } : {}),
         api.payroll.payslips(empId ? { employeeId: empId } : {}),
+        api.attendance.list(empId ? { employeeId: empId, limit: '100' } : { limit: '100' }),
       ])
-        .then(([allocRes, reqRes, psRes]) => {
+        .then(([allocRes, reqRes, psRes, attRes]) => {
           if (allocRes && allocRes.success && Array.isArray(allocRes.data)) {
             setEmpAllocations(allocRes.data);
           }
@@ -107,6 +109,9 @@ export const DashboardPage: React.FC = () => {
           }
           if (psRes && psRes.success && Array.isArray(psRes.data)) {
             setEmpPayslips(psRes.data);
+          }
+          if (attRes && attRes.success && Array.isArray(attRes.data)) {
+            setEmpAttendance(attRes.data);
           }
         })
         .catch((err) => {
@@ -276,6 +281,14 @@ export const DashboardPage: React.FC = () => {
       ? empRequests.filter((r) => r && r.status === 'PENDING').length
       : 0;
 
+    const empAttendancePct = Array.isArray(empAttendance) && empAttendance.length > 0
+      ? Math.round(
+          (empAttendance.filter((r) => r && (r.status === 'PRESENT' || r.status === 'CORRECTED' || r.status === 'OVERTIME' || r.status === 'HALF_DAY')).length /
+            empAttendance.length) *
+            100
+        )
+      : 100;
+
     return (
       <div className="space-y-6 font-sans pb-8 text-slate-900">
         {/* Header Bar */}
@@ -318,8 +331,12 @@ export const DashboardPage: React.FC = () => {
               <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">ATTENDANCE LOG</span>
               <Activity className="w-5 h-5 text-emerald-600" />
             </div>
-            <p className="text-3xl font-black text-slate-900">100%</p>
-            <p className="text-xs text-slate-500 font-medium">current month attendance</p>
+            <p className="text-3xl font-black text-slate-900">{empAttendancePct}%</p>
+            <p className="text-xs text-slate-500 font-medium">
+              {Array.isArray(empAttendance) && empAttendance.length > 0
+                ? `${empAttendance.length} logs recorded`
+                : 'current month attendance'}
+            </p>
           </div>
 
           <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-2xs space-y-2">
@@ -355,7 +372,7 @@ export const DashboardPage: React.FC = () => {
                 const allocated = (isUL && (!a?.allocatedAmount || a?.allocatedAmount === 0)) ? 5 : (a?.allocatedAmount ?? 0);
                 const used = a?.usedAmount ?? 0;
                 const remaining = (isUL && (!a?.allocatedAmount || a?.allocatedAmount === 0)) ? (5 - used) : (a?.remainingAmount ?? (allocated - used));
-                const pct = allocated > 0 ? Math.min(100, Math.max(0, (remaining / allocated) * 100)) : 0;
+                const usedPct = allocated > 0 ? Math.min(100, Math.max(0, (used / allocated) * 100)) : 0;
 
                 return (
                   <div key={a?.id || idx} className="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 space-y-3">
@@ -367,8 +384,23 @@ export const DashboardPage: React.FC = () => {
                       <span className="text-2xl font-black text-slate-900">{remaining}</span>
                       <span className="text-xs text-slate-500 font-bold">/ {allocated} days left</span>
                     </div>
-                    <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
-                      <div className="bg-gradient-to-r from-[#FF5E1E] to-[#FF8038] h-full rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
+                    <div className="space-y-1.5 pt-1">
+                      <div className="flex justify-between items-center text-[11px] font-semibold text-slate-500">
+                        <span>Used: <strong className="text-slate-700 font-bold">{used} days</strong></span>
+                        <span className="font-bold text-[#FF5E1E]">{Math.round(usedPct)}% used</span>
+                      </div>
+                      <div className="w-full bg-slate-200/90 border border-slate-300/50 rounded-full h-3 overflow-hidden p-0.5 shadow-xs">
+                        <div
+                          className={`h-full rounded-full transition-all duration-500 shadow-xs ${
+                            usedPct > 80
+                              ? 'bg-gradient-to-r from-red-500 to-rose-600'
+                              : usedPct > 50
+                              ? 'bg-gradient-to-r from-amber-500 to-orange-500'
+                              : 'bg-gradient-to-r from-[#FF5E1E] to-[#FF8038]'
+                          }`}
+                          style={{ width: `${Math.min(100, Math.max(0, usedPct))}%` }}
+                        />
+                      </div>
                     </div>
                   </div>
                 );
@@ -860,7 +892,7 @@ export const DashboardPage: React.FC = () => {
               </p>
             </div>
 
-            <div className="space-y-3 pt-2 max-h-56 overflow-y-auto">
+            <div className="space-y-3 pt-2">
               {isLoadingMetrics ? (
                 <div className="py-8 flex items-center justify-center">
                   <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
@@ -914,7 +946,7 @@ export const DashboardPage: React.FC = () => {
               </Link>
             </div>
 
-            <div className="space-y-3 pt-2 max-h-96 overflow-y-auto">
+            <div className="space-y-3 pt-2">
               {isLoadingMetrics ? (
                 <div className="py-12 flex items-center justify-center">
                   <Loader2 className="w-6 h-6 animate-spin text-emerald-600" />
@@ -963,7 +995,7 @@ export const DashboardPage: React.FC = () => {
               </Link>
             </div>
 
-            <div className="space-y-3 pt-2 max-h-96 overflow-y-auto">
+            <div className="space-y-3 pt-2">
               {hrRequests.length > 0 ? (
                 hrRequests.slice(0, 6).map((req, idx) => {
                   const empName = req?.employee

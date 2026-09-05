@@ -37,7 +37,7 @@ export default function AttendancePage() {
       page: targetPage.toString(),
       limit: targetLimit.toString(),
     };
-    const empId = searchParams.get('employeeId');
+    const empId = searchParams.get('employeeId') || (user?.role === 'EMPLOYEE' ? (user.employee?.id || user.id) : undefined);
     if (empId) params.employeeId = empId;
     if (targetStatus) params.status = targetStatus;
 

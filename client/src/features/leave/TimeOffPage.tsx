@@ -29,7 +29,8 @@ export default function TimeOffPage() {
   const [employees, setEmployees] = useState<any[]>([]);
 
   const load = async () => {
-    const params = employeeIdParam ? { employeeId: employeeIdParam } : undefined;
+    const currentEmpId = employeeIdParam || (user?.role === 'EMPLOYEE' ? (user.employee?.id || user.id) : undefined);
+    const params = currentEmpId ? { employeeId: currentEmpId } : undefined;
     const [reqRes, typeRes, allocRes] = await Promise.all([
       api.timeOff.requests(params),
       api.timeOff.types(),
@@ -48,7 +49,7 @@ export default function TimeOffPage() {
         if (res.success) setEmployees(res.data?.employees || res.data || []);
       });
     }
-  }, [employeeIdParam]);
+  }, [employeeIdParam, user]);
 
   const handleCreate = async () => {
     setSaving(true);
@@ -169,91 +170,161 @@ export default function TimeOffPage() {
       {loading ? (
         <LoadingPage />
       ) : activeTab === 'summary' ? (
-        /* Leave Balance Summary View (Grouped per Employee Card) */
-        <div className="space-y-4">
-          <div className="flex justify-between items-center flex-wrap gap-3">
-            <h2 className="text-xs font-extrabold text-slate-500 uppercase tracking-wider">
-              Showing Leave Balances ({filteredGroupedAllocations.length} Employees)
-            </h2>
-            <div className="relative min-w-[260px]">
-              <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input
-                type="text"
-                value={summarySearch}
-                onChange={e => setSummarySearch(e.target.value)}
-                placeholder="Filter employee or department..."
-                className="w-full bg-white border border-slate-200 rounded-xl pl-10 pr-4 py-2 text-slate-900 text-sm placeholder-slate-400 focus:outline-none focus:border-[#FF5E1E] focus:ring-1 focus:ring-[#FF5E1E] shadow-xs"
-              />
-            </div>
-          </div>
+        /* Leave Balance Summary View */
+        (user?.role === 'EMPLOYEE' || filteredGroupedAllocations.length === 1) ? (
+          /* Dedicated Employee Self-Service Full-Width Layout */
+          <div className="space-y-6">
+            {filteredGroupedAllocations.slice(0, 1).map(group => {
+              const emp = group.employee || user?.employee || {};
+              const totalRemaining = group.balances.reduce((acc: number, b: any) => {
+                const isUL = b.leaveType?.code === 'UL';
+                const allocated = (isUL && (!b.allocatedAmount || b.allocatedAmount === 0)) ? 5 : (b.allocatedAmount ?? 0);
+                const used = b.usedAmount ?? 0;
+                const rem = (isUL && (!b.allocatedAmount || b.allocatedAmount === 0)) ? (5 - used) : (b.remainingAmount ?? (allocated - used));
+                return acc + rem;
+              }, 0);
+              const totalAllocated = group.balances.reduce((acc: number, b: any) => {
+                const isUL = b.leaveType?.code === 'UL';
+                const allocated = (isUL && (!b.allocatedAmount || b.allocatedAmount === 0)) ? 5 : (b.allocatedAmount ?? 0);
+                return acc + allocated;
+              }, 0);
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {filteredGroupedAllocations.map(group => {
-              const emp = group.employee;
               return (
-                <div
-                  key={emp.id || Math.random()}
-                  className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-xs hover:border-orange-300 transition-all space-y-4"
-                >
-                  {/* Employee Header Info */}
-                  <div className="flex items-center gap-3.5 pb-3 border-b border-slate-100">
-                    <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#FF5E1E] to-[#FF8038] flex items-center justify-center flex-shrink-0 shadow-xs">
-                      <span className="text-white text-sm font-extrabold">
-                        {emp.firstName?.[0]}{emp.lastName?.[0]}
-                      </span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between gap-1">
-                        <h3 className="text-slate-900 font-extrabold text-sm truncate">
-                          {emp.firstName} {emp.lastName}
-                        </h3>
-                        <span className="text-[11px] font-mono font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
-                          {emp.employeeNumber || 'EMP'}
-                        </span>
-                      </div>
-                      <p className="text-slate-500 text-xs font-medium truncate mt-0.5">
-                        {emp.designation || 'Staff'} · <span className="text-slate-700 font-bold">{emp.department?.name || 'General'}</span>
-                      </p>
-                    </div>
-                  </div>
+                <div key={emp.id || 'employee-summary'} className="space-y-6">
+                  {/* Full-Width Grid for All Leave Balances */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                    {group.balances.map(a => {
+                      const isUL = a.leaveType?.code === 'UL';
+                      const allocated = (isUL && (!a.allocatedAmount || a.allocatedAmount === 0)) ? 5 : (a.allocatedAmount ?? 0);
+                      const used = a.usedAmount ?? 0;
+                      const remaining = (isUL && (!a.allocatedAmount || a.allocatedAmount === 0)) ? (5 - used) : (a.remainingAmount ?? (allocated - used));
+                      const pct = allocated > 0 ? Math.min(100, Math.max(0, (used / allocated) * 100)) : 0;
 
-                  {/* Leave Balances Grid for Employee */}
-                  <div className="grid grid-cols-2 gap-2.5">
-                    {group.balances.map(a => (
-                      <div key={a.id} className="bg-slate-50/80 border border-slate-100 rounded-xl p-3 space-y-1.5">
-                        <div className="flex items-center justify-between text-xs">
-                          <span className="font-bold text-slate-700 truncate">{a.leaveType?.name}</span>
-                          <span className="text-[10px] font-extrabold text-[#FF5E1E] bg-orange-100/80 px-1.5 py-0.5 rounded">
-                            {a.leaveType?.code}
-                          </span>
+                      return (
+                        <div key={a.id} className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-2xs hover:border-orange-300 transition-all space-y-3">
+                          <div className="flex items-center justify-between">
+                            <span className="font-extrabold text-slate-900 text-sm">{a.leaveType?.name}</span>
+                            <span className="text-xs font-extrabold text-[#FF5E1E] bg-orange-100 px-2 py-0.5 rounded-full">
+                              {a.leaveType?.code}
+                            </span>
+                          </div>
+
+                          <div className="flex items-baseline gap-1 pt-1">
+                            <span className="text-3xl font-black text-slate-900">{remaining}</span>
+                            <span className="text-xs text-slate-500 font-bold">/ {allocated} days left</span>
+                          </div>
+
+                          <div className="space-y-2 pt-1">
+                            <div className="flex justify-between items-center text-[11px] font-semibold text-slate-500">
+                              <span>Used: <strong className="text-slate-700 font-bold">{used} days</strong></span>
+                              <span className="font-bold text-[#FF5E1E]">{Math.round(pct)}% used</span>
+                            </div>
+                            <div className="w-full bg-slate-100 border border-slate-200/90 rounded-full h-3 overflow-hidden p-0.5 shadow-xs">
+                              <div
+                                className={`h-full rounded-full transition-all duration-500 shadow-xs ${
+                                  pct > 80
+                                    ? 'bg-gradient-to-r from-red-500 to-rose-600'
+                                    : pct > 50
+                                    ? 'bg-gradient-to-r from-amber-500 to-orange-500'
+                                    : 'bg-gradient-to-r from-[#FF5E1E] to-[#FF8038]'
+                                }`}
+                                style={{ width: `${Math.min(100, Math.max(0, pct))}%` }}
+                              />
+                            </div>
+                          </div>
                         </div>
-                        <div className="flex items-baseline gap-1">
-                          <span className="text-xl font-extrabold text-slate-900">
-                            {a.remainingAmount ?? (a.allocatedAmount - a.usedAmount)}
-                          </span>
-                          <span className="text-[11px] text-slate-500 font-bold">
-                            / {a.allocatedAmount} {a.leaveType?.unit?.toLowerCase() || 'days'} left
-                          </span>
-                        </div>
-                        <div className="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
-                          <div
-                            className="bg-[#FF5E1E] h-full rounded-full"
-                            style={{
-                              width: `${Math.min(
-                                100,
-                                a.allocatedAmount ? (a.usedAmount / a.allocatedAmount) * 100 : 0
-                              )}%`,
-                            }}
-                          />
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               );
             })}
           </div>
-        </div>
+        ) : (
+          /* Multi-Employee Admin/HR Manager View */
+          <div className="space-y-4">
+            <div className="flex justify-between items-center flex-wrap gap-3">
+              <h2 className="text-xs font-extrabold text-slate-500 uppercase tracking-wider">
+                Showing Leave Balances ({filteredGroupedAllocations.length} Employees)
+              </h2>
+              <div className="relative min-w-[260px]">
+                <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  value={summarySearch}
+                  onChange={e => setSummarySearch(e.target.value)}
+                  placeholder="Filter employee or department..."
+                  className="w-full bg-white border border-slate-200 rounded-xl pl-10 pr-4 py-2 text-slate-900 text-sm placeholder-slate-400 focus:outline-none focus:border-[#FF5E1E] focus:ring-1 focus:ring-[#FF5E1E] shadow-xs"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {filteredGroupedAllocations.map(group => {
+                const emp = group.employee;
+                return (
+                  <div
+                    key={emp.id || Math.random()}
+                    className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-xs hover:border-orange-300 transition-all space-y-4"
+                  >
+                    <div className="flex items-center gap-3.5 pb-3 border-b border-slate-100">
+                      <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#FF5E1E] to-[#FF8038] flex items-center justify-center flex-shrink-0 shadow-xs">
+                        <span className="text-white text-sm font-extrabold">
+                          {emp.firstName?.[0]}{emp.lastName?.[0]}
+                        </span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-1">
+                          <h3 className="text-slate-900 font-extrabold text-sm truncate">
+                            {emp.firstName} {emp.lastName}
+                          </h3>
+                          <span className="text-[11px] font-mono font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
+                            {emp.employeeNumber || 'EMP'}
+                          </span>
+                        </div>
+                        <p className="text-slate-500 text-xs font-medium truncate mt-0.5">
+                          {emp.designation || 'Staff'} · <span className="text-slate-700 font-bold">{emp.department?.name || 'General'}</span>
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2.5">
+                      {group.balances.map(a => (
+                        <div key={a.id} className="bg-slate-50/80 border border-slate-100 rounded-xl p-3 space-y-1.5">
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="font-bold text-slate-700 truncate">{a.leaveType?.name}</span>
+                            <span className="text-[10px] font-extrabold text-[#FF5E1E] bg-orange-100/80 px-1.5 py-0.5 rounded">
+                              {a.leaveType?.code}
+                            </span>
+                          </div>
+                          <div className="flex items-baseline gap-1">
+                            <span className="text-xl font-extrabold text-slate-900">
+                              {a.remainingAmount ?? (a.allocatedAmount - a.usedAmount)}
+                            </span>
+                            <span className="text-[11px] text-slate-500 font-bold">
+                              / {a.allocatedAmount} {a.leaveType?.unit?.toLowerCase() || 'days'} left
+                            </span>
+                          </div>
+                          <div className="w-full bg-slate-100 border border-slate-200/80 rounded-full h-2 overflow-hidden p-0.5 shadow-2xs">
+                            <div
+                              className="bg-gradient-to-r from-[#FF5E1E] to-[#FF8038] h-full rounded-full transition-all duration-500"
+                              style={{
+                                width: `${Math.min(
+                                  100,
+                                  a.allocatedAmount ? (a.usedAmount / a.allocatedAmount) * 100 : 0
+                                )}%`,
+                              }}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )
       ) : (
         /* Leave Requests View */
         <div>
