@@ -199,6 +199,11 @@ export const CreateUserPage: React.FC = () => {
       return;
     }
 
+    if (customPassword && customPassword.trim().length > 0 && customPassword.trim().length < 6) {
+      setError('Custom password must be at least 6 characters long.');
+      return;
+    }
+
     setIsSubmitting(true);
     const result = await adminCreateUser({
       firstName,
@@ -207,7 +212,7 @@ export const CreateUserPage: React.FC = () => {
       role,
       status,
       employeeId: selectedEmployeeId || null,
-      password: customPassword || undefined,
+      password: customPassword && customPassword.trim() ? customPassword.trim() : undefined,
     });
     setIsSubmitting(false);
 

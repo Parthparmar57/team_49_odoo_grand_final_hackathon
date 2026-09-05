@@ -38,7 +38,7 @@ export const resetPasswordSchema = z.object({
 export const adminCreateUserSchema = z.object({
     body: z.object({
         email: z.string().email('Please enter a valid email address'),
-        password: z.string().min(8, 'Password must be at least 8 characters long').optional(),
+        password: z.string().min(6, 'Password must be at least 6 characters long').optional().or(z.literal('')),
         role: z.nativeEnum(Role),
         firstName: z.string().min(1, 'First name is required'),
         lastName: z.string().min(1, 'Last name is required'),
