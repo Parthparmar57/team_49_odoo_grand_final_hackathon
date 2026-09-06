@@ -265,6 +265,35 @@ export default function EmployeeForm() {
           </div>
         </Card>
 
+        {/* User Account & Security Access */}
+        {!isEdit && (
+          <Card className="p-6">
+            <h2 className="text-slate-900 font-extrabold text-base mb-4 border-b border-slate-100 pb-3 flex items-center justify-between">
+              <span>User Account Credentials & Access</span>
+              <span className="text-[10px] font-extrabold uppercase bg-orange-100 text-[#FF5E1E] px-2.5 py-0.5 rounded-full border border-orange-200">
+                AUTO-PROVISIONED
+              </span>
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Input
+                label="Account Password (Optional)"
+                type="password"
+                value={(form as any).password || ''}
+                onChange={set('password')}
+                placeholder="Leave blank to send set-password link"
+                hint="Optional: Leave blank to send set-password link to employee email. If specified, password & credentials will be emailed."
+              />
+              <Select label="Security Role" value={(form as any).role || 'EMPLOYEE'} onChange={set('role')}>
+                <option value="EMPLOYEE">EMPLOYEE (Self-service payslips & leaves)</option>
+                <option value="HR_MANAGER">HR_MANAGER (Employees & Contracts)</option>
+                <option value="HR_PAYROLL_USER">HR_PAYROLL_USER (Read structures, write payruns)</option>
+                <option value="HR_PAYROLL_MANAGER">HR_PAYROLL_MANAGER (Full Payroll CRUD & Validation)</option>
+                <option value="ADMIN">ADMIN (System Administrator)</option>
+              </Select>
+            </div>
+          </Card>
+        )}
+
         <div className="flex items-center justify-end gap-3 pt-2">
           <Button variant="secondary" onClick={() => navigate('/employees')}>Cancel</Button>
           <Button type="submit" disabled={loading}>

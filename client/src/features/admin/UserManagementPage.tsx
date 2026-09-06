@@ -350,13 +350,13 @@ export const UserManagementPage: React.FC = () => {
           />
 
           <Input
-            label="Password"
+            label="Password (Optional)"
             type="password"
-            placeholder="••••••••"
+            placeholder="Leave blank to send set-password link"
             value={newUserForm.password}
             onChange={(e) => setNewUserForm({ ...newUserForm, password: e.target.value })}
             error={newUserForm.password && newUserForm.password.length < 6 ? 'Password must be at least 6 characters' : ''}
-            hint="Minimum 6 characters (defaults to Welcome@123 if blank)"
+            hint="Optional: Leave blank to send a set-password link to employee email. If specified, initial password & credentials link will be sent."
           />
 
           <Select

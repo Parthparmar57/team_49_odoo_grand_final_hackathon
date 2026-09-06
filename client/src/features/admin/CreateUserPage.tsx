@@ -728,7 +728,7 @@ export const CreateUserPage: React.FC = () => {
                     type="password"
                     value={customPassword}
                     onChange={(e) => setCustomPassword(e.target.value)}
-                    placeholder="Leave empty for auto-generated password"
+                    placeholder="Leave empty to send set-password link to employee email"
                     className="w-full px-5 py-2.5 rounded-full bg-slate-50 border border-slate-200 text-slate-900 text-xs placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#FF5E1E]/40"
                   />
                   <Key className="w-4 h-4 text-slate-400 absolute right-4 top-1/2 transform -translate-y-1/2 pointer-events-none" />

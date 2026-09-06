@@ -122,10 +122,52 @@ export class EmployeesService {
             emergencyContact: data.emergencyContact || null,
         };
 
-        return prisma.employee.create({
+        const employee = await prisma.employee.create({
             data: payload,
             include: { department: true, schedule: true, manager: true },
         });
+
+        // Automatically provision User Account for new employee if one doesn't exist
+        const existingUser = await prisma.user.findUnique({ where: { email: data.email } });
+        if (!existingUser) {
+            try {
+                const bcrypt = (await import('bcryptjs')).default;
+                const { signToken } = await import('../../utils/jwt.js');
+                const { sendAccountWelcomeEmail } = await import('../../utils/email.js');
+                const crypto = await import('crypto');
+
+                const hasPassword = Boolean(data.password && data.password.trim().length > 0);
+                const rawPassword = hasPassword ? data.password.trim() : null;
+                const secretForHash = rawPassword || crypto.randomBytes(16).toString('hex');
+                const hashedPassword = await bcrypt.hash(secretForHash, 10);
+
+                const user = await prisma.user.create({
+                    data: {
+                        email: data.email,
+                        passwordHash: hashedPassword,
+                        role: data.role || 'EMPLOYEE',
+                        employee: { connect: { id: employee.id } },
+                    },
+                });
+
+                const resetToken = signToken({
+                    id: user.id,
+                    email: user.email,
+                    type: 'reset_password',
+                }, '7d');
+
+                await sendAccountWelcomeEmail({
+                    recipientEmail: employee.email,
+                    recipientName: `${employee.firstName} ${employee.lastName}`,
+                    initialPassword: rawPassword,
+                    resetToken,
+                });
+            } catch (err) {
+                console.error('Failed to auto-provision user account for employee:', err.message);
+            }
+        }
+
+        return employee;
     }
 
     static async updateEmployee(id, data) {

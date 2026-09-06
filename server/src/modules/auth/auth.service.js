@@ -2,7 +2,7 @@ import bcrypt from 'bcryptjs';
 import { prisma } from '../../config/prisma.js';
 import { signToken } from '../../utils/jwt.js';
 import { AppError } from '../../middleware/error.middleware.js';
-import { sendPasswordResetEmail } from '../../utils/email.js';
+import { sendPasswordResetEmail, sendAccountWelcomeEmail } from '../../utils/email.js';
 import { Validator } from '../../utils/validation.js';
 
 export function buildAuthUserResponse(user) {
@@ -192,8 +192,12 @@ export class AuthService {
             throw new AppError('A user with this email already exists', 400, 'USER_EXISTS');
         }
 
-        const rawPassword = data.password || 'Welcome@123';
-        const hashedPassword = await bcrypt.hash(rawPassword, 10);
+        const hasPassword = Boolean(data.password && data.password.trim().length > 0);
+        const rawPassword = hasPassword ? data.password.trim() : null;
+
+        const crypto = await import('crypto');
+        const secretForHash = rawPassword || crypto.randomBytes(16).toString('hex');
+        const hashedPassword = await bcrypt.hash(secretForHash, 10);
 
         let employeeId = data.employeeId;
 
@@ -216,8 +220,8 @@ export class AuthService {
                 const newEmp = await prisma.employee.create({
                     data: {
                         employeeNumber: `EMP-${Math.floor(1000 + Math.random() * 9000)}`,
-                        firstName: data.firstName,
-                        lastName: data.lastName,
+                        firstName: data.firstName || data.email.split('@')[0],
+                        lastName: data.lastName || 'Staff',
                         email: data.email,
                         designation: data.role === 'ADMIN' ? 'System Administrator' : 'Team Member',
                         joiningDate: new Date(),
@@ -232,7 +236,7 @@ export class AuthService {
             data: {
                 email: data.email,
                 passwordHash: hashedPassword,
-                role: data.role,
+                role: data.role || 'EMPLOYEE',
                 ...(employeeId && { employee: { connect: { id: employeeId } } }),
             },
             include: {
@@ -242,11 +246,32 @@ export class AuthService {
             }
         });
 
-        const { passwordHash: _, ...userWithoutPassword } = user;
+        // Generate password reset token (valid for 7 days)
+        const resetToken = signToken({
+            id: user.id,
+            email: user.email,
+            type: 'reset_password',
+        }, '7d');
+
+        const recipientName = user.employee ? `${user.employee.firstName} ${user.employee.lastName}` : user.email;
+
+        // Dispatch welcome email with credentials & set/reset password link
+        const emailDelivery = await sendAccountWelcomeEmail({
+            recipientEmail: user.email,
+            recipientName,
+            initialPassword: rawPassword,
+            resetToken,
+        });
+
         return {
             user: buildAuthUserResponse(user),
-            tempPassword: rawPassword,
-            message: 'User created successfully.'
+            hasPassword,
+            initialPassword: rawPassword,
+            resetToken,
+            emailDelivery,
+            message: hasPassword
+                ? 'User account created and credentials email sent successfully.'
+                : 'User account created. Email sent with set-password link to employee.'
         };
     }
 
