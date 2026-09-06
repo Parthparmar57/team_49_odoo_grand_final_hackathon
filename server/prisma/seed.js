@@ -179,10 +179,10 @@ async function main() {
 
     // Real-world Multi-User Special Accounts configuration
     const specialAccounts = [
-        // Admins (3 accounts)
-        { empIndex: 1, email: 'admin@peoplepay360.com', role: Role.ADMIN },
-        { empIndex: 2, email: 'admin@ex.com', role: Role.ADMIN },
-        { empIndex: 3, email: 'sysadmin@peoplepay360.com', role: Role.ADMIN },
+        // Team Members & Core Admins (EMP-001, EMP-002, EMP-003)
+        { empIndex: 1, empNum: 'EMP-001', firstName: 'Vinay', lastName: 'Vaja', email: 'vinay.vaja@peoplepay360.com', designation: 'Full Stack Developer', role: Role.ADMIN },
+        { empIndex: 2, empNum: 'EMP-002', firstName: 'Parth', lastName: 'Parmar', email: 'parth.parmar@peoplepay360.com', designation: 'Senior Software Engineer', role: Role.ADMIN },
+        { empIndex: 3, empNum: 'EMP-003', firstName: 'Harsh', lastName: 'Patel', email: 'harsh.patel@peoplepay360.com', designation: 'DevOps Engineer', role: Role.ADMIN },
 
         // HR Managers (5 accounts)
         { empIndex: 4, email: 'hrmanager@ex.com', role: Role.HR_MANAGER },
@@ -210,7 +210,8 @@ async function main() {
     ];
 
     for (let i = 1; i <= 280; i++) {
-        const empNum = `EMP${String(i).padStart(3, '0')}`;
+        const special = specialAccounts.find(s => s.empIndex === i);
+        const empNum = special && special.empNum ? special.empNum : `EMP${String(i).padStart(3, '0')}`;
         
         // Department distribution
         let dept = deptENG;
@@ -223,22 +224,18 @@ async function main() {
 
         const fnIndex = (i * 7) % firstNames.length;
         const lnIndex = (i * 13) % lastNames.length;
-        const firstName = firstNames[fnIndex];
-        const lastName = lastNames[lnIndex];
+        const firstName = special && special.firstName ? special.firstName : firstNames[fnIndex];
+        const lastName = special && special.lastName ? special.lastName : lastNames[lnIndex];
 
         // Designation selection
         const desgs = designationsMap[dept.id] || ['Specialist'];
-        const designation = desgs[(i % desgs.length)];
+        const designation = special && special.designation ? special.designation : desgs[(i % desgs.length)];
 
         // Email & Role calculation
-        let email = `employee${String(i).padStart(3, '0')}@company.com`;
-        let userRole = Role.EMPLOYEE;
+        let email = special && special.email ? special.email : `employee${String(i).padStart(3, '0')}@company.com`;
+        let userRole = special && special.role ? special.role : Role.EMPLOYEE;
 
-        const special = specialAccounts.find(s => s.empIndex === i);
-        if (special) {
-            email = special.email;
-            userRole = special.role;
-        } else if (dept.id === deptHR.id) {
+        if (!special && dept.id === deptHR.id) {
             if (designation.includes('HR Manager') || designation.includes('HR Business Partner')) {
                 userRole = Role.HR_MANAGER;
             } else if (designation.includes('Payroll Specialist')) {
@@ -247,7 +244,6 @@ async function main() {
                 userRole = Role.HR_PAYROLL_MANAGER;
             }
         }
-
 
         // Create User account
         const user = await prisma.user.create({
