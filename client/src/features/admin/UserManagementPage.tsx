@@ -53,8 +53,8 @@ export const UserManagementPage: React.FC = () => {
       if (empRes.success && empRes.data) {
         const empList = Array.isArray(empRes.data)
           ? empRes.data
-          : Array.isArray(empRes.data.employees)
-          ? empRes.data.employees
+          : Array.isArray((empRes.data as any)?.employees)
+          ? (empRes.data as any).employees
           : [];
         setEmployees(empList);
       }

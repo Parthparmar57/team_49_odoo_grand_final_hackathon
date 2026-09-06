@@ -7,6 +7,11 @@ import { checkInSchema, checkOutSchema, correctAttendanceSchema } from '../../sc
 
 const router = Router();
 
+// Public Biometric Kiosk Sync Endpoints
+router.get('/live-biometric-logs', attendanceController.getBiometricLogs);
+router.post('/launch-camera', attendanceController.launchCamera);
+router.post('/live-punch', attendanceController.recordLivePunch);
+
 router.use(authenticate);
 
 router.post('/check-in', validate(checkInSchema), attendanceController.checkIn);
