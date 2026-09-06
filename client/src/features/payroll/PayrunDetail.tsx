@@ -128,12 +128,20 @@ export default function PayrunDetail() {
     }
   };
 
-  const handleSendPayslips = () => {
+  const handleSendPayslips = async () => {
     setSendingEmails(true);
-    setTimeout(() => {
+    try {
+      const res = await api.payroll.sendPayrunEmails(id!);
+      if (res.success) {
+        toast.success(res.data?.message || `Payslips dispatched successfully to ${payrun?.payslips?.length || 0} employees`);
+      } else {
+        toast.error(res.error?.message || 'Failed to dispatch payslip emails');
+      }
+    } catch (err: any) {
+      toast.error(err?.message || 'Failed to dispatch payslip emails');
+    } finally {
       setSendingEmails(false);
-      toast.success(`Payslips dispatched successfully to ${payrun?.payslips?.length || 0} employees`);
-    }, 1200);
+    }
   };
 
   const formatDate = (d: any) => {
