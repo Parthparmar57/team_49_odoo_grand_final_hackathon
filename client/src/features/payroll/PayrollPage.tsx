@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api/client';
 import { PageHeader, Table, Tr, Td, Button, LoadingPage, Alert, Modal, Input, Select, Card, PayrunStatusBadge } from '../../components/ui';
-import { Plus, Play, CheckCircle, DollarSign, Loader2, ChevronRight } from 'lucide-react';
+import { Plus, Play, CheckCircle, DollarSign, Loader2, ChevronRight, Search, Filter, X } from 'lucide-react';
 import { useToast } from '../../context/ToastContext';
 
 export default function PayrollPage() {
@@ -22,6 +22,9 @@ export default function PayrollPage() {
   const [departments, setDepartments] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<'payruns' | 'payslips'>('payruns');
   const [allPayslips, setAllPayslips] = useState<any[]>([]);
+  const [payslipSearch, setPayslipSearch] = useState('');
+  const [payslipStructureFilter, setPayslipStructureFilter] = useState('');
+  const [payslipStatusFilter, setPayslipStatusFilter] = useState('');
   const [newForm, setNewForm] = useState({
     payrunRef: '', name: '', salaryStructureId: '', periodStart: '', periodEnd: '',
   });
@@ -95,6 +98,32 @@ export default function PayrollPage() {
     return nameMatches && deptMatches;
   });
 
+  const filteredPayslips = useMemo(() => {
+    return allPayslips.filter(ps => {
+      const searchLower = payslipSearch.toLowerCase().trim();
+      const empName = `${ps.employee?.firstName || ''} ${ps.employee?.lastName || ''}`.toLowerCase();
+      const empNum = (ps.employee?.employeeNumber || '').toLowerCase();
+      const ref = (ps.number || ps.payslipRef || ps.id || '').toLowerCase();
+      const structName = (ps.contract?.salaryStructure?.name || ps.salaryStructure?.name || '').toLowerCase();
+
+      const matchesSearch =
+        !searchLower ||
+        empName.includes(searchLower) ||
+        empNum.includes(searchLower) ||
+        ref.includes(searchLower) ||
+        structName.includes(searchLower);
+
+      const matchesStructure =
+        !payslipStructureFilter ||
+        ps.contract?.salaryStructureId === payslipStructureFilter ||
+        ps.salaryStructureId === payslipStructureFilter;
+
+      const matchesStatus = !payslipStatusFilter || ps.status === payslipStatusFilter;
+
+      return matchesSearch && matchesStructure && matchesStatus;
+    });
+  }, [allPayslips, payslipSearch, payslipStructureFilter, payslipStatusFilter]);
+
   const toggleSelectAll = () => {
     if (selectedEmployeeIds.length === filteredStaff.length) {
       setSelectedEmployeeIds([]);
@@ -123,7 +152,7 @@ export default function PayrollPage() {
       <div className="flex border-b border-slate-200 gap-6">
         <button
           onClick={() => setActiveTab('payruns')}
-          className={`pb-3 font-extrabold text-sm border-b-2 transition-all ${
+          className={`pb-3 font-extrabold text-sm border-b-2 transition-all cursor-pointer ${
             activeTab === 'payruns' ? 'border-[#FF5E1E] text-[#FF5E1E]' : 'border-transparent text-slate-500 hover:text-slate-800'
           }`}
         >
@@ -131,7 +160,7 @@ export default function PayrollPage() {
         </button>
         <button
           onClick={() => setActiveTab('payslips')}
-          className={`pb-3 font-extrabold text-sm border-b-2 transition-all ${
+          className={`pb-3 font-extrabold text-sm border-b-2 transition-all cursor-pointer ${
             activeTab === 'payslips' ? 'border-[#FF5E1E] text-[#FF5E1E]' : 'border-transparent text-slate-500 hover:text-slate-800'
           }`}
         >
@@ -195,21 +224,21 @@ export default function PayrollPage() {
                 <Td>
                   <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
                     {pr.status === 'DRAFT' && (
-                      <button onClick={() => handleAction(pr.id, 'compute')} className="px-2.5 py-1 bg-sky-50 text-sky-700 hover:bg-sky-100 border border-sky-200 rounded-lg text-xs font-bold transition-all flex items-center gap-1">
+                      <button onClick={() => handleAction(pr.id, 'compute')} className="px-2.5 py-1 bg-sky-50 text-sky-700 hover:bg-sky-100 border border-sky-200 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer">
                         <Play size={12} /> Compute
                       </button>
                     )}
                     {pr.status === 'COMPUTED' && (
-                      <button onClick={() => handleAction(pr.id, 'validate')} className="px-2.5 py-1 bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200 rounded-lg text-xs font-bold transition-all flex items-center gap-1">
+                      <button onClick={() => handleAction(pr.id, 'validate')} className="px-2.5 py-1 bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer">
                         <CheckCircle size={12} /> Validate
                       </button>
                     )}
                     {pr.status === 'VALIDATED' && (
-                      <button onClick={() => handleAction(pr.id, 'pay')} className="px-2.5 py-1 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 rounded-lg text-xs font-bold transition-all flex items-center gap-1">
+                      <button onClick={() => handleAction(pr.id, 'pay')} className="px-2.5 py-1 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer">
                         <DollarSign size={12} /> Mark Paid
                       </button>
                     )}
-                    <button onClick={() => navigate(`/payroll/payruns/${pr.id}`)} className="p-1.5 text-slate-400 hover:text-slate-900 rounded">
+                    <button onClick={() => navigate(`/payroll/payruns/${pr.id}`)} className="p-1.5 text-slate-400 hover:text-slate-900 rounded cursor-pointer">
                       <ChevronRight size={16} />
                     </button>
                   </div>
@@ -219,13 +248,90 @@ export default function PayrollPage() {
           </Table>
         </div>
       ) : (
-        <div>
-          <h2 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider mb-3">All Generated Payslips ({allPayslips.length})</h2>
+        <div className="space-y-4">
+          {/* Payslip Search & Filter Bar */}
+          <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-xs">
+            <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+              {/* Search Input */}
+              <div className="relative flex-1">
+                <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Search payslips by employee name, EMP ID, or payslip #..."
+                  value={payslipSearch}
+                  onChange={e => setPayslipSearch(e.target.value)}
+                  className="w-full pl-10 pr-10 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-xs sm:text-sm font-semibold focus:outline-none focus:border-[#FF5E1E] focus:bg-white transition-all placeholder:text-slate-400"
+                />
+                {payslipSearch && (
+                  <button
+                    onClick={() => setPayslipSearch('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 p-0.5 rounded-full cursor-pointer"
+                  >
+                    <X size={14} />
+                  </button>
+                )}
+              </div>
+
+              {/* Filter Controls */}
+              <div className="flex items-center gap-2.5 flex-wrap">
+                {/* Structure Filter Dropdown */}
+                <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2">
+                  <Filter size={14} className="text-slate-400" />
+                  <select
+                    value={payslipStructureFilter}
+                    onChange={e => setPayslipStructureFilter(e.target.value)}
+                    className="bg-transparent text-slate-900 text-xs sm:text-sm font-semibold focus:outline-none cursor-pointer"
+                  >
+                    <option value="">All Salary Structures</option>
+                    {structures.map(s => (
+                      <option key={s.id} value={s.id}>{s.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Status Filter Dropdown */}
+                <select
+                  value={payslipStatusFilter}
+                  onChange={e => setPayslipStatusFilter(e.target.value)}
+                  className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 text-xs sm:text-sm font-semibold focus:outline-none cursor-pointer"
+                >
+                  <option value="">All Statuses</option>
+                  <option value="PAID">Paid</option>
+                  <option value="COMPUTED">Computed</option>
+                  <option value="DRAFT">Draft</option>
+                  <option value="VALIDATED">Validated</option>
+                </select>
+
+                {/* Clear Filters Button */}
+                {(payslipSearch || payslipStructureFilter || payslipStatusFilter) && (
+                  <button
+                    onClick={() => {
+                      setPayslipSearch('');
+                      setPayslipStructureFilter('');
+                      setPayslipStatusFilter('');
+                    }}
+                    className="px-3 py-2 text-xs font-bold text-slate-600 hover:text-[#FF5E1E] bg-slate-100 hover:bg-orange-50 rounded-xl border border-slate-200 transition-all cursor-pointer"
+                  >
+                    Clear Filters
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Results Count Summary */}
+            <div className="flex items-center justify-between text-xs text-slate-500 font-semibold mt-3 pt-3 border-t border-slate-100">
+              <span>Showing <strong className="text-slate-900">{filteredPayslips.length}</strong> of <strong className="text-slate-900">{allPayslips.length}</strong> total payslips</span>
+              {(payslipSearch || payslipStructureFilter || payslipStatusFilter) && (
+                <span className="text-[#FF5E1E] font-bold">Filtered Results</span>
+              )}
+            </div>
+          </div>
+
           <Table
             headers={['Payslip #', 'Employee', 'Structure', 'Period', 'Gross Salary', 'Total Deductions', 'Net Salary', 'PDF']}
-            empty={allPayslips.length === 0}
+            empty={filteredPayslips.length === 0}
           >
-            {allPayslips.map(ps => (
+            {filteredPayslips.map(ps => (
               <Tr key={ps.id}>
                 <Td className="font-mono text-xs font-bold text-[#FF5E1E]">{ps.number || ps.payslipRef || ps.id.slice(0, 8)}</Td>
                 <Td>
