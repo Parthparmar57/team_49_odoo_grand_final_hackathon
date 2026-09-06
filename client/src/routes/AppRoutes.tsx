@@ -120,7 +120,7 @@ export const AppRoutes: React.FC = () => {
         <Route
           path="/employees/new"
           element={
-            <RoleGuard allowedRoles={['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_MANAGER']}>
+            <RoleGuard allowedRoles={['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER']}>
               <EmployeeForm />
             </RoleGuard>
           }
@@ -136,7 +136,7 @@ export const AppRoutes: React.FC = () => {
         <Route
           path="/employees/:id/edit"
           element={
-            <RoleGuard allowedRoles={['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_MANAGER']}>
+            <RoleGuard allowedRoles={['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER']}>
               <EmployeeForm />
             </RoleGuard>
           }
@@ -153,7 +153,7 @@ export const AppRoutes: React.FC = () => {
         <Route
           path="/contracts/new"
           element={
-            <RoleGuard allowedRoles={['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_MANAGER']}>
+            <RoleGuard allowedRoles={['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER']}>
               <ContractForm />
             </RoleGuard>
           }
@@ -161,7 +161,7 @@ export const AppRoutes: React.FC = () => {
         <Route
           path="/contracts/:id/edit"
           element={
-            <RoleGuard allowedRoles={['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_MANAGER']}>
+            <RoleGuard allowedRoles={['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER']}>
               <ContractForm />
             </RoleGuard>
           }

@@ -108,11 +108,9 @@ export default function EmployeesPage() {
             <LayoutGrid size={16} />
           </button>
         </div>
-        {!isPayrollUser && (
-          <Button onClick={() => navigate('/employees/new')}>
-            <Plus size={16} /> Add Employee
-          </Button>
-        )}
+        <Button onClick={() => navigate('/employees/new')}>
+          <Plus size={16} /> Add Employee
+        </Button>
       </PageHeader>
 
       {/* Filter & Search Bar */}

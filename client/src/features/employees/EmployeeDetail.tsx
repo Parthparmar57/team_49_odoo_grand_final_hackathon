@@ -59,13 +59,11 @@ export default function EmployeeDetail() {
             </div>
           </div>
         </div>
-        {!isPayrollUser && (
-          <div className="flex items-center gap-2">
-            <Button onClick={() => navigate(`/employees/${id}/edit`)} variant="secondary">
-              <Edit size={16} /> Edit Profile
-            </Button>
-          </div>
-        )}
+        <div className="flex items-center gap-2">
+          <Button onClick={() => navigate(`/employees/${id}/edit`)} variant="secondary">
+            <Edit size={16} /> Edit Profile
+          </Button>
+        </div>
       </div>
 
       {/* 4 Smart Buttons with exact live database counts */}

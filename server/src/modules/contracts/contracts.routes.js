@@ -11,8 +11,8 @@ router.use(authenticate);
 
 router.get('/', authorize(['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER', 'EMPLOYEE']), contractsController.getContracts);
 router.get('/:id', authorize(['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER', 'EMPLOYEE']), contractsController.getContractById);
-router.post('/', authorize(['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_MANAGER']), validate(createContractSchema), contractsController.createContract);
-router.patch('/:id', authorize(['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_MANAGER']), validate(updateContractSchema), contractsController.updateContract);
-router.delete('/:id', authorize(['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_MANAGER']), contractsController.deleteContract);
+router.post('/', authorize(['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER']), validate(createContractSchema), contractsController.createContract);
+router.patch('/:id', authorize(['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER']), validate(updateContractSchema), contractsController.updateContract);
+router.delete('/:id', authorize(['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER']), contractsController.deleteContract);
 
 export default router;

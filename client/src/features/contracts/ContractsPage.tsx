@@ -84,11 +84,9 @@ export default function ContractsPage() {
   return (
     <div className="space-y-6">
       <PageHeader title="Contracts" subtitle={`${contracts.length} active & historical contract records`}>
-        {!isPayrollUser && (
-          <Button onClick={() => navigate('/contracts/new')}>
-            <Plus size={16} /> New Contract
-          </Button>
-        )}
+        <Button onClick={() => navigate('/contracts/new')}>
+          <Plus size={16} /> New Contract
+        </Button>
       </PageHeader>
 
       {/* Search & Filter Bar */}

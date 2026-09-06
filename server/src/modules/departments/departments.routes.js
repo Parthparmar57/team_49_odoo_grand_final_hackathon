@@ -11,8 +11,8 @@ router.use(authenticate);
 
 router.get('/', departmentsController.getDepartments);
 router.get('/:id', departmentsController.getDepartmentById);
-router.post('/', authorize(['ADMIN', 'HR_MANAGER']), validate(createDepartmentSchema), departmentsController.createDepartment);
-router.patch('/:id', authorize(['ADMIN', 'HR_MANAGER']), validate(updateDepartmentSchema), departmentsController.updateDepartment);
-router.delete('/:id', authorize(['ADMIN', 'HR_MANAGER']), departmentsController.deleteDepartment);
+router.post('/', authorize(['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER']), validate(createDepartmentSchema), departmentsController.createDepartment);
+router.patch('/:id', authorize(['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER']), validate(updateDepartmentSchema), departmentsController.updateDepartment);
+router.delete('/:id', authorize(['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER']), departmentsController.deleteDepartment);
 
 export default router;

@@ -391,11 +391,9 @@ export default function SchedulesPage() {
   return (
     <div className="space-y-6 font-sans">
       <PageHeader title="Working Schedules" subtitle={`${schedules.length} standard work schedules configured`}>
-        {!isPayrollUser && (
-          <Button onClick={() => setShowModal(true)}>
-            <Plus size={16} /> New Schedule
-          </Button>
-        )}
+        <Button onClick={() => setShowModal(true)}>
+          <Plus size={16} /> New Schedule
+        </Button>
       </PageHeader>
 
       {/* Search & Filter Bar */}

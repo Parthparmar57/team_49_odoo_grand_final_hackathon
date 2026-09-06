@@ -23,9 +23,9 @@ router.use(authenticate);
 // ==========================================
 router.get('/types', timeOffController.getTimeOffTypes);
 router.get('/types/:id', timeOffController.getTimeOffTypeById);
-router.post('/types', authorize(['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_MANAGER']), validate(createLeaveTypeSchema), timeOffController.createTimeOffType);
-router.patch('/types/:id', authorize(['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_MANAGER']), validate(updateLeaveTypeSchema), timeOffController.updateTimeOffType);
-router.delete('/types/:id', authorize(['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_MANAGER']), timeOffController.deleteTimeOffType);
+router.post('/types', authorize(['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER']), validate(createLeaveTypeSchema), timeOffController.createTimeOffType);
+router.patch('/types/:id', authorize(['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER']), validate(updateLeaveTypeSchema), timeOffController.updateTimeOffType);
+router.delete('/types/:id', authorize(['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER']), timeOffController.deleteTimeOffType);
 
 // ==========================================
 // ALLOCATIONS & BALANCES
