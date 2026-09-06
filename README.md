@@ -1,198 +1,210 @@
-# PeoplePay360 — AI-Powered HR, OpenCV Biometric Attendance & Payroll Platform
+# PeoplePay360: HR & Payroll
 
-> **REAL-TIME OPENCV BIOMETRICS → LIVE PUNCH SYNC → HR GOVERNANCE → CONTRACTS & SCHEDULES → DETERMINISTIC PAYROLL ENGINE**
+> **An Integrated Human Resource and Payroll Operations Platform**
+> 
+> *Developed for the Odoo Grand Final Hackathon by Team 49*
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Node.js](https://img.shields.io/badge/Node.js-20-green.svg)
 ![React](https://img.shields.io/badge/React-18-61dafb.svg)
-![Python](https://img.shields.io/badge/Python-3.10+-3776ab.svg)
-![OpenCV](https://img.shields.io/badge/OpenCV-4.x-5C3EE8.svg)
-![InsightFace](https://img.shields.io/badge/InsightFace-ArcFace-ff69b4.svg)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-336791.svg)
 ![Prisma](https://img.shields.io/badge/Prisma-5-2d3748.svg)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178c6.svg)
 
 ---
 
-## 🚀 Executive Summary
+## 📌 1) Project Overview
 
-**PeoplePay360** is a unified, high-performance HR, Attendance, and Payroll platform designed to bridge physical workplace biometric tracking with enterprise HR management and deterministic payroll processing. 
+Many basic HR tools store employee details, attendance, leave, and salary data as separate records. Real HR and payroll teams need these records to work together seamlessly.
 
-By replacing vulnerable web buttons and proxy-prone badge scanners with an **OpenCV + InsightFace AI facial recognition kiosk**, PeoplePay360 guarantees tamper-proof attendance logging. Biometric check-in and check-out events automatically stream to a central PostgreSQL engine, feeding directly into working-hours calculations, leave balances, HR governance workflows, and multi-tier salary rule engine payruns.
-
----
-
-## 🎯 Core Problem & Overall Solution Flow
-
-###  Core Problem
-
-Enterprise HR operations suffer from critical vulnerabilities and operational inefficiencies:
-
-1. **Proxy Attendance & Buddy Punching**: Standard web portals, manual clock-ins, or badge swiping permit employees to log attendance for absent colleagues, leading to payroll inflation and inaccurate record-keeping.
-2. **Attendance Reconciliation Bottlenecks**: HR teams waste days every month manually collecting attendance logs, matching clock-in times against working schedules, and calculating worked hours, late arrivals, and half-days.
-3. **Manual Payroll Calculation Risks**: Multi-tier salary components (basic pay, housing allowances, statutory tax rates, and custom deductions) calculated manually in spreadsheets lead to calculation mistakes, compliance risks, and delayed payslip issuance.
-4. **Siloed HR Modules**: Disconnected systems for contracts, working schedules, leave allocations, attendance tracking, and salary rules result in data inconsistencies and lack of real-time visibility.
+**PeoplePay360: HR & Payroll** goes beyond simple employee CRUD screens to create a connected operational flow. The **Employee record** acts as the central hub:
+- Related **Contracts** and **Working Schedules** provide active payroll context.
+- **Attendance** and **Time Off** capture day-to-day HR activity.
+- **Salary Structures** and **Salary Rules** define deterministic salary computation logic.
+- **Payruns** transform eligible employee records into validated payslips that can be printed as PDF documents and distributed to employees.
 
 ---
 
-### ✅ Overall Solution Flow
+## 🎯 2) Goals & Scope
 
-PeoplePay360 resolves these operational gaps through an integrated 7-stage architecture:
+### Main Goal
+Develop an integrated HR and payroll platform managing the full employee lifecycle—from master data and time tracking to payroll calculation, PDF payslip generation, and reporting.
+
+### Key Outcomes
+- **Unified HR Flow**: Centralized employee records with smart-button navigation to Contracts, Attendance, Time Off, and Allocations.
+- **Contract Management**: Maintain historical contract records while ensuring payroll strictly processes the active, period-specific contract without concurrent overlap.
+- **Operational Tracking**: Flexible Working Schedules with dynamic weekly hours calculation, attendance tracking (with exception handling & corrections), and comprehensive Time Off management.
+- **Payroll Processing**: A two-step pay run creation wizard (Scope/Period selection $\rightarrow$ Employee selection), automated salary rule execution, validation warning detection, and payrun state machine lifecycle.
+- **Reporting & Analytics**: Centralized Payroll Dashboard aggregating real-time HR and Payroll data across Periods, Departments, and Employee Types.
+
+---
+
+## 👤 3) User Roles & Access Control Matrix
+
+The platform enforces Role-Based Access Control (RBAC) across 5 granular user roles:
+
+| Role | Core Access & Permissions |
+|---|---|
+| **Employee** | View own profile details, personal attendance logs, and leave balances. Submit attendance entries and Time Off Requests. No payroll or administrative access. |
+| **HR Manager** | Full CRUD access to Employees, Attendance, Contracts, Working Schedules, and Time Off modules. Approve or refuse Time Off Requests. No access to payroll processing features. |
+| **HR Payroll User** | All HR Manager permissions plus Create, Read, and Update access to Payruns and Payslips. Read-only access to Salary Structures and Salary Rules. |
+| **HR Payroll Manager** | All HR Payroll User permissions with full CRUD control over Payruns, Payslips, Salary Structures, and Salary Rules. Full control over HR and payroll configurations. |
+| **Admin** | Unrestricted access across all platform modules, system settings, role assignments, and user management. |
+
+---
+
+## 🧩 4) Modules & Feature Breakdown
+
+### A) HR Backend (Configuration & Master Data Area)
+
+#### A1) Employee Master Management
+- Support for **Kanban**, **List**, and **Form** views for employee records.
+- Capture essential employment details: Department, Manager, Working Schedule, Job Position, Employee Number, and Active Status.
+- Smart-button direct links on the employee form to filter and view related Contracts, Attendance, Time Off, and Allocations.
+
+#### A2) Contract Management
+- Maintain historical contract records linked to employees to track wage and position changes over time.
+- Clear highlight of active contracts in list and form views.
+- Capture contract duration, dates, wage, wage type, position, department, working schedule, and salary structure.
+- Strict period boundary validation to ensure payroll processes only the contract applicable to the selected period.
+
+#### A3) Working Schedule Setup
+- Define weekly working patterns using Day, Start Time, End Time, and Break Duration.
+- **Automated Hours Calculation**: Automatically computes net daily hours ($\le 24$ hrs/day constraint) and total weekly hours.
+- Link schedules to employees and contracts to standardize attendance and payroll expectations.
+
+#### A4) Time Off Type & Allocation Setup
+- Configure Time Off Types with specific units (Days/Hours), allocation requirements, approval workflows, and payroll integration.
+- Manage Leave Allocations for employees requiring approval before balances become available.
+- **Automated Balance Consumption**: Approved leave requests automatically deduct from assigned leave allocations.
+
+#### A5) Salary Structure Setup
+- Containers for organized collections of Salary Rules (e.g., *"Regular Salary Structure"*).
+- Manage included salary rules and their execution sequence.
+- Dictates the specific set of rules applied to calculate employee payslips during payruns.
+
+#### A6) Salary Rule Setup
+- Attribute management: Name, Code, Category, and Execution Sequence.
+- **Categories**: `BASIC`, `ALLOWANCE`, `GROSS`, `DEDUCTION`, `CONTRIBUTION`, and `NET`.
+- **Computation Methods**:
+  - `FIXED`: Fixed monetary values.
+  - `PERCENTAGE`: Percentage of a base category or component (e.g., 20% of `BASIC`).
+  - `FORMULA`: Custom formula calculations building upon earlier rule totals.
+
+#### A7) Reporting & Dashboard Configuration
+- Real-time aggregation of live system records across HR and Payroll modules.
+- Multi-dimensional filtering by Period, Department, and Employee Type.
+
+---
+
+### B) HR & Payroll Frontend (Operational Experience)
+
+#### B1) Main Navigation & Employee Hub
+- Top navigation bar providing access to **Employees**, **Contracts**, **Attendance**, **Time Off**, **Payroll**, and **Reports**.
+- Kanban and List views leading into the unified Employee Form.
+
+#### B2) Employee Form & Smart-Button Navigation
+- Centralized employee identity card displaying role, manager, schedule, and active status.
+- Smart-buttons displaying real-time counter badges for linked Contracts, Attendance, Time Off, and Allocations.
+
+#### B3) Attendance Management
+- Accessible globally from the main navigation or directly from an individual Employee Form.
+- List view displaying Check-In, Check-Out, Worked Hours, and Attendance Status (`PRESENT`, `HALF_DAY`, `ABSENT`, `OVERTIME`).
+- Attendance correction modal supporting manual adjustment with audit reasons (restricted to authorized HR users).
+
+#### B4) Time Off Requests & Approvals
+- Request overview tracking Employee, Type, Date Range, Duration, and Status (`PENDING`, `APPROVED`, `REFUSED`).
+- Approval/Refusal workflow that automatically updates leave allocation balances upon approval.
+
+#### B5) Two-Step Payrun Creation Wizard
+- **Step 1 (Scope & Period)**: Select Payrun Name, Period Start, Period End, and Salary Structure.
+- **Step 2 (Employee Selection)**: Filter and select eligible staff members before batch initialization.
+
+#### B6) Payrun Processing & Lifecycle State Machine
+- Lifecycle states: `DRAFT` $\rightarrow$ `COMPUTED` $\rightarrow$ `VALIDATED` $\rightarrow$ `PAID`.
+- Processing actions: **Compute Salary**, **Validate Payrun**, **Mark as Paid**, and **Send Payslips**.
+- Real-time pre-finalization warnings (e.g., missing bank details, duplicate payslips, or unverified contracts).
+
+#### B7) Payslip & Salary Computation View
+- Detailed breakdown of individual payslips displaying Employee details, Payrun Period, Worked Days, and contract wage.
+- Itemized salary computation table rendering rule execution lines (`BASIC` $\rightarrow$ `ALLOWANCES` $\rightarrow$ `GROSS` $\rightarrow$ `DEDUCTIONS` $\rightarrow$ `NET`).
+
+#### B8) Payslip PDF Generation & Employee Delivery
+- Server-side printable **PDF Payslip Generation** via PDFKit.
+- One-click bulk PDF distribution and email delivery for finalized payruns.
+
+#### B9) Payroll Dashboard
+- **KPI Metrics Cards**: Total Net Salary Paid, Payslips Generated, Average Salary, Approved Time Off, and Attendance Health.
+- **Interactive Analytics Charts**: Salary Cost Breakdown by Department and Monthly Net Salary Trends.
+- **Operational Alerts**: Unresolved attendance exceptions, contract expiration items, missing bank details, and pending leave requests.
+
+---
+
+## 🔁 5) Complete End-to-End Flow
 
 ```mermaid
 flowchart TD
-    subgraph "1. Biometric Intake (OpenCV AI)"
-        CAM[" HD Webcam Stream (1280x720 @ 30+ FPS)"]
-        IF[" InsightFace ArcFace Engine<br/>512-d Embedding Extraction & Cosine Matching"]
-        KEY[" Single-Key Action Trigger<br/>[C] Check-In | [O] Check-Out | [R] Register"]
-        CAM --> IF --> KEY
-    end
-
-    subgraph "2. Real-Time Punch & Backend Sync"
-        API["⚡ Express REST API<br/>POST /api/attendance/live-punch"]
-        DB[(" PostgreSQL 15<br/>Prisma ORM Persistence")]
-        LOG[" attendance_logs.json<br/>Local Buffer & Audit Sync"]
-        KEY --> API
-        API --> DB
-        API --> LOG
-    end
-
-    subgraph "3. HR Governance & Management"
-        UI["🖥️ React HR Dashboard<br/>1s Real-Time Polling Stream"]
-        GOV["🧑‍💼 HR Manager Controls<br/>Attendance Correction, Contracts, Schedules & Time-Off"]
-        DB <--> UI
-        UI <--> GOV
-    end
-
-    subgraph "4. Deterministic Payroll Engine"
-        PAY[" Salary Rule Engine<br/>BASIC -> ALLOWANCE -> GROSS -> DEDUCTION -> NET"]
-        PR[" Payrun State Machine<br/>DRAFT -> COMPUTED -> VALIDATED -> PAID"]
-        PDF["📄 PDF Payslip Generation<br/>(PDFKit Engine)"]
-        GOV --> PAY
-        PAY --> PR --> PDF
-    end
+    A["1. Employee & Contract Hub<br/>Create Employee Profile & Active Contract"] --> B["2. Working Schedule & Time Off<br/>Assign Schedule & Allocate Leave Balances"]
+    B --> C["3. Operational Activity<br/>Log Attendance & Submit Leave Requests"]
+    C --> D["4. Salary Rules & Structure Setup<br/>Configure Sequenced Calculation Rules"]
+    D --> E["5. Payrun Wizard<br/>Select Period, Structure & Filter Employees"]
+    E --> F["6. Payrun Computation & Validation<br/>Compute Rules, Resolve Warnings & Validate"]
+    F --> G["7. Payslip PDF & Payout<br/>Generate PDF Payslips & Mark Payrun Paid"]
+    G --> H["8. Payroll Dashboard Reporting<br/>Analyze Live Costs, Trends & Department Metrics"]
 ```
 
-1. **Native AI Biometric Intake** 📷 — A multi-threaded Python desktop kiosk uses OpenCV and InsightFace (`buffalo_sc`) to extract 512-dimensional normalized facial feature vectors. Faces are matched against registered profiles via cosine similarity ($ threshold \ge 0.45 $) in under 50ms at 30+ FPS.
-2. **Instant Biometric Punch Syncing** ⚡ — Single keypress triggers (`[C]` for Check-In, `[O]` for Check-Out) dispatch non-blocking HTTP payloads to `/api/attendance/live-punch`. Punches calculate worked hours and status (`PRESENT`, `HALF_DAY`, `OVERTIME`) atomically in PostgreSQL.
-3. **1-Second Real-Time Web Dashboard Sync** 🖥️ — The React frontend continuously polls biometric logs every 1000ms, providing instant visual feedback on live clock-ins without requiring manual reloads.
-4. **Contracts & Working Schedules Alignment** 📜 — Connects base salaries, department assignments, and custom weekly working schedules directly to employee profiles.
-5. **Time-Off & Leave Governance** 🏖️ — Accrual balance tracking, leave type management, overlap collision prevention, and manager approval workflows (`PENDING` → `APPROVED` / `REFUSED`).
-6. **Deterministic Salary Rule Computation** 💰 — Ordered execution of salary rules (`FIXED`, `PERCENTAGE`, and `FORMULA`) converts gross entitlements into net pay breakdown lines.
-7. **Payrun Management & Payslip Export** 📄 — Payruns progress through a strict state machine (`DRAFT` → `COMPUTED` → `VALIDATED` → `PAID`), generating verified PDF payslips for employees.
+1. **Employee Setup**: Employees are created and managed via unified Kanban or List views acting as the central hub.
+2. **Contract & Schedule Alignment**: Contracts and Working Schedules are linked to employees to establish active wage terms and expected working hours for the period.
+3. **Daily Operational Tracking**: Attendance entries record check-in/out times, worked hours, and exceptions. Leave requests consume allocated leave balances upon manager approval.
+4. **Payroll Configuration**: Salary Structures sequence Salary Rules to dictate exact net salary computation pipelines.
+5. **Payrun Wizard Execution**: Payroll officers launch a Payrun via the two-step wizard, defining period bounds and selecting target employees.
+6. **Computation & Error Verification**: The system evaluates salary rules per employee, checking for warnings (e.g., missing details or duplicate records) prior to validation.
+7. **Finalization & PDF Delivery**: Validated payruns are marked `PAID`, generating printable PDF payslips for distribution.
+8. **Dashboard Analytics**: Real-time KPI cards, expenditure charts, and operational alerts synthesize live data across all HR and Payroll modules.
 
 ---
 
-## 🔍 Deep-Dive: OpenCV Native AI Biometric Module
-
-The computer vision engine (`transfer_learning/main.py`) operates as a **high-FPS native desktop application**:
+## 🏗️ 6) System Architecture & Tech Stack
 
 ```mermaid
-graph LR
-    subgraph "Main GUI Thread (30+ FPS)"
-        CAP["📷 VideoCapture (MJPEG HD 720p)"]
-        GUI["🖥️ OpenCV Window (cv2.imshow)<br/>HUD Overlay & Frame Rendering"]
-        KBD["⌨️ Keyboard Event Listener<br/>[C] [O] [R] [Q]"]
-        CAP --> GUI
-        GUI --> KBD
+flowchart TD
+    subgraph "Frontend Tier (React Web Client)"
+        CLIENT["🖥️ React 18 + Vite 5 + TypeScript<br/>Tailwind CSS & Lucide Icons<br/>Port 3000"]
     end
 
-    subgraph "Background AI Worker Thread (Asynchronous)"
-        DS["🔍 Frame Downscaler (320x320)"]
-        DET["👤 InsightFace Face Detection"]
-        EXT["🧬 ArcFace 512-d Embedding Extractor"]
-        MAT["MATCH Cosine Similarity Search"]
-        DS --> DET --> EXT --> MAT
+    subgraph "Backend Tier (Express REST API)"
+        API["⚙️ Node.js 20 + Express 4 REST API<br/>JWT Auth + Zod Validation + RBAC Middleware<br/>Port 5000"]
+        ENGINE["💰 Deterministic Payroll Engine"]
+        PDF_GEN["📄 PDFKit Payslip Engine"]
+        API --> ENGINE
+        API --> PDF_GEN
     end
 
-    CAP -.->|"Thread-Safe Copy"| DS
-    MAT -.->|"Update BBox & Labels"| GUI
-    KBD -->|"Active Embedding"| HTTP["🌐 Non-blocking HTTP Punch"]
-```
-
-### Key Technical Specs:
-- **Asynchronous Multi-Threading**: Separates 1280x720 30+ FPS video capture and rendering from CPU-intensive AI inference to eliminate camera frame stuttering.
-- **Model Architecture**: InsightFace `buffalo_sc` ArcFace neural net optimized with a 320x320 detection input size for maximum CPU execution speed.
-- **Feature Matching**: L2-normalized 512-dimensional embedding vectors compared using vector dot products (cosine similarity metric).
-- **Keyboard Controls**:
-  - `[C]` or `[SPACE]`: Instant Biometric Check-In punch.
-  - `[O]`: Instant Biometric Check-Out punch.
-  - `[R]`: Register / Enroll current face embedding with employee profile details.
-  - `[Q]` or `[ESC]`: Close Kiosk application.
-
----
-
-## 🏗️ System Architecture & Stack
-
-```mermaid
-graph TB
-    subgraph "Native Desktop AI Vision"
-        PY["🐍 transfer_learning/main.py<br/>Python 3.10+ · OpenCV 4 · InsightFace"]
-    end
-
-    subgraph "Web Client (Frontend)"
-        REACT["🖥️ client<br/>React 18 + Vite 5 + TypeScript + Tailwind CSS<br/>:3000"]
-    end
-
-    subgraph "Backend API & Data Tier"
-        EXPRESS["⚙️ server<br/>Node.js 20 + Express 4 REST API<br/>:5000"]
+    subgraph "Database & Storage Tier"
         PRISMA["🔌 Prisma ORM 5"]
-        PG[("🐘 postgres<br/>PostgreSQL 15<br/>:5434")]
-        REDIS[("⚡ redis<br/>Redis 7<br/>:6379")]
+        PG[("🐘 PostgreSQL 15 Database")]
+        REDIS[("⚡ Redis 7 Cache & Queue")]
+        PRISMA --> PG
     end
 
-    PY -->|"POST /api/attendance/live-punch"| EXPRESS
-    REACT -->|"HTTP REST API (JWT)"| EXPRESS
-    REACT -.->|"1s Live Polling Stream"| EXPRESS
-    EXPRESS --> PRISMA
-    PRISMA --> PG
-    EXPRESS --> REDIS
+    CLIENT <-->|"HTTP REST API (JWT)"| API
+    API <--> PRISMA
+    API <--> REDIS
 ```
 
 ### Component Breakdown
 
-| Layer | Technology | Primary Function |
+| Layer | Technology | Function |
 |---|---|---|
-| **AI Vision Kiosk** | Python 3.10+, OpenCV 4.x, InsightFace ArcFace, NumPy | Live webcam video feed, facial detection & recognition, biometric check-in/out triggers, face registration |
-| **Frontend** | React 18, Vite 5, TypeScript, Tailwind CSS, Lucide Icons | Real-time attendance dashboard (1000ms polling), HR employee directory, contracts, time-off approvals, payroll views |
-| **Backend API** | Node.js 20, Express 4, Prisma ORM 5, Zod | REST API endpoints, live biometric punch handler, authentication (JWT/bcrypt), attendance status calculation, payroll engine |
-| **Database** | PostgreSQL 15 | Central persistent database storing users, employees, contracts, schedules, attendance logs, leave balances, payruns, and payslips |
-| **Cache & Queue** | Redis 7 | High-speed cache & queue infrastructure |
-| **PDF Generation** | PDFKit | Server-side PDF payslip compilation |
+| **Frontend** | React 18, Vite 5, TypeScript, Tailwind CSS, Lucide Icons | Responsive HR & Payroll UI, Kanban/List views, Payrun Wizard, Dashboard analytics |
+| **Backend API** | Node.js 20, Express 4, Prisma ORM 5, Zod | REST API endpoints, RBAC middleware, contract validation, attendance calculation, payroll state machine |
+| **Database** | PostgreSQL 15 | Central relational datastore (22 Prisma models for Employees, Contracts, Schedules, Attendance, Leave, Payruns, Payslips) |
+| **Cache & Session** | Redis 7 | High-performance session caching and background job queuing |
+| **PDF Generation** | PDFKit | Automated server-side PDF payslip compilation |
 
 ---
 
-## 💰 Deterministic Payroll Engine & State Machine
-
-Payruns are executed through a strict state machine to prevent unauthorized calculations or duplicate payouts:
-
-```mermaid
-stateDiagram-v2
-    [*] --> DRAFT: Create Payrun (Period + Salary Structure)
-    DRAFT --> COMPUTED: POST /api/payroll/payruns/:id/compute
-    COMPUTED --> VALIDATED: POST /api/payroll/payruns/:id/validate
-    VALIDATED --> PAID: POST /api/payroll/payruns/:id/pay
-    PAID --> [*]
-
-    COMPUTED --> DRAFT: Re-adjust contracts or employee details
-```
-
-### Salary Rule Calculation Pipeline
-
-Salary rules are evaluated in sequential order based on their assigned `sequence` index:
-
-```mermaid
-flowchart LR
-    R1["Rule 10: BASIC<br/>Category: BASIC<br/>FIXED: Base Contract Salary"] --> R2["Rule 20: HOUSING<br/>Category: ALLOWANCE<br/>PERCENTAGE: 20% of BASIC"]
-    R2 --> R3["Rule 30: TRANSPORT<br/>Category: ALLOWANCE<br/>FIXED: 2,000"]
-    R3 --> R4["Rule 40: GROSS<br/>Category: GROSS<br/>FORMULA: BASIC + HOUSING + TRANSPORT"]
-    R4 --> R5["Rule 50: TAX<br/>Category: DEDUCTION<br/>PERCENTAGE: 10% of GROSS"]
-    R5 --> R6["Rule 60: NET<br/>Category: NET<br/>FORMULA: GROSS - TAX"]
-```
-
----
-
-## 🗄️ Database Entity Relationship Diagram (ERD)
+## 🗄️ 7) Database Entity Relationship Diagram (ERD)
 
 ```mermaid
 erDiagram
@@ -222,41 +234,7 @@ erDiagram
 
 ---
 
-## 📂 Project Structure
-
-```text
-.
-├── client/                     # Frontend React + Vite + TypeScript (:3000)
-│   └── src/
-│       ├── api/                # REST client (attendance, live-punch, employees, payroll)
-│       ├── components/         # Reusable UI components & layouts
-│       ├── context/            # AuthContext & ToastContext
-│       ├── features/           # Attendance, Employees, Contracts, Schedules, TimeOff, Payroll, Admin
-│       └── routes/             # Client app routing
-│
-├── server/                     # Express Backend REST API (:5000)
-│   ├── prisma/
-│   │   ├── schema.prisma       # Database schema definition (22 models)
-│   │   └── seed.js             # Initial database seeder
-│   └── src/
-│       ├── modules/            # Attendance, Employees, Contracts, Schedules, TimeOff, Payroll, Dashboard
-│       ├── middleware/         # Auth, RBAC, Validation, Error Handling
-│       └── services/           # AttendanceService, PayrollEngine, PDFService
-│
-├── transfer_learning/          # Native Python AI Facial Recognition Kiosk
-│   ├── main.py                 # Multi-threaded OpenCV + InsightFace ArcFace Engine
-│   ├── registered_faces.json   # Face embedding vector database
-│   ├── attendance_logs.json    # Local JSON log sync buffer
-│   └── requirements.txt        # Python requirements (opencv-python, insightface, numpy)
-│
-├── docs/                       # Architecture & design specifications
-├── docker-compose.yml          # Container configuration (PostgreSQL & Redis)
-└── README.md                   # System documentation
-```
-
----
-
-## ⚡ Quick Start Setup Guide
+## ⚡ 8) Quick Start Setup Guide
 
 ### 1. Launch Database Containers
 
@@ -295,47 +273,29 @@ npm run dev
 
 ---
 
-### 4. Launch Native OpenCV AI Biometric Attendance System
-
-Launch the camera directly from the Web UI by clicking **"Launch Live AI Camera"** on the Attendance screen, or launch via terminal:
-
-```bash
-cd transfer_learning
-pip install -r requirements.txt
-python main.py
-```
-
-#### ⌨️ Kiosk Controls:
-- **`[C]` or `[SPACE]`**: Record Biometric Check-In (POST `/api/attendance/live-punch`)
-- **`[O]`**: Record Biometric Check-Out
-- **`[R]`**: Enroll / Register Face profile
-- **`[ESC]` or `[Q]`**: Quit Kiosk application
-
----
-
-## 📡 API Reference Summary
+## 📡 9) REST API Reference
 
 All API routes are prefixed with `/api`.
 
-### 📷 Biometrics & Attendance (`/api/attendance`)
+### ⏱️ Attendance & Schedules (`/api/attendance`, `/api/schedules`)
 
 | Method | Path | Access | Description |
 |---|---|---|---|
-| GET | `/attendance/live-opencv-logs` | Public / Kiosk | Fetch real-time biometric attendance log entries |
-| POST | `/attendance/launch-camera` | Public / Admin | Execute background process to launch OpenCV Python kiosk |
-| POST | `/attendance/live-punch` | Public / Kiosk | Submit real-time biometric check-in / check-out punch |
-| POST | `/attendance/check-in` | Authenticated | Manual web Check-In |
-| POST | `/attendance/check-out` | Authenticated | Manual web Check-Out |
+| POST | `/attendance/check-in` | Authenticated | Record employee attendance Check-In |
+| POST | `/attendance/check-out` | Authenticated | Record employee attendance Check-Out |
 | GET | `/attendance` | Authenticated | List filtered attendance records |
-| PATCH | `/attendance/:id` | HR Roles | HR manual correction of attendance entry |
+| PATCH | `/attendance/:id` | HR Roles | Submit attendance correction entry |
+| GET | `/schedules` | Authenticated | List working schedules |
+| POST | `/schedules` | HR_MANAGER | Create working schedule with hours validation |
 
-### 👥 Employees (`/api/employees`)
+### 👥 Employees & Contracts (`/api/employees`, `/api/contracts`)
 
 | Method | Path | Access | Description |
 |---|---|---|---|
-| GET | `/employees` | HR Roles | List all employee records |
+| GET | `/employees` | HR Roles | List employee directory |
 | POST | `/employees` | HR_MANAGER / ADMIN | Create new employee profile |
-| GET | `/employees/:id` | Authenticated | Get employee profile details |
+| GET | `/contracts` | HR Roles | List historical & active contracts |
+| POST | `/contracts` | HR_MANAGER | Create contract with period validation |
 
 ### 🏖️ Time Off (`/api/time-off`)
 
@@ -343,7 +303,7 @@ All API routes are prefixed with `/api`.
 |---|---|---|---|
 | GET | `/time-off/requests` | Authenticated | List leave requests |
 | POST | `/time-off/requests` | Authenticated | Submit new leave request |
-| POST | `/time-off/requests/:id/approve` | HR Roles | Approve leave request |
+| POST | `/time-off/requests/:id/approve` | HR Roles | Approve leave request & deduct allocation |
 | POST | `/time-off/requests/:id/refuse` | HR Roles | Refuse leave request |
 
 ### 💰 Payroll (`/api/payroll`)
@@ -351,25 +311,16 @@ All API routes are prefixed with `/api`.
 | Method | Path | Access | Description |
 |---|---|---|---|
 | GET | `/payroll/payruns` | HR Roles | List payruns |
-| POST | `/payroll/payruns` | HR_PAYROLL_MANAGER | Create payrun |
+| POST | `/payroll/payruns` | HR_PAYROLL_MANAGER | Initialize Payrun via creation wizard |
 | POST | `/payroll/payruns/:id/compute` | HR_PAYROLL_MANAGER | Execute salary rules for payrun |
-| POST | `/payroll/payruns/:id/validate` | HR_PAYROLL_MANAGER | Validate payrun |
+| POST | `/payroll/payruns/:id/validate` | HR_PAYROLL_MANAGER | Validate payrun & check warnings |
 | GET | `/payroll/payslips/:id/pdf` | Authenticated | Download compiled PDF payslip |
 
 ---
 
-## 🎬 5-Minute Hackathon Demo Script
+## 🎨 Design & Mockups
 
-1. **Minute 0:00 - 1:00 (Problem & Overview)**:
-   Present the PeoplePay360 Dashboard. Explain how proxy attendance and manual payroll reconciliations impact businesses, and outline the unified system flow.
-2. **Minute 1:00 - 2:30 (Native OpenCV AI Biometrics)**:
-   Click **"Launch Live AI Camera"** from the Attendance screen. Show the native 30+ FPS window detecting face bounding boxes and embeddings. Register a profile with `[R]` and hit `[C]` to Check-In. Show the live camera HUD confirmation.
-3. **Minute 2:30 - 3:30 (Real-Time Web Dashboard Sync & HR Governance)**:
-   Switch back to the React Attendance page. Show the newly recorded punch appear automatically (via 1s polling stream) with exact timestamps, status (`PRESENT`), and worked-hours tracking. Show HR attendance correction dialogs.
-4. **Minute 3:30 - 4:30 (Salary Rules & Payrun Execution)**:
-   Navigate to Payroll Payruns. Click **Compute Payrun** and show how ordered salary rules calculate basic wage, allowances, taxes, and net pay.
-5. **Minute 4:30 - 5:00 (PDF Payslip Generation & Conclusion)**:
-   Open a payslip and download the PDF. Conclude: *"PeoplePay360 delivers zero-proxy biometric tracking seamlessly integrated with enterprise HR management and deterministic payroll."*
+- **Excalidraw Design Architecture & Mockups**: [View Excalidraw Canvas](https://app.excalidraw.com/l/65VNwvy7c4X/17vHpCNFjex)
 
 ---
 
