@@ -1,356 +1,224 @@
-# PeoplePay360 — AI-Powered HR & Payroll Automation Platform
+# PeoplePay360 — AI-Powered HR, OpenCV Biometric Attendance & Payroll Platform
 
-> **EMAIL → AI → WORKFLOW → APPROVAL → AUTOMATION**
+> **REAL-TIME OPENCV BIOMETRICS → LIVE PUNCH SYNC → HR GOVERNANCE → CONTRACTS & SCHEDULES → DETERMINISTIC PAYROLL ENGINE**
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Node.js](https://img.shields.io/badge/Node.js-20-green.svg)
 ![React](https://img.shields.io/badge/React-18-61dafb.svg)
+![Python](https://img.shields.io/badge/Python-3.10+-3776ab.svg)
+![OpenCV](https://img.shields.io/badge/OpenCV-4.x-5C3EE8.svg)
+![InsightFace](https://img.shields.io/badge/InsightFace-ArcFace-ff69b4.svg)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-336791.svg)
 ![Prisma](https://img.shields.io/badge/Prisma-5-2d3748.svg)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178c6.svg)
-![Docker](https://img.shields.io/badge/Docker-24-2496ed.svg)
-![LangGraph](https://img.shields.io/badge/LangGraph.js-Latest-1c3c3c.svg)
-![Google](https://img.shields.io/badge/Google%20Gemini-2.0-4285f4.svg)
 
 ---
 
-## 🚀 Overview
+## 🚀 Executive Summary
 
-**PeoplePay360** is a unified HR and Payroll platform that connects employee master data, contracts, working schedules, attendance, time off, salary structures, payroll processing, and email automation into a single operational workflow. The platform's key differentiator is an **AI-powered email-to-workflow pipeline** where employees submit leave requests via natural-language email, which an AI system converts into validated HR workflows subject to human approval.
+**PeoplePay360** is a unified, high-performance HR, Attendance, and Payroll platform designed to bridge physical workplace biometric tracking with enterprise HR management and deterministic payroll processing. 
 
-Instead of forcing employees to navigate complex forms for leave management, PeoplePay360 uses a natural-language email-to-workflow pipeline:
-
-1. **Email Intake** ✉️ — Employee sends a leave email in natural language
-2. **AI Classification & Extraction** 🤖 — AI identifies intent and extracts structured data (dates, type, reason)
-3. **Validation** ✅ — Business rules check balances, overlaps, schedules, and policy rules
-4. **Human Control** 🧑‍💼 — Pending requests are presented to HR managers for final approval/refusal
-5. **Background Automation** ⚙️ — BullMQ + Redis queue sends notification emails asynchronously without blocking system processes
+By replacing vulnerable web buttons and proxy-prone badge scanners with an **OpenCV + InsightFace AI facial recognition kiosk**, PeoplePay360 guarantees tamper-proof attendance logging. Biometric check-in and check-out events automatically stream to a central PostgreSQL engine, feeding directly into working-hours calculations, leave balances, HR governance workflows, and multi-tier salary rule engine payruns.
 
 ---
 
-## 🏗️ System Architecture
+## 🎯 Core Problem & Overall Solution Flow
 
-The platform is composed of **six Docker services** orchestrated via Docker Compose:
+### ❌ Core Problem
+
+Enterprise HR operations suffer from critical vulnerabilities and operational inefficiencies:
+
+1. **Proxy Attendance & Buddy Punching**: Standard web portals, manual clock-ins, or badge swiping permit employees to log attendance for absent colleagues, leading to payroll inflation and inaccurate record-keeping.
+2. **Attendance Reconciliation Bottlenecks**: HR teams waste days every month manually collecting attendance logs, matching clock-in times against working schedules, and calculating worked hours, late arrivals, and half-days.
+3. **Manual Payroll Calculation Risks**: Multi-tier salary components (basic pay, housing allowances, statutory tax rates, and custom deductions) calculated manually in spreadsheets lead to calculation mistakes, compliance risks, and delayed payslip issuance.
+4. **Siloed HR Modules**: Disconnected systems for contracts, working schedules, leave allocations, attendance tracking, and salary rules result in data inconsistencies and lack of real-time visibility.
+
+---
+
+### ✅ Overall Solution Flow
+
+PeoplePay360 resolves these operational gaps through an integrated 7-stage architecture:
 
 ```mermaid
-graph TB
-    subgraph "Docker Compose — PeoplePay360"
-        FE["🖥️ client<br/>React + Vite<br/>:3000"]
-        SRV["⚙️ server<br/>Express REST API<br/>:5000"]
-        MCP["🔌 mcp-server<br/>Model Context Protocol<br/>:3001"]
-        AGT["🤖 agent<br/>LangGraph + Gemini<br/>:3002"]
-        WK["🔁 worker<br/>BullMQ Email/Jobs"]
-        PG[("🐘 postgres<br/>PostgreSQL 15<br/>:5434")]
-        RD[("⚡ redis<br/>Redis 7<br/>:6379")]
+flowchart TD
+    subgraph "1. Biometric Intake (OpenCV AI)"
+        CAM["📷 HD Webcam Stream (1280x720 @ 30+ FPS)"]
+        IF["🧠 InsightFace ArcFace Engine<br/>512-d Embedding Extraction & Cosine Matching"]
+        KEY["⌨️ Single-Key Action Trigger<br/>[C] Check-In | [O] Check-Out | [R] Register"]
+        CAM --> IF --> KEY
     end
 
-    FE -->|"HTTP /api (proxy)"| SRV
-    FE -.->|"direct"| AGT
-    MCP -->|"Prisma"| PG
-    SRV -->|"Prisma"| PG
-    AGT -->|"Prisma"| PG
-    AGT -->|"HTTP tools"| MCP
-    WK -->|"BullMQ connection"| RD
-    WK -->|"Prisma"| PG
-    SRV -->|"BullMQ enqueue"| RD
-    MCP -->|"Gmail API"| GM["📧 Gmail"]
-    WK -->|"nodemailer"| SMTP["📤 SMTP / Brevo"]
-    AGT -->|"Gemini API"| GLM["🧠 Google Gemini"]
+    subgraph "2. Real-Time Punch & Backend Sync"
+        API["⚡ Express REST API<br/>POST /api/attendance/live-punch"]
+        DB[("🐘 PostgreSQL 15<br/>Prisma ORM Persistence")]
+        LOG["📄 attendance_logs.json<br/>Local Buffer & Audit Sync"]
+        KEY --> API
+        API --> DB
+        API --> LOG
+    end
+
+    subgraph "3. HR Governance & Management"
+        UI["🖥️ React HR Dashboard<br/>1s Real-Time Polling Stream"]
+        GOV["🧑‍💼 HR Manager Controls<br/>Attendance Correction, Contracts, Schedules & Time-Off"]
+        DB <--> UI
+        UI <--> GOV
+    end
+
+    subgraph "4. Deterministic Payroll Engine"
+        PAY["💰 Salary Rule Engine<br/>BASIC -> ALLOWANCE -> GROSS -> DEDUCTION -> NET"]
+        PR["📋 Payrun State Machine<br/>DRAFT -> COMPUTED -> VALIDATED -> PAID"]
+        PDF["📄 PDF Payslip Generation<br/>(PDFKit Engine)"]
+        GOV --> PAY
+        PAY --> PR --> PDF
+    end
 ```
 
-### Service Responsibilities
-
-| Service | Port | Responsibility | Technology |
-|---|---|---|---|
-| **postgres** | 5434 | Persistent business data (single source of truth) | PostgreSQL 15 |
-| **redis** | 6379 | Queue infrastructure for BullMQ workers | Redis 7 |
-| **server** | 5000 | Main REST API, auth, business logic, payroll engine | Node.js + Express + Prisma |
-| **mcp-server** | 3001 | Model Context Protocol — controlled AI tool interfaces | MCP SDK |
-| **agent** | 3002 | Multi-agent AI orchestration & email workflow | LangGraph + Gemini |
-| **worker** | — | Background async processing (email delivery, payslip jobs) | BullMQ |
+1. **Native AI Biometric Intake** 📷 — A multi-threaded Python desktop kiosk uses OpenCV and InsightFace (`buffalo_sc`) to extract 512-dimensional normalized facial feature vectors. Faces are matched against registered profiles via cosine similarity ($ threshold \ge 0.45 $) in under 50ms at 30+ FPS.
+2. **Instant Biometric Punch Syncing** ⚡ — Single keypress triggers (`[C]` for Check-In, `[O]` for Check-Out) dispatch non-blocking HTTP payloads to `/api/attendance/live-punch`. Punches calculate worked hours and status (`PRESENT`, `HALF_DAY`, `OVERTIME`) atomically in PostgreSQL.
+3. **1-Second Real-Time Web Dashboard Sync** 🖥️ — The React frontend continuously polls biometric logs every 1000ms, providing instant visual feedback on live clock-ins without requiring manual reloads.
+4. **Contracts & Working Schedules Alignment** 📜 — Connects base salaries, department assignments, and custom weekly working schedules directly to employee profiles.
+5. **Time-Off & Leave Governance** 🏖️ — Accrual balance tracking, leave type management, overlap collision prevention, and manager approval workflows (`PENDING` → `APPROVED` / `REFUSED`).
+6. **Deterministic Salary Rule Computation** 💰 — Ordered execution of salary rules (`FIXED`, `PERCENTAGE`, and `FORMULA`) converts gross entitlements into net pay breakdown lines.
+7. **Payrun Management & Payslip Export** 📄 — Payruns progress through a strict state machine (`DRAFT` → `COMPUTED` → `VALIDATED` → `PAID`), generating verified PDF payslips for employees.
 
 ---
 
-## 🤖 Multi-Agent AI Architecture
+## 🔍 Deep-Dive: OpenCV Native AI Biometric Module
 
-PeoplePay360 leverages a specialized **five-agent framework** built with **LangGraph.js**, **LangChain.js**, and **Google Gemini**:
-
-```mermaid
-graph TD
-    USR["👤 User / Employee<br/>Email / HR Query"]
-    USR -->|"natural-language input"| ORC
-
-    ORC["1️⃣ HR Orchestrator Agent<br/>Router & State Manager"]
-    ORC -->|"intent: LEAVE"| EMAIL
-    ORC -->|"intent: LEAVE / BALANCE"| LEAVE
-    ORC -->|"intent: PAYROLL"| PAY
-    ORC -->|"intent: ANALYTICS"| ANY
-
-    EMAIL["2️⃣ Email Intelligence Agent<br/>Classify & Extract"]
-    LEAVE["3️⃣ Leave Management Agent<br/>Balance & Policy Checks"]
-    PAY["4️⃣ Payroll Agent<br/>Payslip Explanation"]
-    ANY["5️⃣ HR Analytics Agent<br/>Read-only Queries"]
-
-    EMAIL -->|"structured intent"| ORC
-    LEAVE -->|"PENDING request"| MCP
-    PAY -->|"explanation"| MCP
-    ANY -->|"aggregates"| MCP
-
-    MCP["🔌 MCP Server — Controlled Tools"]
-    MCP --> GMAIL["Gmail API"]
-    MCP --> APIDB["HR/Payroll API + PostgreSQL"]
-    MCP --> KB["Policy Knowledge Base (RAG)"]
-
-    GMAIL -->|"notification"| USR
-    APIDB --> HUMAN["🧑‍💼 Human HR Decision<br/>(Approve / Refuse)"]
-    HUMAN --> BQ["BullMQ + Redis Queue"]
-    BQ --> WK["Email Worker"]
-    WK --> GMAIL
-```
-
-### Agent Roles
-
-| # | Agent | Responsibility |
-|---|---|---|
-| 1 | **HR Orchestrator** | Central router and workflow state manager; detects intent, routes to the correct specialist, manages shared workflow state, decides between clarification and human review |
-| 2 | **Email Intelligence** | Extracts structured leave intent from unstructured emails; classifies intent, extracts dates/type/reason, identifies employee, detects missing/ambiguous info, returns Zod-validated structured object |
-| 3 | **Leave Management** | Validates requests against employee data, balances, schedules, and policies; creates `PENDING` leave requests — **cannot approve or refuse** |
-| 4 | **Payroll Agent** | Explains payslips, compares periods, breaks down salary-rule contributions — reads existing calculations but never replaces the deterministic payroll engine |
-| 5 | **HR Analytics** | Executes safe, read-only aggregate queries over live database stats and produces concise natural-language answers |
-
-### Intent Catalog
+The computer vision engine (`transfer_learning/main.py`) operates as a **high-FPS native desktop application**:
 
 ```mermaid
 graph LR
-    subgraph "10 Chat Intents"
-        A["APPLY_LEAVE"]
-        B["LEAVE_BALANCE_INQUIRY"]
-        C["CANCEL_LEAVE"]
-        D["PAYSLIP_REQUEST"]
-        E["SALARY_BREAKDOWN"]
-        F["PAYROLL_INQUIRY"]
-        G["ATTENDANCE_CORRECTION"]
-        H["ATTENDANCE_INQUIRY"]
-        I["HR_ANALYTICS"]
-        J["COMPANY_POLICY"]
-        K["GENERAL_UNCLEAR"]
+    subgraph "Main GUI Thread (30+ FPS)"
+        CAP["📷 VideoCapture (MJPEG HD 720p)"]
+        GUI["🖥️ OpenCV Window (cv2.imshow)<br/>HUD Overlay & Frame Rendering"]
+        KBD["⌨️ Keyboard Event Listener<br/>[C] [O] [R] [Q]"]
+        CAP --> GUI
+        GUI --> KBD
     end
+
+    subgraph "Background AI Worker Thread (Asynchronous)"
+        DS["🔍 Frame Downscaler (320x320)"]
+        DET["👤 InsightFace Face Detection"]
+        EXT["🧬 ArcFace 512-d Embedding Extractor"]
+        MAT["MATCH Cosine Similarity Search"]
+        DS --> DET --> EXT --> MAT
+    end
+
+    CAP -.->|"Thread-Safe Copy"| DS
+    MAT -.->|"Update BBox & Labels"| GUI
+    KBD -->|"Active Embedding"| HTTP["🌐 Non-blocking HTTP Punch"]
 ```
+
+### Key Technical Specs:
+- **Asynchronous Multi-Threading**: Separates 1280x720 30+ FPS video capture and rendering from CPU-intensive AI inference to eliminate camera frame stuttering.
+- **Model Architecture**: InsightFace `buffalo_sc` ArcFace neural net optimized with a 320x320 detection input size for maximum CPU execution speed.
+- **Feature Matching**: L2-normalized 512-dimensional embedding vectors compared using vector dot products (cosine similarity metric).
+- **Keyboard Controls**:
+  - `[C]` or `[SPACE]`: Instant Biometric Check-In punch.
+  - `[O]`: Instant Biometric Check-Out punch.
+  - `[R]`: Register / Enroll current face embedding with employee profile details.
+  - `[Q]` or `[ESC]`: Close Kiosk application.
 
 ---
 
-## 📧 Email → Leave Workflow
-
-The end-to-end pipeline that moves a leave request from an employee's inbox through AI processing to HR approval and automated notification:
+## 🏗️ System Architecture & Stack
 
 ```mermaid
-sequenceDiagram
-    participant Emp as 👤 Employee
-    participant GM as 📧 Gmail
-    participant MCP as 🔌 MCP Server
-    participant AG as 🤖 Agent (LangGraph+Gemini)
-    participant DB as 🐘 PostgreSQL
-    participant HR as 🧑‍💼 HR Dashboard
-    participant BQ as 🔁 BullMQ + Redis
-    participant WK as ⚙️ Email Worker
+graph TB
+    subgraph "Native Desktop AI Vision"
+        PY["🐍 transfer_learning/main.py<br/>Python 3.10+ · OpenCV 4 · InsightFace"]
+    end
 
-    Emp->>GM: Send leave email (natural language)
-    GM->>MCP: Gmail API fetches unread message
-    MCP->>AG: get_unread_emails() / get_email()
-    AG->>AG: Email Intelligence Agent<br/>(classify intent + extract data)
-    AG->>AG: Leave Management Agent<br/>(validate balance, schedule, policy)
-    AG->>DB: Validate + create LeaveRequest (status: PENDING)
-    DB->>HR: Leave request appears in dashboard
-    HR->>DB: Approve / Refuse request (transactional)
-    DB->>BQ: Enqueue notification job
-    BQ->>WK: Process job
-    WK->>Emp: Send approval/refusal email notification
+    subgraph "Web Client (Frontend)"
+        REACT["🖥️ client<br/>React 18 + Vite 5 + TypeScript + Tailwind CSS<br/>:3000"]
+    end
+
+    subgraph "Backend API & Data Tier"
+        EXPRESS["⚙️ server<br/>Node.js 20 + Express 4 REST API<br/>:5000"]
+        PRISMA["🔌 Prisma ORM 5"]
+        PG[("🐘 postgres<br/>PostgreSQL 15<br/>:5434")]
+        REDIS[("⚡ redis<br/>Redis 7<br/>:6379")]
+    end
+
+    PY -->|"POST /api/attendance/live-punch"| EXPRESS
+    REACT -->|"HTTP REST API (JWT)"| EXPRESS
+    REACT -.->|"1s Live Polling Stream"| EXPRESS
+    EXPRESS --> PRISMA
+    PRISMA --> PG
+    EXPRESS --> REDIS
 ```
+
+### Component Breakdown
+
+| Layer | Technology | Primary Function |
+|---|---|---|
+| **AI Vision Kiosk** | Python 3.10+, OpenCV 4.x, InsightFace ArcFace, NumPy | Live webcam video feed, facial detection & recognition, biometric check-in/out triggers, face registration |
+| **Frontend** | React 18, Vite 5, TypeScript, Tailwind CSS, Lucide Icons | Real-time attendance dashboard (1000ms polling), HR employee directory, contracts, time-off approvals, payroll views |
+| **Backend API** | Node.js 20, Express 4, Prisma ORM 5, Zod | REST API endpoints, live biometric punch handler, authentication (JWT/bcrypt), attendance status calculation, payroll engine |
+| **Database** | PostgreSQL 15 | Central persistent database storing users, employees, contracts, schedules, attendance logs, leave balances, payruns, and payslips |
+| **Cache & Queue** | Redis 7 | High-speed cache & queue infrastructure |
+| **PDF Generation** | PDFKit | Server-side PDF payslip compilation |
 
 ---
 
-## 💰 Payroll Processing
+## 💰 Deterministic Payroll Engine & State Machine
 
-The deterministic payroll engine processes payruns through an explicit state machine:
+Payruns are executed through a strict state machine to prevent unauthorized calculations or duplicate payouts:
 
 ```mermaid
 stateDiagram-v2
-    [*] --> DRAFT: Create Payrun<br/>(period + structure + employees)
-    DRAFT --> COMPUTED: POST /payruns/:id/compute
-    COMPUTED --> VALIDATED: POST /payruns/:id/validate
-    VALIDATED --> PAID: POST /payruns/:id/pay
+    [*] --> DRAFT: Create Payrun (Period + Salary Structure)
+    DRAFT --> COMPUTED: POST /api/payroll/payruns/:id/compute
+    COMPUTED --> VALIDATED: POST /api/payroll/payruns/:id/validate
+    VALIDATED --> PAID: POST /api/payroll/payruns/:id/pay
     PAID --> [*]
 
-    COMPUTED --> DRAFT: Warnings found<br/>(missing contract / info)
-    note right of DRAFT
-        Pre-run validation:
-        resolve applicable contract,
-        verify salary structure,
-        check duplicate payslips
-    end note
+    COMPUTED --> DRAFT: Re-adjust contracts or employee details
 ```
 
-### Salary Rule Engine
+### Salary Rule Calculation Pipeline
 
-```mermaid
-flowchart TD
-    subgraph "Rule Execution (ordered by sequence)"
-        R1["Rule 10 — Basic<br/>FIXED: 40,000"]
-        R2["Rule 20 — Housing<br/>PERCENTAGE: 20% of BASIC"]
-        R3["Rule 30 — Transport<br/>FIXED: 2,000"]
-        R4["Rule 40 — Gross<br/>FORMULA: BASIC + HOUSING + TRANSPORT"]
-        R5["Rule 50 — Tax<br/>PERCENTAGE: 10% of GROSS"]
-        R6["Rule 60 — Net<br/>FORMULA: GROSS - TAX"]
-    end
-
-    R1 --> R2 --> R3 --> R4 --> R5 --> R6
-
-    subgraph "Computation Categories"
-        C1["BASIC"]
-        C2["ALLOWANCE"]
-        C3["GROSS"]
-        C4["DEDUCTION"]
-        C5["NET"]
-    end
-```
-
-### Payroll End-to-End
+Salary rules are evaluated in sequential order based on their assigned `sequence` index:
 
 ```mermaid
 flowchart LR
-    EMP["👤 Employee<br/>+ Contract<br/>+ Attendance<br/>+ Leave"] --> PR["Payrun"]
-    PR --> SS["Salary Structure"]
-    SS --> RE["Salary Rule Engine<br/>(deterministic)"]
-    RE --> PS["Payslip"]
-    PS --> PDF["📄 PDF Generation<br/>(PDFKit)"]
-    PDF --> BULK["📧 Bulk Email Queue<br/>(BullMQ)"]
-    BULK --> WK["Email Worker"]
-    WK --> DONE["⬇️ Delivered"]
+    R1["Rule 10: BASIC<br/>Category: BASIC<br/>FIXED: Base Contract Salary"] --> R2["Rule 20: HOUSING<br/>Category: ALLOWANCE<br/>PERCENTAGE: 20% of BASIC"]
+    R2 --> R3["Rule 30: TRANSPORT<br/>Category: ALLOWANCE<br/>FIXED: 2,000"]
+    R3 --> R4["Rule 40: GROSS<br/>Category: GROSS<br/>FORMULA: BASIC + HOUSING + TRANSPORT"]
+    R4 --> R5["Rule 50: TAX<br/>Category: DEDUCTION<br/>PERCENTAGE: 10% of GROSS"]
+    R5 --> R6["Rule 60: NET<br/>Category: NET<br/>FORMULA: GROSS - TAX"]
 ```
 
 ---
 
-## 🗄️ Database Schema
-
-The PostgreSQL schema (Prisma ORM) contains **22 models**. The central entity is `Employee`, which connects HR core, attendance, time off, and payroll:
+## 🗄️ Database Entity Relationship Diagram (ERD)
 
 ```mermaid
 erDiagram
-    USER ||--o| EMPLOYEE : "has account"
-    USER ||--o{ NOTIFICATION : "receives"
-    USER ||--o{ AUDITLOG : "actor"
-    USER ||--o{ LEAVEREQUEST : "reviews"
-
-    DEPARTMENT ||--o{ EMPLOYEE : "has"
-    DEPARTMENT ||--o{ CONTRACT : "has"
-
-    WORKINGSCHEDULE ||--o{ EMPLOYEE : "assigned"
-    WORKINGSCHEDULE ||--o{ CONTRACT : "uses"
-
+    USER ||--o| EMPLOYEE : "linked profile"
+    DEPARTMENT ||--o{ EMPLOYEE : "assigns"
+    DEPARTMENT ||--o{ CONTRACT : "belongs to"
+    WORKINGSCHEDULE ||--o{ EMPLOYEE : "follows"
+    
     EMPLOYEE ||--o{ CONTRACT : "holds"
     EMPLOYEE ||--o{ ATTENDANCE : "records"
-    EMPLOYEE ||--o{ LEAVEALLOCATION : "has"
-    EMPLOYEE ||--o{ LEAVEREQUEST : "submits"
+    EMPLOYEE ||--o{ LEAVEALLOCATION : "allocated"
+    EMPLOYEE ||--o{ LEAVEREQUEST : "requests"
     EMPLOYEE ||--o{ PAYSLIP : "receives"
-    EMPLOYEE ||--o| EMPLOYEE : "manage (self-ref)"
 
-    LEAVETYPE ||--o{ LEAVEALLOCATION : "allocates"
-    LEAVETYPE ||--o{ LEAVEREQUEST : "used by"
+    LEAVETYPE ||--o{ LEAVEALLOCATION : "categorizes"
+    LEAVETYPE ||--o{ LEAVEREQUEST : "categorizes"
 
     SALARYSTRUCTURE ||--o{ SALARYRULE : "defines"
-    SALARYSTRUCTURE ||--o{ CONTRACT : "referenced by"
-    SALARYSTRUCTURE ||--o{ PAYRUN : "used in"
-    SALARYSTRUCTURE ||--o{ PAYSLIP : "used in"
+    SALARYSTRUCTURE ||--o{ CONTRACT : "references"
+    SALARYSTRUCTURE ||--o{ PAYRUN : "applies to"
+    SALARYSTRUCTURE ||--o{ PAYSLIP : "applies to"
 
-    CONTRACT ||--o{ PAYSLIP : "generates"
-
-    PAYRUN ||--o{ PAYSLIP : "contains"
-    PAYSLIP ||--o{ PAYSLIPLINE : "has"
-
-    AIEXECUTION }o--|| USER : "tracks"
+    CONTRACT ||--o{ PAYSLIP : "determines base wage"
+    PAYRUN ||--o{ PAYSLIP : "groups"
+    PAYSLIP ||--o{ PAYSLIPLINE : "contains line items"
 ```
-
-### Key Enumerations
-
-| Domain | Values |
-|---|---|
-| **Roles** | `EMPLOYEE`, `HR_MANAGER`, `HR_PAYROLL_USER`, `HR_PAYROLL_MANAGER`, `ADMIN` |
-| **Leave Status** | `PENDING`, `APPROVED`, `REFUSED`, `CANCELLED` |
-| **Leave Source** | `MANUAL`, `EMAIL_AI` |
-| **Payrun Status** | `DRAFT`, `COMPUTED`, `VALIDATED`, `PAID` |
-| **Payslip Status** | `DRAFT`, `COMPUTED`, `VERIFIED`, `PAID` |
-| **Rule Category** | `BASIC`, `ALLOWANCE`, `GROSS`, `DEDUCTION`, `NET` |
-| **Computation** | `FIXED`, `PERCENTAGE`, `FORMULA` |
-| **AI Execution** | `SUCCESS`, `FAILED`, `NEEDS_CLARIFICATION`, `HUMAN_REVIEW` |
-
----
-
-## 🔐 Security Architecture
-
-```mermaid
-sequenceDiagram
-    participant B as Browser
-    participant A as Express API
-    participant AM as Auth Middleware
-    participant RB as RBAC Middleware
-    participant C as Controller
-    participant S as Service
-    participant P as Prisma
-    participant D as PostgreSQL
-
-    B->>A: HTTPS request + JWT (cookie/token)
-    A->>AM: authenticate
-    AM->>RB: req.user populated
-    RB->>C: role authorized?
-    alt Authorized
-        C->>S: business logic
-        S->>P: query / transaction
-        P->>D: SQL
-        D-->>B: response
-    else 403 Forbidden
-        RB-->>B: FORBIDDEN
-    end
-```
-
-### Design Principles
-
-```mermaid
-flowchart TD
-    subgraph "AI SAFETY BOUNDARY"
-        AI["🧠 AI Layer<br/>Understand · Extract<br/>Validate · Analyze · Recommend"]
-        APP["⚙️ Application Layer<br/>Authorization · Business Rules<br/>DB Transactions · Payroll Engine"]
-        HUM["🧑‍💼 Human Authority<br/>Approve / Refuse"]
-    end
-
-    AI -->|"NEVER bypasses"| APP
-    APP -->|"final authority"| HUM
-
-    style AI fill:#eef4ff,stroke:#3b82f6
-    style APP fill:#f0fdf4,stroke:#16a34a
-    style HUM fill:#fef3c7,stroke:#d97706
-```
-
-1. **AI is assistive, not authoritative** — AI extracts/validates but never approves; humans make the final HR decision.
-2. **PostgreSQL is the single source of truth** — AI output is not persisted as truth until it passes application validation.
-3. **Background work is asynchronous** — email sending and bulk operations go through BullMQ/Redis queues.
-4. **Business rules live in application logic** — contracts, leave allocations, and salary rules are deterministic backend services.
-5. **AI Safety Boundary** — the AI reasoning layer is separated from authoritative transactions (authorization, business rules, DB transactions, human approval).
-
----
-
-## 🛠️ Technology Stack
-
-| Layer | Technology |
-|---|---|
-| **Frontend** | React 18 · Vite 5 · TypeScript · Tailwind CSS · React Router · Framer Motion · Recharts · lucide-react |
-| **Backend** | Node.js 20 · Express 4 · Prisma ORM 5 · Zod 3 · JWT · bcryptjs · helmet · express-rate-limit |
-| **Database** | PostgreSQL 15 (local) · Neon PostgreSQL w/ pgvector (remote RAG) |
-| **AI Layer** | LangGraph.js · LangChain.js · Google Gemini 2.0 (`@google/generative-ai`) |
-| **Integrations** | MCP (`@modelcontextprotocol/sdk`) · Gmail API |
-| **Queue & Workers** | BullMQ 5 · ioredis · Redis 7 |
-| **PDF** | PDFKit |
-| **Docs** | Swagger/OpenAPI |
-| **Infrastructure** | Docker · Docker Compose · Git/GitHub |
 
 ---
 
@@ -358,335 +226,150 @@ flowchart TD
 
 ```text
 .
-├── agent/                      # Multi-Agent Orchestration Layer (LangGraph + Gemini)
-│   ├── src/
-│   │   ├── agents/             # HROrchestratorAgent.js (working leave-email workflow)
-│   │   ├── nodes/              # Email, leave, payroll, analytics agent nodes
-│   │   ├── core/               # LangGraph state, graph builder, memory
-│   │   ├── prompts/            # LLM prompt templates
-│   │   ├── schemas/            # Zod validation schemas
-│   │   ├── tools/              # Leave/payroll/analytics DB tools
-│   │   └── rag/                # RAG policy knowledge base (+ pgvector retriever)
-│   ├── intents.json            # Intent catalog (10 intent types)
-│   └── intents.ts              # Intent matching helpers
-│
-├── client/                     # Frontend React + Vite + Tailwind app (:3000)
+├── client/                     # Frontend React + Vite + TypeScript (:3000)
 │   └── src/
-│       ├── api/                # REST API client
-│       ├── components/         # UI components & layout
-│       ├── context/            # Auth context
-│       ├── features/           # auth, dashboard, employees, contracts,
-│       │                       # schedules, attendance, leave, payroll, admin
-│       └── routes/             # App routes
+│       ├── api/                # REST client (attendance, live-punch, employees, payroll)
+│       ├── components/         # Reusable UI components & layouts
+│       ├── context/            # AuthContext & ToastContext
+│       ├── features/           # Attendance, Employees, Contracts, Schedules, TimeOff, Payroll, Admin
+│       └── routes/             # Client app routing
 │
-├── docs/                       # Architecture & PRD documentation
-│   ├── PeoplePay360_Solution_MultiAgent.md
-│   ├── PeoplePay360_PRD_MultiAgent.md
-│   └── PeoplePay360_Entire_MultiAgent_Workflow.docx
-│
-├── mcp-server/                 # Model Context Protocol Server (:3001)
-│   └── src/
-│       ├── index.js            # Express server, GET /tools, POST /tools/:name
-│       └── tools/index.js      # 4 MCP tools (emails, employee, leave balance, leave request)
-│
-├── server/                     # Backend REST API & Database Services (:5000)
+├── server/                     # Express Backend REST API (:5000)
 │   ├── prisma/
-│   │   ├── schema.prisma       # 22-model DB schema
-│   │   └── seed.js             # Demo data (roles, departments, employees, salary rules)
+│   │   ├── schema.prisma       # Database schema definition (22 models)
+│   │   └── seed.js             # Initial database seeder
 │   └── src/
-│       ├── modules/            # auth, departments, employees, contracts, schedules,
-│       │                       # attendance, timeOff, payroll, dashboard, email
-│       ├── services/           # payrollEngine, leaveService, pdfService, etc.
-│       ├── middleware/         # auth, rbac, validate, error middleware
-│       ├── schemas/            # Zod validation schemas
-│       ├── utils/              # apiResponse, jwt, logger, email, constants
-│       └── docs/swagger.json   # OpenAPI spec
+│       ├── modules/            # Attendance, Employees, Contracts, Schedules, TimeOff, Payroll, Dashboard
+│       ├── middleware/         # Auth, RBAC, Validation, Error Handling
+│       └── services/           # AttendanceService, PayrollEngine, PDFService
 │
-└── worker/                     # Asynchronous Background Processing Workers
-    └── src/
-        └── queues/             # emailWorker.js (emailQueue + payslipQueue)
+├── transfer_learning/          # Native Python AI Facial Recognition Kiosk
+│   ├── main.py                 # Multi-threaded OpenCV + InsightFace ArcFace Engine
+│   ├── registered_faces.json   # Face embedding vector database
+│   ├── attendance_logs.json    # Local JSON log sync buffer
+│   └── requirements.txt        # Python requirements (opencv-python, insightface, numpy)
+│
+├── docs/                       # Architecture & design specifications
+├── docker-compose.yml          # Container configuration (PostgreSQL & Redis)
+└── README.md                   # System documentation
 ```
 
 ---
 
-## 🚦 Prerequisites
+## ⚡ Quick Start Setup Guide
 
-- [Node.js](https://nodejs.org) **20+**
-- [Docker](https://www.docker.com/products/docker-desktop) & Docker Compose
-- [Google Gemini API key](https://ai.google.dev/) (for AI features)
-- Optional: Gmail API credentials / Brevo SMTP for email features
-
----
-
-## ⚡ Quick Start
-
-### 1. Clone & Install Dependencies
+### 1. Launch Database Containers
 
 ```bash
-git clone https://github.com/your-org/team_49_odoo_grand_final_hackathon.git
-cd team_49_odoo_grand_final_hackathon
-
-# Install each service's dependencies
-cd server && npm install && cd ..
-cd client && npm install && cd ..
-cd agent && npm install && cd ..
-cd mcp-server && npm install && cd ..
-cd worker && npm install && cd ..
+docker compose up -d postgres redis
 ```
 
-### 2. Configure Server
+---
+
+### 2. Setup & Start Backend Server
 
 ```bash
 cd server
+npm install
 cp .env.example .env
-# Edit .env with your DATABASE_URL, JWT_SECRET, GEMINI_API_KEY, etc.
-```
 
-### 3. Run with Docker Compose
-
-```bash
-docker compose up --build
-```
-
-This starts all six services: **PostgreSQL, Redis, Server, MCP Server, Agent, and Worker**.
-
-### 4. Seed the Database
-
-```bash
-cd server
+# Run Prisma database migrations & seed initial demo data
 npx prisma migrate dev
 npm run seed
-```
 
-### 5. Run the Frontend (development)
-
-```bash
-cd client
+# Launch Express server (runs on http://localhost:5000)
 npm run dev
 ```
 
-Access the app at **http://localhost:3000**.
-
 ---
 
-## 🔧 Running Services Individually
+### 3. Setup & Start Web Client
 
-| Service | Directory | Command |
-|---|---|---|
-| **Server** | `server/` | `npm run dev` (port 5000) |
-| **Client** | `client/` | `npm run dev` (port 3000) |
-| **MCP Server** | `mcp-server/` | `npm run dev` (port 3001) |
-| **Agent** | `agent/` | `npm run dev` (port 3002) |
-| **Worker** | `worker/` | `npm run dev` |
+```bash
+cd client
+npm install
 
----
-
-## 🌍 Environment Variables
-
-| Variable | Required | Default | Description |
-|---|---|---|---|
-| `DATABASE_URL` | ✅ Yes | — | PostgreSQL / Prisma connection string |
-| `NODE_ENV` | No | `development` | `development` \| `production` \| `test` |
-| `PORT` | No | `5000` | Server port |
-| `JWT_SECRET` | No | `super-secret-key-...` | JWT signing secret |
-| `JWT_EXPIRES_IN` | No | `7d` | JWT token lifetime |
-| `REDIS_HOST` | No | `localhost` | Redis host |
-| `REDIS_PORT` | No | `6379` | Redis port |
-| `GEMINI_API_KEY` | No | — | Google Gemini API key |
-| `FRONTEND_URL` | No | `http://localhost:5173` | Allowed CORS origin |
-
-> **⚠️ Security:** Never commit real secrets. `.env` files are git-ignored. Use separate values for local development vs. production.
-
----
-
-## 📡 API Reference
-
-All module routes are mounted under `/api`. Swagger UI is available at `GET /api/docs`.
-
-### Auth (`/api/auth`)
-
-| Method | Path | Access | Description |
-|---|---|---|---|
-| POST | `/auth/register` | Public | Register a user |
-| POST | `/auth/login` | Public | Login |
-| POST | `/auth/logout` | Public | Logout |
-| GET | `/auth/me` | Authenticated | Current user |
-| POST | `/auth/forgot-password` | Public | Request password reset |
-| POST | `/auth/reset-password` | Public | Reset password |
-| POST | `/auth/users` | `ADMIN` | Create user |
-| GET | `/auth/users` | `ADMIN` | List users |
-
-### Departments (`/api/departments`)
-
-| Method | Path | Access | Description |
-|---|---|---|---|
-| GET | `/departments` | Authenticated | List departments |
-| GET | `/departments/:id` | Authenticated | Get department |
-| POST | `/departments` | `ADMIN`, `HR_MANAGER` | Create department |
-| PATCH | `/departments/:id` | `ADMIN`, `HR_MANAGER` | Update department |
-| DELETE | `/departments/:id` | `ADMIN`, `HR_MANAGER` | Delete department |
-
-### Employees (`/api/employees`)
-
-| Method | Path | Access | Description |
-|---|---|---|---|
-| GET | `/employees` | HR roles | List employees |
-| GET | `/employees/:id` | Authenticated | Get employee |
-| POST | `/employees` | `ADMIN`, `HR_MANAGER` | Create employee |
-| PATCH | `/employees/:id` | `ADMIN`, `HR_MANAGER` | Update employee |
-| DELETE | `/employees/:id` | `ADMIN`, `HR_MANAGER` | Delete employee |
-
-### Contracts (`/api/contracts`)
-
-| Method | Path | Access | Description |
-|---|---|---|---|
-| GET | `/contracts` | HR roles | List contracts |
-| GET | `/contracts/:id` | HR roles | Get contract |
-| POST | `/contracts` | `ADMIN`, `HR_MANAGER`, `HR_PAYROLL_MANAGER` | Create contract |
-| PATCH | `/contracts/:id` | `ADMIN`, `HR_MANAGER`, `HR_PAYROLL_MANAGER` | Update contract |
-| DELETE | `/contracts/:id` | `ADMIN`, `HR_MANAGER` | Delete contract |
-
-### Schedules (`/api/schedules`)
-
-| Method | Path | Access | Description |
-|---|---|---|---|
-| GET | `/schedules` | Authenticated | List working schedules |
-| GET | `/schedules/:id` | Authenticated | Get schedule |
-| POST | `/schedules` | `ADMIN`, `HR_MANAGER` | Create schedule |
-| PATCH | `/schedules/:id` | `ADMIN`, `HR_MANAGER` | Update schedule |
-| DELETE | `/schedules/:id` | `ADMIN`, `HR_MANAGER` | Delete schedule |
-
-### Attendance (`/api/attendance`)
-
-| Method | Path | Access | Description |
-|---|---|---|---|
-| POST | `/attendance/check-in` | Authenticated | Check in |
-| POST | `/attendance/check-out` | Authenticated | Check out |
-| GET | `/attendance` | Authenticated | List attendance records |
-| GET | `/attendance/:id` | Authenticated | Get attendance |
-| PATCH | `/attendance/:id` | `ADMIN`, `HR_MANAGER` | Correct attendance |
-
-### Time Off (`/api/time-off`)
-
-| Method | Path | Access | Description |
-|---|---|---|---|
-| GET | `/time-off/types` | Authenticated | List leave types |
-| POST | `/time-off/types` | `ADMIN`, `HR_MANAGER` | Create leave type |
-| GET | `/time-off/allocations` | Authenticated | List allocations |
-| POST | `/time-off/allocations` | `ADMIN`, `HR_MANAGER` | Create allocation |
-| GET | `/time-off/employees/:employeeId/balance` | Authenticated | Get balance |
-| POST | `/time-off/requests` | Authenticated | Create leave request |
-| GET | `/time-off/requests` | Authenticated | List leave requests |
-| POST | `/time-off/requests/:id/approve` | `ADMIN`, `HR_MANAGER` | Approve request |
-| POST | `/time-off/requests/:id/refuse` | `ADMIN`, `HR_MANAGER` | Refuse request |
-| POST | `/time-off/requests/:id/cancel` | Authenticated | Cancel request |
-
-### Payroll (`/api/payroll`)
-
-| Method | Path | Access | Description |
-|---|---|---|---|
-| GET | `/payroll/structures` | HR roles | List salary structures |
-| POST | `/payroll/structures` | `ADMIN`, `HR_PAYROLL_MANAGER` | Create structure |
-| GET | `/payroll/payruns` | HR roles | List payruns |
-| POST | `/payroll/payruns` | `ADMIN`, `HR_PAYROLL_MANAGER` | Create payrun |
-| POST | `/payroll/payruns/:id/compute` | `ADMIN`, `HR_PAYROLL_MANAGER` | Compute payrun |
-| POST | `/payroll/payruns/:id/validate` | `ADMIN`, `HR_PAYROLL_MANAGER` | Validate payrun |
-| POST | `/payroll/payruns/:id/pay` | `ADMIN`, `HR_PAYROLL_MANAGER` | Mark payrun paid |
-| GET | `/payroll/payslips` | Authenticated | List payslips |
-| GET | `/payroll/payslips/:id/pdf` | Authenticated | Download payslip PDF |
-
-### Dashboard (`/api/dashboard`)
-
-| Method | Path | Access | Description |
-|---|---|---|---|
-| GET | `/dashboard/overview` | HR roles | Overview KPIs |
-| GET | `/dashboard/payroll` | HR roles | Payroll metrics |
-| GET | `/dashboard/attendance` | HR roles | Attendance metrics |
-| GET | `/dashboard/time-off` | HR roles | Time-off metrics |
-
-### Email & Health
-
-| Method | Path | Access | Description |
-|---|---|---|---|
-| POST | `/email/inbound` | Public | Inbound email webhook |
-| GET | `/health` | Public | Server + PostgreSQL health check |
-
-> **Agent service (port 3002):** `POST /agent/process-email`
-> **MCP server (port 3001):** `GET /tools`, `POST /tools/:name`
-
----
-
-## 🔑 Role-Based Access Control (RBAC)
-
-```mermaid
-graph LR
-    subgraph Roles
-        E["👤 EMPLOYEE"]
-        HR["🧑‍💼 HR_MANAGER"]
-        HU["🧮 HR_PAYROLL_USER"]
-        HM["🔐 HR_PAYROLL_MANAGER"]
-        A["🛡️ ADMIN"]
-    end
-
-    subgraph Permission Levels
-        L1["Self-service:<br/>own attendance, leave, payslips, /me"]
-        L2["HR Ops:<br/>employees, departments, contracts,<br/>schedules, allocations, approvals"]
-        L3["Payroll Ops:<br/>view structures, payruns, wages"]
-        L4["Payroll Mgmt:<br/>create structures, compute/validate/pay<br/>payruns, contracts"]
-        L5["All:<br/>users, everything"]
-    end
-
-    E --> L1
-    HR --> L1
-    HR --> L2
-    HU --> L1
-    HU --> L3
-    HM --> L1
-    HM --> L2
-    HM --> L3
-    HM --> L4
-    A --> L5
+# Launch React Vite dev server (runs on http://localhost:3000)
+npm run dev
 ```
 
 ---
 
-## 📖 Documentation
+### 4. Launch Native OpenCV AI Biometric Attendance System
 
-Detailed specification and architecture documents are available in the [docs](docs/) directory:
+Launch the camera directly from the Web UI by clicking **"Launch Live AI Camera"** on the Attendance screen, or launch via terminal:
 
-- [PeoplePay360 Solution Document](docs/PeoplePay360_Solution_MultiAgent.md) — Full architecture, workflows, and design decisions
-- [PeoplePay360 PRD](docs/PeoplePay360_PRD_MultiAgent.md) — Product requirements
-- [Multi-Agent Workflow Overview](docs/PeoplePay360_Entire_MultiAgent_Workflow.docx) — Visual workflow diagram
-- [Agent Module Readme](agent/README.md) — Multi-agent & RAG architecture detail
-- [Swagger API Docs](server/src/docs/swagger.json) — OpenAPI specification
+```bash
+cd transfer_learning
+pip install -r requirements.txt
+python main.py
+```
 
----
-
-## 🎬 5-Minute Hackathon Demo Walkthrough
-
-**Minute 0–1 — Product:** Show the dashboard, employee records, leave management, and payroll screens. Explain: *"PeoplePay360 connects HR and payroll operations while turning employee emails into actionable workflows."*
-
-**Minute 1–2 — AI Leave:** Send an email like *"I need leave from 10 September to 12 September for a family function"* and show the request appearing as **pending**.
-
-**Minute 2–3 — Human Approval:** Open the request, verify the extracted fields (employee, dates, type, reason, balance), and click **APPROVE**. Show the balance update.
-
-**Minute 3–4 — Automation:** Show the BullMQ → Worker → Email flow, the employee notification, and the email log entry.
-
-**Minute 4–5 — Payroll:** Create a payrun → show period, contract, salary structure, salary rules, payslip, PDF download, and bulk email delivery.
-
-Finish with:
-
-> **EMAIL → AI → WORKFLOW → APPROVAL → AUTOMATION**
+#### ⌨️ Kiosk Controls:
+- **`[C]` or `[SPACE]`**: Record Biometric Check-In (POST `/api/attendance/live-punch`)
+- **`[O]`**: Record Biometric Check-Out
+- **`[R]`**: Enroll / Register Face profile
+- **`[ESC]` or `[Q]`**: Quit Kiosk application
 
 ---
 
-## 🤝 Contributing
+## 📡 API Reference Summary
 
-1. Fork the repository.
-2. Create a feature branch: `git checkout -b feature/your-feature`
-3. Commit your changes: `git commit -m "Add your feature"`
-4. Push to the branch: `git push origin feature/your-feature`
-5. Open a Pull Request.
+All API routes are prefixed with `/api`.
+
+### 📷 Biometrics & Attendance (`/api/attendance`)
+
+| Method | Path | Access | Description |
+|---|---|---|---|
+| GET | `/attendance/live-biometric-logs` | Public / Kiosk | Fetch real-time biometric attendance log entries |
+| POST | `/attendance/launch-camera` | Public / Admin | Execute background process to launch OpenCV Python kiosk |
+| POST | `/attendance/live-punch` | Public / Kiosk | Submit real-time biometric check-in / check-out punch |
+| POST | `/attendance/check-in` | Authenticated | Manual web Check-In |
+| POST | `/attendance/check-out` | Authenticated | Manual web Check-Out |
+| GET | `/attendance` | Authenticated | List filtered attendance records |
+| PATCH | `/attendance/:id` | HR Roles | HR manual correction of attendance entry |
+
+### 👥 Employees (`/api/employees`)
+
+| Method | Path | Access | Description |
+|---|---|---|---|
+| GET | `/employees` | HR Roles | List all employee records |
+| POST | `/employees` | HR_MANAGER / ADMIN | Create new employee profile |
+| GET | `/employees/:id` | Authenticated | Get employee profile details |
+
+### 🏖️ Time Off (`/api/time-off`)
+
+| Method | Path | Access | Description |
+|---|---|---|---|
+| GET | `/time-off/requests` | Authenticated | List leave requests |
+| POST | `/time-off/requests` | Authenticated | Submit new leave request |
+| POST | `/time-off/requests/:id/approve` | HR Roles | Approve leave request |
+| POST | `/time-off/requests/:id/refuse` | HR Roles | Refuse leave request |
+
+### 💰 Payroll (`/api/payroll`)
+
+| Method | Path | Access | Description |
+|---|---|---|---|
+| GET | `/payroll/payruns` | HR Roles | List payruns |
+| POST | `/payroll/payruns` | HR_PAYROLL_MANAGER | Create payrun |
+| POST | `/payroll/payruns/:id/compute` | HR_PAYROLL_MANAGER | Execute salary rules for payrun |
+| POST | `/payroll/payruns/:id/validate` | HR_PAYROLL_MANAGER | Validate payrun |
+| GET | `/payroll/payslips/:id/pdf` | Authenticated | Download compiled PDF payslip |
+
+---
+
+## 🎬 5-Minute Hackathon Demo Script
+
+1. **Minute 0:00 - 1:00 (Problem & Overview)**:
+   Present the PeoplePay360 Dashboard. Explain how proxy attendance and manual payroll reconciliations impact businesses, and outline the unified system flow.
+2. **Minute 1:00 - 2:30 (Native OpenCV AI Biometrics)**:
+   Click **"Launch Live AI Camera"** from the Attendance screen. Show the native 30+ FPS window detecting face bounding boxes and embeddings. Register a profile with `[R]` and hit `[C]` to Check-In. Show the live camera HUD confirmation.
+3. **Minute 2:30 - 3:30 (Real-Time Web Dashboard Sync & HR Governance)**:
+   Switch back to the React Attendance page. Show the newly recorded punch appear automatically (via 1s polling stream) with exact timestamps, status (`PRESENT`), and worked-hours tracking. Show HR attendance correction dialogs.
+4. **Minute 3:30 - 4:30 (Salary Rules & Payrun Execution)**:
+   Navigate to Payroll Payruns. Click **Compute Payrun** and show how ordered salary rules calculate basic wage, allowances, taxes, and net pay.
+5. **Minute 4:30 - 5:00 (PDF Payslip Generation & Conclusion)**:
+   Open a payslip and download the PDF. Conclude: *"PeoplePay360 delivers zero-proxy biometric tracking seamlessly integrated with enterprise HR management and deterministic payroll."*
 
 ---
 
@@ -694,6 +377,4 @@ Finish with:
 
 **MIT** © Team 49 — Odoo Grand Final Hackathon
 
----
-
-*Built with ❤️ by **Team 49** — PeoplePay360 · `EMAIL → AI → WORKFLOW → APPROVAL → AUTOMATION`*
+*Built with ❤️ by **Team 49** — PeoplePay360*
