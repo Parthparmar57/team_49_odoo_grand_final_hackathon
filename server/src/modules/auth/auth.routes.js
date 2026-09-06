@@ -22,10 +22,10 @@ router.get('/me', authenticate, authController.getMe);
 router.post('/forgot-password', validate(forgotPasswordSchema), authController.forgotPassword);
 router.post('/reset-password', validate(resetPasswordSchema), authController.resetPassword);
 
-// Admin user management routes
-router.post('/users', authenticate, authorize(['ADMIN']), validate(adminCreateUserSchema), authController.adminCreateUser);
-router.get('/users', authenticate, authorize(['ADMIN']), authController.getUsers);
-router.patch('/users/:id', authenticate, authorize(['ADMIN']), authController.updateUser);
+// Admin & Manager user management routes
+router.post('/users', authenticate, authorize(['ADMIN', 'HR_PAYROLL_MANAGER', 'HR_MANAGER']), validate(adminCreateUserSchema), authController.adminCreateUser);
+router.get('/users', authenticate, authorize(['ADMIN', 'HR_PAYROLL_MANAGER', 'HR_MANAGER']), authController.getUsers);
+router.patch('/users/:id', authenticate, authorize(['ADMIN', 'HR_PAYROLL_MANAGER', 'HR_MANAGER']), authController.updateUser);
 
 export default router;
 

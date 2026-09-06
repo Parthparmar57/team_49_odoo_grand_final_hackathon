@@ -183,7 +183,7 @@ export const LandingPage: React.FC = () => {
         <span className="bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold px-2 py-0.5 rounded-full text-[10px] uppercase tracking-wider flex items-center gap-1">
           <ZapIcon className="w-3 h-3 fill-current" /> PLATFORM
         </span>
-        <span>PeoplePay360 — Integrated HR & Payroll Operations Suite</span>
+        <span>PeoplePay360  Integrated HR & Payroll Operations Suite</span>
         <a href="#features" className="underline hover:text-orange-300 transition ml-1 hidden sm:inline">
           Explore Core Modules →
         </a>
@@ -195,14 +195,14 @@ export const LandingPage: React.FC = () => {
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
         className={`sticky z-50 transition-all duration-300 w-full ${isScrolled
-            ? 'top-3 max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 mt-2'
-            : 'top-0 max-w-full px-0 mt-0'
+          ? 'top-3 max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 mt-2'
+          : 'top-0 max-w-full px-0 mt-0'
           }`}
       >
         <nav
           className={`transition-all duration-300 flex items-center justify-between ${isScrolled
-              ? 'bg-white/90 backdrop-blur-md border border-slate-200/80 rounded-full px-6 py-3 shadow-lg hover:shadow-xl'
-              : 'bg-white/95 backdrop-blur-md border-b border-slate-200/80 rounded-none px-6 sm:px-12 py-4 shadow-sm'
+            ? 'bg-white/90 backdrop-blur-md border border-slate-200/80 rounded-full px-6 py-3 shadow-lg hover:shadow-xl'
+            : 'bg-white/95 backdrop-blur-md border-b border-slate-200/80 rounded-none px-6 sm:px-12 py-4 shadow-sm'
             }`}
         >
           {/* Logo */}
