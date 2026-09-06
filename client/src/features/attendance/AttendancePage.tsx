@@ -65,12 +65,12 @@ export default function AttendancePage() {
           setRecords(sortAttendanceLogs(res.data));
         }
       }
-    } catch (_) {}
+    } catch (_) { }
     setLoading(false);
   };
 
-  useEffect(() => { 
-    load(); 
+  useEffect(() => {
+    load();
   }, [filterStatus]);
 
   // Real-time live polling every 1 second (1000ms) for instant on-screen updates
@@ -90,7 +90,7 @@ export default function AttendancePage() {
             return prev;
           });
         }
-      } catch (_) {}
+      } catch (_) { }
     }, 1000);
     return () => {
       isMounted = false;
@@ -217,11 +217,10 @@ export default function AttendancePage() {
           <button
             onClick={toggleLiveAttendance}
             disabled={liveLaunching}
-            className={`px-4 py-2 font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-sm transition-all cursor-pointer ${
-              liveMode
+            className={`px-4 py-2 font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-sm transition-all cursor-pointer ${liveMode
                 ? 'bg-amber-600 hover:bg-amber-700 text-white'
                 : 'bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white'
-            }`}
+              }`}
           >
             {liveLaunching ? (
               <Loader2 size={14} className="animate-spin" />

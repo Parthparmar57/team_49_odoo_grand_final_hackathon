@@ -49,7 +49,7 @@ export class AttendanceService {
 
         await prisma.$executeRawUnsafe(
             `INSERT INTO "Attendance" (id, "employeeId", date, "checkIn", "checkOut", "workedHours", status, "correctionReason", "createdAt", "updatedAt")
-             VALUES ($1, $2, $3, $4, NULL, 0.0, 'PRESENT', $5, $6, $7)`,
+             VALUES ($1, $2, $3, $4, NULL, 0.0, 'PRESENT'::"AttendanceStatus", $5, $6, $7)`,
             newId,
             employeeId,
             today,
@@ -126,7 +126,7 @@ export class AttendanceService {
 
         await prisma.$executeRawUnsafe(
             `UPDATE "Attendance"
-             SET "checkOut" = $1, "workedHours" = $2, status = $3, "correctionReason" = $4, "updatedAt" = $5
+             SET "checkOut" = $1, "workedHours" = $2, status = $3::"AttendanceStatus", "correctionReason" = $4, "updatedAt" = $5
              WHERE id = $6`,
             checkOutTime,
             workedHours,
