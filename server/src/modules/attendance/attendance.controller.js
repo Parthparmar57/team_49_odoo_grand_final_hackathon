@@ -225,7 +225,7 @@ export const recordLivePunch = async (req, res, next) => {
                     const newDbId = crypto.randomUUID();
                     await prisma.$executeRawUnsafe(
                         `INSERT INTO "Attendance" (id, "employeeId", date, "checkIn", "checkOut", "workedHours", status, "createdAt", "updatedAt")
-                         VALUES ($1, $2, $3, $4, NULL, 0.0, 'PRESENT', $5, $6)`,
+                         VALUES ($1, $2, $3, $4, NULL, 0.0, 'PRESENT'::"AttendanceStatus", $5, $6)`,
                         newDbId,
                         employee.id,
                         todayMidnight,
@@ -307,7 +307,7 @@ export const recordLivePunch = async (req, res, next) => {
                                 const todayMidnight = new Date(year, now.getMonth(), now.getDate());
                                 await prisma.$executeRawUnsafe(
                                     `INSERT INTO "Attendance" (id, "employeeId", date, "checkIn", "checkOut", "workedHours", status, "createdAt", "updatedAt")
-                                     VALUES ($1, $2, $3, $4, $5, $6, 'PRESENT', $7, $8)`,
+                                     VALUES ($1, $2, $3, $4, $5, $6, 'PRESENT'::"AttendanceStatus", $7, $8)`,
                                     newDbId,
                                     employee.id,
                                     todayMidnight,
@@ -355,7 +355,7 @@ export const recordLivePunch = async (req, res, next) => {
                         const todayMidnight = new Date(year, now.getMonth(), now.getDate());
                         await prisma.$executeRawUnsafe(
                             `INSERT INTO "Attendance" (id, "employeeId", date, "checkIn", "checkOut", "workedHours", status, "createdAt", "updatedAt")
-                             VALUES ($1, $2, $3, $4, $5, $6, 'PRESENT', $7, $8)`,
+                             VALUES ($1, $2, $3, $4, $5, $6, 'PRESENT'::"AttendanceStatus", $7, $8)`,
                             newDbId,
                             employee.id,
                             todayMidnight,

@@ -1,5 +1,96 @@
 [
   {
+    "id": "ATT-1788654880464",
+    "dbId": "3c8c5e08-2ff7-49b9-9b2f-09de3a6213f1",
+    "employee": {
+      "firstName": "Vinay",
+      "lastName": "Vaja",
+      "employeeNumber": "EMP-001"
+    },
+    "employeeNumber": "EMP-001",
+    "name": "Vinay Vaja",
+    "date": "2026-09-06",
+    "checkIn": "2026-09-06T06:05:05",
+    "checkInTime": "06:05:05 AM",
+    "checkOut": "2026-09-06T06:05:13",
+    "checkOutTime": "06:05:13 AM",
+    "workedHours": 0.01,
+    "overtimeHours": 0,
+    "status": "PRESENT",
+    "actions": "",
+    "matchConfidence": 71.3
+  },
+  {
+    "id": "ATT-1788654735024",
+    "dbId": "45edc855-c9ce-444f-b3b1-8ed2de67b30d",
+    "employee": {
+      "firstName": "Vinay",
+      "lastName": "Vaja",
+      "employeeNumber": "EMP-001"
+    },
+    "employeeNumber": "EMP-001",
+    "name": "Vinay Vaja",
+    "date": "2026-09-06",
+    "checkIn": "2026-09-06T06:08:33",
+    "checkInTime": "06:08:33 AM",
+    "checkOut": "2026-09-06T06:08:36",
+    "checkOutTime": "06:08:36 AM",
+    "workedHours": 0.01,
+    "overtimeHours": 0,
+    "status": "PRESENT",
+    "actions": "",
+    "matchConfidence": 79.8
+  },
+  {
+    "id": "ATT-1788654678882",
+    "dbId": "fd5e9795-a4d6-4b0c-971e-88f168aed8d4",
+    "employee": {
+      "firstName": "Manish",
+      "lastName": "Banerjee",
+      "employeeNumber": "EMP004"
+    },
+    "employeeNumber": "EMP004",
+    "name": "Manish Banerjee",
+    "date": "2026-09-06",
+    "checkIn": "2026-09-06T06:01:18",
+    "checkInTime": "06:01:18 AM",
+    "checkOut": "",
+    "checkOutTime": "",
+    "workedHours": 0,
+    "overtimeHours": 0,
+    "status": "PRESENT",
+    "actions": "",
+    "matchConfidence": 95
+  },
+  {
+    "dbId": "a6e0217d-0949-4037-8b05-3fff0b5939bf",
+    "checkOut": "2026-09-06T06:09:24",
+    "checkOutTime": "06:09:24 AM",
+    "workedHours": 0.01,
+    "overtimeHours": 0,
+    "status": "HALF_DAY"
+  },
+  {
+    "id": "ATT-1788654477598",
+    "employee": {
+      "firstName": "Vinay",
+      "lastName": "Vaja",
+      "employeeNumber": "EMP-001"
+    },
+    "employeeNumber": "EMP-001",
+    "name": "Vinay Vaja",
+    "date": "2026-09-06",
+    "checkIn": "2026-09-06T05:58:05",
+    "checkInTime": "05:58:05 AM",
+    "checkOut": "2026-09-06T05:58:12",
+    "checkOutTime": "05:58:12 AM",
+    "workedHours": 0.01,
+    "overtimeHours": 0,
+    "status": "PRESENT",
+    "actions": "",
+    "matchConfidence": 81.2
+  },
+  {
     "id": "ATT-1788649973100",
     "employee": {
       "firstName": "Vinay",
