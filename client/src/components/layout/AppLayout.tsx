@@ -14,6 +14,7 @@ import {
   Menu,
   X,
   UserCheck,
+  ShieldCheck,
 } from 'lucide-react';
 
 interface NavItem {
@@ -28,6 +29,12 @@ const navItems: NavItem[] = [
     label: 'Dashboard',
     path: '/dashboard',
     icon: LayoutDashboard,
+  },
+  {
+    label: 'Users & Roles',
+    path: '/admin/users',
+    icon: ShieldCheck,
+    roles: ['ADMIN', 'HR_PAYROLL_MANAGER', 'HR_MANAGER'],
   },
   {
     label: 'Employees',
@@ -176,7 +183,14 @@ export const AppLayout: React.FC = () => {
                     </div>
                   </div>
 
-
+                  {hasRole(['ADMIN', 'HR_PAYROLL_MANAGER', 'HR_MANAGER']) && (
+                    <Link
+                      to="/admin/users"
+                      className="w-full flex items-center gap-2 px-4 py-2.5 text-xs text-slate-700 hover:bg-slate-50 font-bold transition-colors border-b border-slate-100"
+                    >
+                      <ShieldCheck className="w-4 h-4 text-orange-500" /> Admin User Management
+                    </Link>
+                  )}
 
                   <button
                     onClick={handleLogout}

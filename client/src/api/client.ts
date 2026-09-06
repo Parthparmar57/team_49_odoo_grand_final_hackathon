@@ -185,7 +185,7 @@ class ApiClient {
     checkIn: (data?: any) => this.request('/attendance/check-in', { method: 'POST', body: JSON.stringify(data || {}) }),
     checkOut: (data?: any) => this.request('/attendance/check-out', { method: 'POST', body: JSON.stringify(data || {}) }),
     correct: (id: string, data: any) => this.request(`/attendance/${id}/correct`, { method: 'PATCH', body: JSON.stringify(data) }),
-    getBiometricLogs: () => this.request<any[]>('/attendance/live-biometric-logs'),
+    getBiometricLogs: () => this.request<any[]>('/attendance/live-opencv-logs'),
     launchCamera: () => this.request<{ message: string }>('/attendance/launch-camera', { method: 'POST' }),
   };
 

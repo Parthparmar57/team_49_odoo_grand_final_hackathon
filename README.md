@@ -321,7 +321,7 @@ All API routes are prefixed with `/api`.
 
 | Method | Path | Access | Description |
 |---|---|---|---|
-| GET | `/attendance/live-biometric-logs` | Public / Kiosk | Fetch real-time biometric attendance log entries |
+| GET | `/attendance/live-opencv-logs` | Public / Kiosk | Fetch real-time biometric attendance log entries |
 | POST | `/attendance/launch-camera` | Public / Admin | Execute background process to launch OpenCV Python kiosk |
 | POST | `/attendance/live-punch` | Public / Kiosk | Submit real-time biometric check-in / check-out punch |
 | POST | `/attendance/check-in` | Authenticated | Manual web Check-In |
