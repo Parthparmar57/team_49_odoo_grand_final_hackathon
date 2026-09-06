@@ -34,7 +34,7 @@ const navItems: NavItem[] = [
     label: 'Users & Roles',
     path: '/admin/users',
     icon: ShieldCheck,
-    roles: ['ADMIN', 'HR_PAYROLL_MANAGER', 'HR_MANAGER'],
+    roles: ['ADMIN'],
   },
   {
     label: 'Employees',
@@ -70,7 +70,7 @@ const navItems: NavItem[] = [
     label: 'Payroll & Payslips',
     path: '/payroll',
     icon: CreditCard,
-    roles: ['ADMIN', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER'],
+    roles: ['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER'],
   },
 ];
 
@@ -183,7 +183,7 @@ export const AppLayout: React.FC = () => {
                     </div>
                   </div>
 
-                  {hasRole(['ADMIN', 'HR_PAYROLL_MANAGER', 'HR_MANAGER']) && (
+                  {hasRole(['ADMIN']) && (
                     <Link
                       to="/admin/users"
                       className="w-full flex items-center gap-2 px-4 py-2.5 text-xs text-slate-700 hover:bg-slate-50 font-bold transition-colors border-b border-slate-100"

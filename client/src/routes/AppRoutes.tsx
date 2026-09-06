@@ -73,10 +73,12 @@ export const AppRoutes: React.FC = () => {
         {/* ========================================== */}
         {/* DEVELOPER 1: ADMIN & SALARY STRUCTURE ROUTES */}
         {/* ========================================== */}
+        {/* ADMIN USER MANAGEMENT ROUTES */}
+        {/* ========================================== */}
         <Route
           path="/admin/users"
           element={
-            <RoleGuard allowedRoles={['ADMIN', 'HR_PAYROLL_MANAGER', 'HR_MANAGER']}>
+            <RoleGuard allowedRoles={['ADMIN']}>
               <UserManagementPage />
             </RoleGuard>
           }
@@ -84,7 +86,7 @@ export const AppRoutes: React.FC = () => {
         <Route
           path="/admin/users/new"
           element={
-            <RoleGuard allowedRoles={['ADMIN', 'HR_PAYROLL_MANAGER', 'HR_MANAGER']}>
+            <RoleGuard allowedRoles={['ADMIN']}>
               <CreateUserPage />
             </RoleGuard>
           }
@@ -92,7 +94,7 @@ export const AppRoutes: React.FC = () => {
         <Route
           path="/admin/create-user"
           element={
-            <RoleGuard allowedRoles={['ADMIN', 'HR_PAYROLL_MANAGER', 'HR_MANAGER']}>
+            <RoleGuard allowedRoles={['ADMIN']}>
               <CreateUserPage />
             </RoleGuard>
           }
@@ -203,7 +205,7 @@ export const AppRoutes: React.FC = () => {
         <Route
           path="/payroll"
           element={
-            <RoleGuard allowedRoles={['ADMIN', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER']}>
+            <RoleGuard allowedRoles={['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER']}>
               <PayrollPage />
             </RoleGuard>
           }
@@ -211,7 +213,7 @@ export const AppRoutes: React.FC = () => {
         <Route
           path="/payroll/payruns/:id"
           element={
-            <RoleGuard allowedRoles={['ADMIN', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER']}>
+            <RoleGuard allowedRoles={['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER']}>
               <PayrunDetail />
             </RoleGuard>
           }

@@ -23,6 +23,13 @@ export const LoginPage: React.FC = () => {
 
   const from = (location.state as any)?.from?.pathname || '/dashboard';
 
+  const getTargetPath = (userRole?: string) => {
+    if (from && !from.startsWith('/auth') && from !== '/' && from !== '/dashboard') {
+      return from;
+    }
+    return userRole === 'ADMIN' ? '/admin/users' : '/dashboard';
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -42,18 +49,29 @@ export const LoginPage: React.FC = () => {
     setIsSubmitting(false);
 
     if (result.success && result.user) {
-      const targetPath = from !== '/dashboard' ? from : (result.user.role === 'ADMIN' ? '/admin/users' : '/dashboard');
+      const targetPath = getTargetPath(result.user.role);
       navigate(targetPath, { replace: true });
     } else {
       setError(result.error || 'Failed to sign in. Please verify your credentials.');
     }
   };
 
-  const setDemoAccount = (personaEmail: string, personaRole: string) => {
+  const setDemoAccount = async (personaEmail: string, personaRole: string) => {
     setEmail(personaEmail);
     setPassword('odoo@123');
     setActivePersona(personaRole);
     setError(null);
+    setIsSubmitting(true);
+
+    const result = await login({ email: personaEmail, password: 'odoo@123' });
+    setIsSubmitting(false);
+
+    if (result.success && result.user) {
+      const targetPath = getTargetPath(result.user.role);
+      navigate(targetPath, { replace: true });
+    } else {
+      setError(result.error || 'Failed to sign in. Please verify credentials.');
+    }
   };
 
   return (

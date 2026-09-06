@@ -75,7 +75,7 @@ export default function PayrollPage() {
     if (res.success) {
       toast.success('Payrun batch created successfully');
       setShowNew(false);
-      navigate(`/payroll/payruns/${res.data.id}`);
+      load();
     } else {
       const msg = res.error?.message || 'Failed to create payrun';
       setError(msg);
@@ -169,11 +169,9 @@ export default function PayrollPage() {
         <Button variant="secondary" onClick={() => navigate('/payroll/structures')}>
           Salary Structures & Rules
         </Button>
-        {!isPayrollUser && (
-          <Button onClick={handleOpenWizard}>
-            <Plus size={16} /> New Payrun Batch
-          </Button>
-        )}
+        <Button onClick={handleOpenWizard}>
+          <Plus size={16} /> New Payrun Batch
+        </Button>
       </PageHeader>
 
       <div className="flex border-b border-slate-200 gap-6">
@@ -303,7 +301,7 @@ export default function PayrollPage() {
                 <Td className="text-xs font-medium text-slate-600">
                   {new Date(pr.periodStart).toLocaleDateString()} — {new Date(pr.periodEnd).toLocaleDateString()}
                 </Td>
-                <Td className="font-bold text-slate-800">{pr.totalEmployees || pr.payslips?.length || 0}</Td>
+                <Td className="font-bold text-slate-800">{pr._count?.payslips ?? pr.totalEmployees ?? pr.payslips?.length ?? 0}</Td>
                 <Td className="font-semibold text-slate-700">₹{(pr.totalGross || 0).toLocaleString()}</Td>
                 <Td className="font-extrabold text-emerald-700">₹{(pr.totalNet || 0).toLocaleString()}</Td>
                 <Td><PayrunStatusBadge status={pr.status} /></Td>

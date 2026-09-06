@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../../api/client';
 import { Button, LoadingPage, Alert, Card, PayrunStatusBadge, Badge } from '../../components/ui';
-import { ArrowLeft, Play, CheckCircle, DollarSign, Download, Send, AlertTriangle, Search, Filter, X } from 'lucide-react';
+import { ArrowLeft, Play, CheckCircle, DollarSign, Download, Send, AlertTriangle, Search, Filter, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useToast } from '../../context/ToastContext';
 import { useAuth } from '../../context/AuthContext';
 
@@ -22,19 +22,98 @@ export default function PayrunDetail() {
   const [structureFilter, setStructureFilter] = useState('');
   const [salaryRangeFilter, setSalaryRangeFilter] = useState('');
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 20;
+
   const load = () => {
-    api.payroll.getPayrun(id!).then(res => {
-      if (res.success) setPayrun(res.data);
-      else {
-        const msg = res.error?.message || 'Payrun not found';
+    setLoading(true);
+    setError('');
+    api.payroll.getPayrun(id!)
+      .then(res => {
+        if (res.success && res.data) {
+          setPayrun(res.data);
+        } else {
+          const msg = res.error?.message || 'Payrun not found';
+          setError(msg);
+          toast.error(msg);
+        }
+        setLoading(false);
+      })
+      .catch(err => {
+        const msg = err?.message || 'Failed to load payrun details';
+        setError(msg);
         toast.error(msg);
-        navigate('/payroll');
-      }
-      setLoading(false);
-    });
+        setLoading(false);
+      });
   };
 
+  // ALL HOOKS AT TOP LEVEL (NO EARLY RETURNS BEFORE HOOKS)
   useEffect(() => { load(); }, [id]);
+
+  // Reset pagination when filter or search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, structureFilter, salaryRangeFilter]);
+
+  // Unique salary structures in this payrun
+  const uniqueStructures = useMemo(() => {
+    if (!payrun?.payslips || !Array.isArray(payrun.payslips)) return [];
+    const map = new Map<string, string>();
+    payrun.payslips.forEach((ps: any) => {
+      const name = ps?.contract?.salaryStructure?.name || ps?.salaryStructure?.name || 'Standard';
+      const structId = ps?.contract?.salaryStructureId || ps?.salaryStructureId || name;
+      if (structId && name) {
+        if (!map.has(structId)) map.set(structId, name);
+      }
+    });
+    return Array.from(map.entries()).map(([structId, name]) => ({ id: structId, name }));
+  }, [payrun]);
+
+  const filteredPayslips = useMemo(() => {
+    if (!payrun?.payslips || !Array.isArray(payrun.payslips)) return [];
+    return payrun.payslips.filter((ps: any) => {
+      if (!ps) return false;
+      const q = (searchQuery || '').toLowerCase().trim();
+      const empName = `${ps.employee?.firstName || ''} ${ps.employee?.lastName || ''}`.toLowerCase();
+      const empNum = (ps.employee?.employeeNumber || '').toLowerCase();
+      const ref = (ps.number || ps.payslipRef || ps.id || '').toLowerCase();
+      const structName = (ps.contract?.salaryStructure?.name || ps.salaryStructure?.name || '').toLowerCase();
+
+      const matchesSearch = !q || empName.includes(q) || empNum.includes(q) || ref.includes(q) || structName.includes(q);
+
+      const matchesStructure =
+        !structureFilter ||
+        (structName && structName.toLowerCase() === structureFilter.toLowerCase()) ||
+        ps.contract?.salaryStructureId === structureFilter ||
+        ps.salaryStructureId === structureFilter;
+
+      let matchesSalaryRange = true;
+      const net = Number(ps.netSalary || 0);
+      if (salaryRangeFilter === 'HIGH') matchesSalaryRange = net >= 50000;
+      else if (salaryRangeFilter === 'MID') matchesSalaryRange = net >= 25000 && net < 50000;
+      else if (salaryRangeFilter === 'LOW') matchesSalaryRange = net < 25000;
+
+      return matchesSearch && matchesStructure && matchesSalaryRange;
+    });
+  }, [payrun, searchQuery, structureFilter, salaryRangeFilter]);
+
+  const totalPages = useMemo(() => {
+    return Math.ceil(filteredPayslips.length / pageSize) || 1;
+  }, [filteredPayslips, pageSize]);
+
+  const paginatedPayslips = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredPayslips.slice(start, start + pageSize);
+  }, [filteredPayslips, currentPage, pageSize]);
+
+  const hasActiveFilters = Boolean(searchQuery || structureFilter || salaryRangeFilter);
+
+  const clearFilters = () => {
+    setSearchQuery('');
+    setStructureFilter('');
+    setSalaryRangeFilter('');
+  };
 
   const handleAction = async (action: 'compute' | 'validate' | 'pay') => {
     const fns = { compute: api.payroll.computePayrun, validate: api.payroll.validatePayrun, pay: api.payroll.markPaid };
@@ -57,69 +136,53 @@ export default function PayrunDetail() {
     }, 1200);
   };
 
+  const formatDate = (d: any) => {
+    if (!d) return '—';
+    const dt = new Date(d);
+    return isNaN(dt.getTime()) ? String(d) : dt.toLocaleDateString();
+  };
+
+  const formatCurrency = (val: any) => {
+    const num = Number(val);
+    return isNaN(num) ? '0' : num.toLocaleString();
+  };
+
+  // CONDITIONAL RENDERS ONLY AFTER ALL HOOKS HAVE BEEN CALLED AT THE TOP LEVEL
   if (loading) return <LoadingPage />;
-  if (!payrun) return null;
+  if (error || !payrun) {
+    return (
+      <div className="space-y-4 p-6 bg-white rounded-3xl border border-slate-200/80 m-4 shadow-sm">
+        <Alert message={error || 'Payrun details could not be loaded or payrun not found.'} />
+        <Button onClick={() => navigate('/payroll')}>
+          <ArrowLeft size={16} /> Back to Payruns
+        </Button>
+      </div>
+    );
+  }
 
   // Audit warnings for pre-finalization checks
   const warningsList: string[] = [];
-  if (payrun.warnings?.length) {
-    payrun.warnings.forEach((w: any) => warningsList.push(w.message));
+  if (Array.isArray(payrun.warnings)) {
+    payrun.warnings.forEach((w: any) => {
+      if (typeof w === 'string' && w.trim()) {
+        warningsList.push(w.trim());
+      } else if (w && typeof w === 'object') {
+        const msg = w.message || w.warning || w.description;
+        if (msg && typeof msg === 'string') warningsList.push(msg);
+      }
+    });
   }
 
   // Pre-finalization bank details validation check
-  payrun.payslips?.forEach((ps: any) => {
-    const emp = ps.employee || {};
-    if (!emp.bankName || !emp.accountNumber) {
-      warningsList.push(`Missing bank details for ${emp.firstName} ${emp.lastName} (${emp.employeeNumber || 'Emp'})`);
-    }
-  });
-
-  // Unique salary structures in this payrun
-  const uniqueStructures = useMemo(() => {
-    if (!payrun?.payslips) return [];
-    const map = new Map<string, string>();
+  if (Array.isArray(payrun.payslips)) {
     payrun.payslips.forEach((ps: any) => {
-      const name = ps.contract?.salaryStructure?.name || ps.salaryStructure?.name || 'Standard';
-      const id = ps.contract?.salaryStructureId || ps.salaryStructureId || name;
-      if (!map.has(id)) map.set(id, name);
+      const emp = ps?.employee || {};
+      if (emp && (!emp.bankName || !emp.accountNumber)) {
+        const name = `${emp.firstName || 'Employee'} ${emp.lastName || ''}`.trim();
+        warningsList.push(`Missing bank details for ${name} (${emp.employeeNumber || 'Emp'})`);
+      }
     });
-    return Array.from(map.entries()).map(([id, name]) => ({ id, name }));
-  }, [payrun]);
-
-  const filteredPayslips = useMemo(() => {
-    if (!payrun?.payslips) return [];
-    return payrun.payslips.filter((ps: any) => {
-      const q = searchQuery.toLowerCase().trim();
-      const empName = `${ps.employee?.firstName || ''} ${ps.employee?.lastName || ''}`.toLowerCase();
-      const empNum = (ps.employee?.employeeNumber || '').toLowerCase();
-      const ref = (ps.number || ps.payslipRef || ps.id || '').toLowerCase();
-      const structName = (ps.contract?.salaryStructure?.name || ps.salaryStructure?.name || '').toLowerCase();
-
-      const matchesSearch = !q || empName.includes(q) || empNum.includes(q) || ref.includes(q) || structName.includes(q);
-
-      const matchesStructure =
-        !structureFilter ||
-        structName.toLowerCase() === structureFilter.toLowerCase() ||
-        ps.contract?.salaryStructureId === structureFilter ||
-        ps.salaryStructureId === structureFilter;
-
-      let matchesSalaryRange = true;
-      const net = ps.netSalary || 0;
-      if (salaryRangeFilter === 'HIGH') matchesSalaryRange = net >= 50000;
-      else if (salaryRangeFilter === 'MID') matchesSalaryRange = net >= 25000 && net < 50000;
-      else if (salaryRangeFilter === 'LOW') matchesSalaryRange = net < 25000;
-
-      return matchesSearch && matchesStructure && matchesSalaryRange;
-    });
-  }, [payrun, searchQuery, structureFilter, salaryRangeFilter]);
-
-  const hasActiveFilters = Boolean(searchQuery || structureFilter || salaryRangeFilter);
-
-  const clearFilters = () => {
-    setSearchQuery('');
-    setStructureFilter('');
-    setSalaryRangeFilter('');
-  };
+  }
 
   return (
     <div className="space-y-6">
@@ -135,7 +198,7 @@ export default function PayrunDetail() {
               <PayrunStatusBadge status={payrun.status} />
             </div>
             <p className="text-slate-500 text-xs font-mono font-medium mt-1">
-              {new Date(payrun.periodStart).toLocaleDateString()} — {new Date(payrun.periodEnd).toLocaleDateString()} · Ref: {payrun.payrunRef}
+              {formatDate(payrun.periodStart)} — {formatDate(payrun.periodEnd)} · Ref: {payrun.payrunRef}
             </p>
           </div>
         </div>
@@ -186,19 +249,19 @@ export default function PayrunDetail() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card className="p-5 border border-slate-200/80">
           <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Employees Processed</p>
-          <p className="text-3xl font-extrabold text-slate-900 mt-1">{payrun.totalEmployees || payrun.payslips?.length || 0}</p>
+          <p className="text-3xl font-extrabold text-slate-900 mt-1">{payrun.payslips?.length ?? payrun._count?.payslips ?? payrun.totalEmployees ?? 0}</p>
         </Card>
         <Card className="p-5 border border-slate-200/80">
           <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Total Basic Wages</p>
-          <p className="text-3xl font-extrabold text-slate-900 mt-1">₹{(payrun.totalBasic || 0).toLocaleString()}</p>
+          <p className="text-3xl font-extrabold text-slate-900 mt-1">₹{formatCurrency(payrun.totalBasic)}</p>
         </Card>
         <Card className="p-5 border border-slate-200/80">
           <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Total Gross Salary</p>
-          <p className="text-3xl font-extrabold text-[#FF5E1E] mt-1">₹{(payrun.totalGross || 0).toLocaleString()}</p>
+          <p className="text-3xl font-extrabold text-[#FF5E1E] mt-1">₹{formatCurrency(payrun.totalGross)}</p>
         </Card>
         <Card className="p-5 border border-slate-200/80 bg-emerald-50/50 border-emerald-200/80">
           <p className="text-xs font-bold uppercase tracking-wider text-emerald-800">Total Net Disbursement</p>
-          <p className="text-3xl font-extrabold text-emerald-700 mt-1">₹{(payrun.totalNet || 0).toLocaleString()}</p>
+          <p className="text-3xl font-extrabold text-emerald-700 mt-1">₹{formatCurrency(payrun.totalNet)}</p>
         </Card>
       </div>
 
@@ -278,31 +341,35 @@ export default function PayrunDetail() {
 
               {/* Counter Summary */}
               <div className="flex items-center justify-between text-xs text-slate-500 font-semibold pt-2 border-t border-slate-200/60">
-                <span>Showing <strong className="text-slate-900">{filteredPayslips.length}</strong> of <strong className="text-slate-900">{payrun.payslips.length}</strong> generated payslips</span>
+                <span>Showing <strong className="text-slate-900">{paginatedPayslips.length}</strong> of <strong className="text-slate-900">{filteredPayslips.length}</strong> filtered payslips ({payrun.payslips.length} total)</span>
                 {hasActiveFilters && (
                   <span className="text-[#FF5E1E] font-bold">Filtered Results</span>
                 )}
               </div>
             </div>
 
-            {filteredPayslips.length === 0 ? (
+            {paginatedPayslips.length === 0 ? (
               <p className="text-slate-500 text-xs font-medium py-6 text-center">No generated payslips match the selected search & filter criteria.</p>
             ) : (
-              filteredPayslips.map((ps: any) => (
-                <div key={ps.id} className="p-4 bg-slate-50 border border-slate-200/80 rounded-2xl space-y-3">
+              paginatedPayslips.map((ps: any, index: number) => (
+                <div key={ps.id || index} className="p-4 bg-slate-50 border border-slate-200/80 rounded-2xl space-y-3">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="text-slate-900 font-extrabold text-base">{ps.employee?.firstName} {ps.employee?.lastName}</span>
-                        <span className="text-slate-500 text-xs font-mono">({ps.employee?.employeeNumber})</span>
-                        <Badge variant="info">{ps.contract?.salaryStructure?.name || 'Standard'}</Badge>
+                        <span className="text-slate-900 font-extrabold text-base">
+                          {ps.employee?.firstName || 'Employee'} {ps.employee?.lastName || ''}
+                        </span>
+                        <span className="text-slate-500 text-xs font-mono">({ps.employee?.employeeNumber || 'Emp'})</span>
+                        <Badge variant="info">{ps.contract?.salaryStructure?.name || ps.salaryStructure?.name || 'Standard'}</Badge>
                       </div>
-                      <p className="text-slate-500 text-xs font-mono mt-0.5">{ps.number || ps.payslipRef}</p>
+                      <p className="text-slate-500 text-xs font-mono mt-0.5">{ps.number || ps.payslipRef || ps.id}</p>
                     </div>
                     <div className="flex items-center gap-4">
                       <div className="text-right">
-                        <div className="text-xs text-slate-500 font-medium">Gross: ₹{ps.grossSalary?.toLocaleString()} · Deductions: ₹{ps.totalDeductions?.toLocaleString()}</div>
-                        <div className="text-base font-extrabold text-emerald-700">Net: ₹{ps.netSalary?.toLocaleString()}</div>
+                        <div className="text-xs text-slate-500 font-medium">
+                          Gross: ₹{formatCurrency(ps.grossSalary)} · Deductions: ₹{formatCurrency(ps.totalDeductions)}
+                        </div>
+                        <div className="text-base font-extrabold text-emerald-700">Net: ₹{formatCurrency(ps.netSalary)}</div>
                       </div>
                       <a
                         href={`/api/payroll/payslips/${ps.id}/pdf`}
@@ -316,13 +383,13 @@ export default function PayrunDetail() {
                   </div>
 
                   {/* Breakdown line items */}
-                  {ps.lines?.length > 0 && (
+                  {Array.isArray(ps.lines) && ps.lines.length > 0 && (
                     <div className="pt-2 border-t border-slate-200/60 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-2 text-xs">
-                      {ps.lines.map((line: any) => (
-                        <div key={line.id} className="bg-white p-2 rounded-lg border border-slate-200/60">
-                          <span className="text-slate-500 font-medium block truncate">{line.name}</span>
+                      {ps.lines.map((line: any, lIdx: number) => (
+                        <div key={line.id || lIdx} className="bg-white p-2 rounded-lg border border-slate-200/60">
+                          <span className="text-slate-500 font-medium block truncate">{line.name || line.code || 'Line'}</span>
                           <span className={`font-extrabold ${line.category === 'DEDUCTION' ? 'text-red-600' : 'text-slate-900'}`}>
-                            {line.category === 'DEDUCTION' ? '-' : ''}₹{Math.abs(line.total || line.amount || 0).toLocaleString()}
+                            {line.category === 'DEDUCTION' ? '-' : ''}₹{formatCurrency(Math.abs(Number(line.total || line.amount || 0)))}
                           </span>
                         </div>
                       ))}
@@ -330,6 +397,31 @@ export default function PayrunDetail() {
                   )}
                 </div>
               ))
+            )}
+
+            {/* Pagination controls */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between pt-4 border-t border-slate-200">
+                <span className="text-xs text-slate-500 font-medium">
+                  Page <strong className="text-slate-900">{currentPage}</strong> of <strong className="text-slate-900">{totalPages}</strong>
+                </span>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
+                    disabled={currentPage === 1}
+                    className="p-2 bg-white border border-slate-200 rounded-xl text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
+                  >
+                    <ChevronLeft size={16} />
+                  </button>
+                  <button
+                    onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                    className="p-2 bg-white border border-slate-200 rounded-xl text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
+                  >
+                    <ChevronRight size={16} />
+                  </button>
+                </div>
+              </div>
             )}
           </div>
         ) : (
@@ -339,4 +431,3 @@ export default function PayrunDetail() {
     </div>
   );
 }
-

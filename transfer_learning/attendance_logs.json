@@ -1,5 +1,670 @@
 [
   {
+    "id": "ATT-1788670010012",
+    "dbId": "502b2e34-95e6-40f3-9588-e608b22d0b29",
+    "employee": {
+      "firstName": "Arjun",
+      "lastName": "Trivedi",
+      "employeeNumber": "EMP018"
+    },
+    "employeeNumber": "EMP018",
+    "name": "Arjun Trivedi",
+    "date": "2026-09-06",
+    "checkIn": "2026-09-06T10:16:50",
+    "checkInTime": "10:16:50 AM",
+    "checkOut": "",
+    "checkOutTime": "",
+    "workedHours": 0,
+    "overtimeHours": 0,
+    "status": "PRESENT",
+    "actions": "",
+    "matchConfidence": 95
+  },
+  {
+    "id": "ATT-1788669963200",
+    "dbId": "b7243c44-2be4-44f4-a371-a1a26fe765ad",
+    "employee": {
+      "firstName": "Pari",
+      "lastName": "Kulkarni",
+      "employeeNumber": "EMP002"
+    },
+    "employeeNumber": "EMP002",
+    "name": "Pari Kulkarni",
+    "date": "2026-09-06",
+    "checkIn": "2026-09-06T10:16:03",
+    "checkInTime": "10:16:03 AM",
+    "checkOut": "",
+    "checkOutTime": "",
+    "workedHours": 0,
+    "overtimeHours": 0,
+    "status": "PRESENT",
+    "actions": "",
+    "matchConfidence": 95
+  },
+  {
+    "id": "ATT-ARJUN-1788669681804-0",
+    "employee": {
+      "firstName": "Arjun",
+      "lastName": "Trivedi",
+      "employeeNumber": "EMP018"
+    },
+    "employeeNumber": "EMP018",
+    "name": "Arjun Trivedi",
+    "date": "2026-09-01",
+    "checkIn": "2026-09-01T08:03:00",
+    "checkInTime": "08:03:00 AM",
+    "checkOut": "2026-09-01T17:47:00",
+    "checkOutTime": "05:47:00 PM",
+    "workedHours": 8.5,
+    "overtimeHours": 0.5,
+    "status": "PRESENT",
+    "actions": "",
+    "matchConfidence": 96.5
+  },
+  {
+    "id": "ATT-ARJUN-1788669681804-1",
+    "employee": {
+      "firstName": "Arjun",
+      "lastName": "Trivedi",
+      "employeeNumber": "EMP018"
+    },
+    "employeeNumber": "EMP018",
+    "name": "Arjun Trivedi",
+    "date": "2026-09-02",
+    "checkIn": "2026-09-02T08:06:00",
+    "checkInTime": "08:06:00 AM",
+    "checkOut": "2026-09-02T17:17:00",
+    "checkOutTime": "05:17:00 PM",
+    "workedHours": 8.5,
+    "overtimeHours": 0.5,
+    "status": "PRESENT",
+    "actions": "",
+    "matchConfidence": 96.5
+  },
+  {
+    "id": "ATT-ARJUN-1788669681804-2",
+    "employee": {
+      "firstName": "Arjun",
+      "lastName": "Trivedi",
+      "employeeNumber": "EMP018"
+    },
+    "employeeNumber": "EMP018",
+    "name": "Arjun Trivedi",
+    "date": "2026-09-03",
+    "checkIn": "2026-09-03T08:03:00",
+    "checkInTime": "08:03:00 AM",
+    "checkOut": "2026-09-03T17:17:00",
+    "checkOutTime": "05:17:00 PM",
+    "workedHours": 8.5,
+    "overtimeHours": 0.5,
+    "status": "PRESENT",
+    "actions": "",
+    "matchConfidence": 96.5
+  },
+  {
+    "id": "ATT-ARJUN-1788669681804-3",
+    "employee": {
+      "firstName": "Arjun",
+      "lastName": "Trivedi",
+      "employeeNumber": "EMP018"
+    },
+    "employeeNumber": "EMP018",
+    "name": "Arjun Trivedi",
+    "date": "2026-09-04",
+    "checkIn": "2026-09-04T08:06:00",
+    "checkInTime": "08:06:00 AM",
+    "checkOut": "2026-09-04T17:47:00",
+    "checkOutTime": "05:47:00 PM",
+    "workedHours": 8.5,
+    "overtimeHours": 0.5,
+    "status": "PRESENT",
+    "actions": "",
+    "matchConfidence": 96.5
+  },
+  {
+    "id": "ATT-ARJUN-1788669681804-4",
+    "employee": {
+      "firstName": "Arjun",
+      "lastName": "Trivedi",
+      "employeeNumber": "EMP018"
+    },
+    "employeeNumber": "EMP018",
+    "name": "Arjun Trivedi",
+    "date": "2026-09-05",
+    "checkIn": "2026-09-05T08:03:00",
+    "checkInTime": "08:03:00 AM",
+    "checkOut": "2026-09-05T17:17:00",
+    "checkOutTime": "05:17:00 PM",
+    "workedHours": 8.5,
+    "overtimeHours": 0.5,
+    "status": "PRESENT",
+    "actions": "",
+    "matchConfidence": 96.5
+  },
+  {
+    "id": "ATT-ARJUN-1788669681804-5",
+    "employee": {
+      "firstName": "Arjun",
+      "lastName": "Trivedi",
+      "employeeNumber": "EMP018"
+    },
+    "employeeNumber": "EMP018",
+    "name": "Arjun Trivedi",
+    "date": "2026-09-06",
+    "checkIn": "2026-09-06T08:06:00",
+    "checkInTime": "08:06:00 AM",
+    "checkOut": "2026-09-06T17:17:00",
+    "checkOutTime": "05:17:00 PM",
+    "workedHours": 8.5,
+    "overtimeHours": 0.5,
+    "status": "PRESENT",
+    "actions": "",
+    "matchConfidence": 96.5
+  },
+  {
+    "id": "ATT-ARJUN-1788669681804-6",
+    "employee": {
+      "firstName": "Arjun",
+      "lastName": "Trivedi",
+      "employeeNumber": "EMP018"
+    },
+    "employeeNumber": "EMP018",
+    "name": "Arjun Trivedi",
+    "date": "2026-08-10",
+    "checkIn": "2026-08-10T08:03:00",
+    "checkInTime": "08:03:00 AM",
+    "checkOut": "2026-08-10T17:47:00",
+    "checkOutTime": "05:47:00 PM",
+    "workedHours": 8.5,
+    "overtimeHours": 0.5,
+    "status": "PRESENT",
+    "actions": "",
+    "matchConfidence": 96.5
+  },
+  {
+    "id": "ATT-ARJUN-1788669681804-7",
+    "employee": {
+      "firstName": "Arjun",
+      "lastName": "Trivedi",
+      "employeeNumber": "EMP018"
+    },
+    "employeeNumber": "EMP018",
+    "name": "Arjun Trivedi",
+    "date": "2026-08-11",
+    "checkIn": "2026-08-11T08:06:00",
+    "checkInTime": "08:06:00 AM",
+    "checkOut": "2026-08-11T17:17:00",
+    "checkOutTime": "05:17:00 PM",
+    "workedHours": 8.5,
+    "overtimeHours": 0.5,
+    "status": "PRESENT",
+    "actions": "",
+    "matchConfidence": 96.5
+  },
+  {
+    "id": "ATT-ARJUN-1788669681804-8",
+    "employee": {
+      "firstName": "Arjun",
+      "lastName": "Trivedi",
+      "employeeNumber": "EMP018"
+    },
+    "employeeNumber": "EMP018",
+    "name": "Arjun Trivedi",
+    "date": "2026-08-12",
+    "checkIn": "2026-08-12T08:03:00",
+    "checkInTime": "08:03:00 AM",
+    "checkOut": "2026-08-12T17:17:00",
+    "checkOutTime": "05:17:00 PM",
+    "workedHours": 8.5,
+    "overtimeHours": 0.5,
+    "status": "PRESENT",
+    "actions": "",
+    "matchConfidence": 96.5
+  },
+  {
+    "id": "ATT-ARJUN-1788669681804-9",
+    "employee": {
+      "firstName": "Arjun",
+      "lastName": "Trivedi",
+      "employeeNumber": "EMP018"
+    },
+    "employeeNumber": "EMP018",
+    "name": "Arjun Trivedi",
+    "date": "2026-08-13",
+    "checkIn": "2026-08-13T08:06:00",
+    "checkInTime": "08:06:00 AM",
+    "checkOut": "2026-08-13T17:47:00",
+    "checkOutTime": "05:47:00 PM",
+    "workedHours": 8.5,
+    "overtimeHours": 0.5,
+    "status": "PRESENT",
+    "actions": "",
+    "matchConfidence": 96.5
+  },
+  {
+    "id": "ATT-ARJUN-1788669681804-10",
+    "employee": {
+      "firstName": "Arjun",
+      "lastName": "Trivedi",
+      "employeeNumber": "EMP018"
+    },
+    "employeeNumber": "EMP018",
+    "name": "Arjun Trivedi",
+    "date": "2026-08-14",
+    "checkIn": "2026-08-14T08:03:00",
+    "checkInTime": "08:03:00 AM",
+    "checkOut": "2026-08-14T17:17:00",
+    "checkOutTime": "05:17:00 PM",
+    "workedHours": 8.5,
+    "overtimeHours": 0.5,
+    "status": "PRESENT",
+    "actions": "",
+    "matchConfidence": 96.5
+  },
+  {
+    "id": "ATT-ARJUN-1788669681804-11",
+    "employee": {
+      "firstName": "Arjun",
+      "lastName": "Trivedi",
+      "employeeNumber": "EMP018"
+    },
+    "employeeNumber": "EMP018",
+    "name": "Arjun Trivedi",
+    "date": "2026-08-15",
+    "checkIn": "2026-08-15T08:06:00",
+    "checkInTime": "08:06:00 AM",
+    "checkOut": "2026-08-15T17:17:00",
+    "checkOutTime": "05:17:00 PM",
+    "workedHours": 8.5,
+    "overtimeHours": 0.5,
+    "status": "PRESENT",
+    "actions": "",
+    "matchConfidence": 96.5
+  },
+  {
+    "id": "ATT-ARJUN-1788669681804-12",
+    "employee": {
+      "firstName": "Arjun",
+      "lastName": "Trivedi",
+      "employeeNumber": "EMP018"
+    },
+    "employeeNumber": "EMP018",
+    "name": "Arjun Trivedi",
+    "date": "2026-08-16",
+    "checkIn": "2026-08-16T08:03:00",
+    "checkInTime": "08:03:00 AM",
+    "checkOut": "2026-08-16T17:47:00",
+    "checkOutTime": "05:47:00 PM",
+    "workedHours": 8.5,
+    "overtimeHours": 0.5,
+    "status": "PRESENT",
+    "actions": "",
+    "matchConfidence": 96.5
+  },
+  {
+    "id": "ATT-ARJUN-1788669681804-13",
+    "employee": {
+      "firstName": "Arjun",
+      "lastName": "Trivedi",
+      "employeeNumber": "EMP018"
+    },
+    "employeeNumber": "EMP018",
+    "name": "Arjun Trivedi",
+    "date": "2026-08-17",
+    "checkIn": "2026-08-17T08:06:00",
+    "checkInTime": "08:06:00 AM",
+    "checkOut": "2026-08-17T17:17:00",
+    "checkOutTime": "05:17:00 PM",
+    "workedHours": 8.5,
+    "overtimeHours": 0.5,
+    "status": "PRESENT",
+    "actions": "",
+    "matchConfidence": 96.5
+  },
+  {
+    "id": "ATT-ARJUN-1788669681804-14",
+    "employee": {
+      "firstName": "Arjun",
+      "lastName": "Trivedi",
+      "employeeNumber": "EMP018"
+    },
+    "employeeNumber": "EMP018",
+    "name": "Arjun Trivedi",
+    "date": "2026-08-18",
+    "checkIn": "2026-08-18T08:03:00",
+    "checkInTime": "08:03:00 AM",
+    "checkOut": "2026-08-18T17:17:00",
+    "checkOutTime": "05:17:00 PM",
+    "workedHours": 8.5,
+    "overtimeHours": 0.5,
+    "status": "PRESENT",
+    "actions": "",
+    "matchConfidence": 96.5
+  },
+  {
+    "id": "ATT-ARJUN-1788669681804-15",
+    "employee": {
+      "firstName": "Arjun",
+      "lastName": "Trivedi",
+      "employeeNumber": "EMP018"
+    },
+    "employeeNumber": "EMP018",
+    "name": "Arjun Trivedi",
+    "date": "2026-08-19",
+    "checkIn": "2026-08-19T08:06:00",
+    "checkInTime": "08:06:00 AM",
+    "checkOut": "2026-08-19T17:47:00",
+    "checkOutTime": "05:47:00 PM",
+    "workedHours": 8.5,
+    "overtimeHours": 0.5,
+    "status": "PRESENT",
+    "actions": "",
+    "matchConfidence": 96.5
+  },
+  {
+    "id": "ATT-ARJUN-1788669681804-16",
+    "employee": {
+      "firstName": "Arjun",
+      "lastName": "Trivedi",
+      "employeeNumber": "EMP018"
+    },
+    "employeeNumber": "EMP018",
+    "name": "Arjun Trivedi",
+    "date": "2026-08-20",
+    "checkIn": "2026-08-20T08:03:00",
+    "checkInTime": "08:03:00 AM",
+    "checkOut": "2026-08-20T17:17:00",
+    "checkOutTime": "05:17:00 PM",
+    "workedHours": 8.5,
+    "overtimeHours": 0.5,
+    "status": "PRESENT",
+    "actions": "",
+    "matchConfidence": 96.5
+  },
+  {
+    "id": "ATT-ARJUN-1788669681804-17",
+    "employee": {
+      "firstName": "Arjun",
+      "lastName": "Trivedi",
+      "employeeNumber": "EMP018"
+    },
+    "employeeNumber": "EMP018",
+    "name": "Arjun Trivedi",
+    "date": "2026-08-21",
+    "checkIn": "2026-08-21T08:06:00",
+    "checkInTime": "08:06:00 AM",
+    "checkOut": "2026-08-21T17:17:00",
+    "checkOutTime": "05:17:00 PM",
+    "workedHours": 8.5,
+    "overtimeHours": 0.5,
+    "status": "PRESENT",
+    "actions": "",
+    "matchConfidence": 96.5
+  },
+  {
+    "id": "ATT-ARJUN-1788669681804-18",
+    "employee": {
+      "firstName": "Arjun",
+      "lastName": "Trivedi",
+      "employeeNumber": "EMP018"
+    },
+    "employeeNumber": "EMP018",
+    "name": "Arjun Trivedi",
+    "date": "2026-08-22",
+    "checkIn": "2026-08-22T08:03:00",
+    "checkInTime": "08:03:00 AM",
+    "checkOut": "2026-08-22T17:47:00",
+    "checkOutTime": "05:47:00 PM",
+    "workedHours": 8.5,
+    "overtimeHours": 0.5,
+    "status": "PRESENT",
+    "actions": "",
+    "matchConfidence": 96.5
+  },
+  {
+    "id": "ATT-ARJUN-1788669681804-19",
+    "employee": {
+      "firstName": "Arjun",
+      "lastName": "Trivedi",
+      "employeeNumber": "EMP018"
+    },
+    "employeeNumber": "EMP018",
+    "name": "Arjun Trivedi",
+    "date": "2026-08-23",
+    "checkIn": "2026-08-23T08:06:00",
+    "checkInTime": "08:06:00 AM",
+    "checkOut": "2026-08-23T17:17:00",
+    "checkOutTime": "05:17:00 PM",
+    "workedHours": 8.5,
+    "overtimeHours": 0.5,
+    "status": "PRESENT",
+    "actions": "",
+    "matchConfidence": 96.5
+  },
+  {
+    "id": "ATT-ARJUN-1788669681804-20",
+    "employee": {
+      "firstName": "Arjun",
+      "lastName": "Trivedi",
+      "employeeNumber": "EMP018"
+    },
+    "employeeNumber": "EMP018",
+    "name": "Arjun Trivedi",
+    "date": "2026-08-24",
+    "checkIn": "2026-08-24T08:03:00",
+    "checkInTime": "08:03:00 AM",
+    "checkOut": "2026-08-24T17:17:00",
+    "checkOutTime": "05:17:00 PM",
+    "workedHours": 8.5,
+    "overtimeHours": 0.5,
+    "status": "PRESENT",
+    "actions": "",
+    "matchConfidence": 96.5
+  },
+  {
+    "id": "ATT-ARJUN-1788669681804-21",
+    "employee": {
+      "firstName": "Arjun",
+      "lastName": "Trivedi",
+      "employeeNumber": "EMP018"
+    },
+    "employeeNumber": "EMP018",
+    "name": "Arjun Trivedi",
+    "date": "2026-08-25",
+    "checkIn": "2026-08-25T08:06:00",
+    "checkInTime": "08:06:00 AM",
+    "checkOut": "2026-08-25T17:47:00",
+    "checkOutTime": "05:47:00 PM",
+    "workedHours": 8.5,
+    "overtimeHours": 0.5,
+    "status": "PRESENT",
+    "actions": "",
+    "matchConfidence": 96.5
+  },
+  {
+    "id": "ATT-ARJUN-1788669681804-22",
+    "employee": {
+      "firstName": "Arjun",
+      "lastName": "Trivedi",
+      "employeeNumber": "EMP018"
+    },
+    "employeeNumber": "EMP018",
+    "name": "Arjun Trivedi",
+    "date": "2026-08-26",
+    "checkIn": "2026-08-26T08:03:00",
+    "checkInTime": "08:03:00 AM",
+    "checkOut": "2026-08-26T17:17:00",
+    "checkOutTime": "05:17:00 PM",
+    "workedHours": 8.5,
+    "overtimeHours": 0.5,
+    "status": "PRESENT",
+    "actions": "",
+    "matchConfidence": 96.5
+  },
+  {
+    "id": "ATT-ARJUN-1788669681804-23",
+    "employee": {
+      "firstName": "Arjun",
+      "lastName": "Trivedi",
+      "employeeNumber": "EMP018"
+    },
+    "employeeNumber": "EMP018",
+    "name": "Arjun Trivedi",
+    "date": "2026-08-27",
+    "checkIn": "2026-08-27T08:06:00",
+    "checkInTime": "08:06:00 AM",
+    "checkOut": "2026-08-27T17:17:00",
+    "checkOutTime": "05:17:00 PM",
+    "workedHours": 8.5,
+    "overtimeHours": 0.5,
+    "status": "PRESENT",
+    "actions": "",
+    "matchConfidence": 96.5
+  },
+  {
+    "id": "ATT-ARJUN-1788669681804-24",
+    "employee": {
+      "firstName": "Arjun",
+      "lastName": "Trivedi",
+      "employeeNumber": "EMP018"
+    },
+    "employeeNumber": "EMP018",
+    "name": "Arjun Trivedi",
+    "date": "2026-08-28",
+    "checkIn": "2026-08-28T08:03:00",
+    "checkInTime": "08:03:00 AM",
+    "checkOut": "2026-08-28T17:47:00",
+    "checkOutTime": "05:47:00 PM",
+    "workedHours": 8.5,
+    "overtimeHours": 0.5,
+    "status": "PRESENT",
+    "actions": "",
+    "matchConfidence": 96.5
+  },
+  {
+    "id": "ATT-ARJUN-1788669681804-25",
+    "employee": {
+      "firstName": "Arjun",
+      "lastName": "Trivedi",
+      "employeeNumber": "EMP018"
+    },
+    "employeeNumber": "EMP018",
+    "name": "Arjun Trivedi",
+    "date": "2026-08-29",
+    "checkIn": "2026-08-29T08:06:00",
+    "checkInTime": "08:06:00 AM",
+    "checkOut": "2026-08-29T17:17:00",
+    "checkOutTime": "05:17:00 PM",
+    "workedHours": 8.5,
+    "overtimeHours": 0.5,
+    "status": "PRESENT",
+    "actions": "",
+    "matchConfidence": 96.5
+  },
+  {
+    "id": "ATT-ARJUN-1788669681804-26",
+    "employee": {
+      "firstName": "Arjun",
+      "lastName": "Trivedi",
+      "employeeNumber": "EMP018"
+    },
+    "employeeNumber": "EMP018",
+    "name": "Arjun Trivedi",
+    "date": "2026-08-30",
+    "checkIn": "2026-08-30T08:03:00",
+    "checkInTime": "08:03:00 AM",
+    "checkOut": "2026-08-30T17:17:00",
+    "checkOutTime": "05:17:00 PM",
+    "workedHours": 8.5,
+    "overtimeHours": 0.5,
+    "status": "PRESENT",
+    "actions": "",
+    "matchConfidence": 96.5
+  },
+  {
+    "id": "ATT-ARJUN-1788669681804-27",
+    "employee": {
+      "firstName": "Arjun",
+      "lastName": "Trivedi",
+      "employeeNumber": "EMP018"
+    },
+    "employeeNumber": "EMP018",
+    "name": "Arjun Trivedi",
+    "date": "2026-08-31",
+    "checkIn": "2026-08-31T08:06:00",
+    "checkInTime": "08:06:00 AM",
+    "checkOut": "2026-08-31T17:47:00",
+    "checkOutTime": "05:47:00 PM",
+    "workedHours": 8.5,
+    "overtimeHours": 0.5,
+    "status": "PRESENT",
+    "actions": "",
+    "matchConfidence": 96.5
+  },
+  {
+    "id": "ATT-1788669607394",
+    "dbId": "75efd428-1d34-4d84-ab95-c3670b9eb38d",
+    "employee": {
+      "firstName": "Manish",
+      "lastName": "Banerjee",
+      "employeeNumber": "EMP004"
+    },
+    "employeeNumber": "EMP004",
+    "name": "Manish Banerjee",
+    "date": "2026-09-06",
+    "checkIn": "2026-09-06T10:10:07",
+    "checkInTime": "10:10:07 AM",
+    "checkOut": "",
+    "checkOutTime": "",
+    "workedHours": 0,
+    "overtimeHours": 0,
+    "status": "PRESENT",
+    "actions": "",
+    "matchConfidence": 95
+  },
+  {
+    "id": "ATT-1788669568831",
+    "dbId": "a7058bab-936c-4a2d-a33d-80ab7a40d496",
+    "employee": {
+      "firstName": "Diya",
+      "lastName": "Pandey",
+      "employeeNumber": "EMP013"
+    },
+    "employeeNumber": "EMP013",
+    "name": "Diya Pandey",
+    "date": "2026-09-06",
+    "checkIn": "2026-09-06T10:09:28",
+    "checkInTime": "10:09:28 AM",
+    "checkOut": "",
+    "checkOutTime": "",
+    "workedHours": 0,
+    "overtimeHours": 0,
+    "status": "PRESENT",
+    "actions": "",
+    "matchConfidence": 95
+  },
+  {
+    "id": "ATT-1788667648339",
+    "dbId": "92b1c0a9-0bfe-4484-948c-028858af3f53",
+    "employee": {
+      "firstName": "Manish",
+      "lastName": "Banerjee",
+      "employeeNumber": "EMP004"
+    },
+    "employeeNumber": "EMP004",
+    "name": "Manish Banerjee",
+    "date": "2026-09-06",
+    "checkIn": "2026-09-06T09:37:28",
+    "checkInTime": "09:37:28 AM",
+    "checkOut": "",
+    "checkOutTime": "",
+    "workedHours": 0,
+    "overtimeHours": 0,
+    "status": "PRESENT",
+    "actions": "",
+    "matchConfidence": 95
+  },
+  {
     "id": "ATT-1788657124074",
     "dbId": "bbb1c6df-8873-492f-822b-237b944e779c",
     "employee": {
@@ -104,12 +769,22 @@
     "matchConfidence": 95
   },
   {
-    "dbId": "bbb1c6df-8873-492f-822b-237b944e779c",
-    "checkOut": "2026-09-06T06:42:06",
-    "checkOutTime": "06:42:06 AM",
+    "dbId": "502b2e34-95e6-40f3-9588-e608b22d0b29",
+    "checkOut": "2026-09-06T10:16:51",
+    "checkOutTime": "10:16:51 AM",
     "workedHours": 0.01,
     "overtimeHours": 0,
-    "status": "HALF_DAY"
+    "status": "HALF_DAY",
+    "employee": {
+      "firstName": "Arjun",
+      "lastName": "Trivedi",
+      "employeeNumber": "EMP018"
+    },
+    "employeeNumber": "EMP018",
+    "name": "Arjun Trivedi",
+    "date": "2026-09-06",
+    "checkIn": "2026-09-06T04:46:50",
+    "checkInTime": "10:16:50 AM"
   },
   {
     "id": "ATT-1788654477598",

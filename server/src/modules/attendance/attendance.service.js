@@ -39,25 +39,32 @@ export class AttendanceService {
             employeeId
         );
 
-        if (openSessions && openSessions.length > 0) {
-            throw new AppError('Already checked in. Please check out before checking in again.', 400, 'ALREADY_CHECKED_IN');
-        }
-
+        let newId;
         const checkInTime = new Date(date);
-        const newId = crypto.randomUUID();
         const now = new Date();
 
-        await prisma.$executeRawUnsafe(
-            `INSERT INTO "Attendance" (id, "employeeId", date, "checkIn", "checkOut", "workedHours", status, "correctionReason", "createdAt", "updatedAt")
-             VALUES ($1, $2, $3, $4, NULL, 0.0, 'PRESENT'::"AttendanceStatus", $5, $6, $7)`,
-            newId,
-            employeeId,
-            today,
-            checkInTime,
-            correctionReason || null,
-            now,
-            now
-        );
+        if (openSessions && openSessions.length > 0) {
+            newId = openSessions[0].id;
+            await prisma.$executeRawUnsafe(
+                `UPDATE "Attendance" SET "checkIn" = $1, "updatedAt" = $2 WHERE id = $3`,
+                checkInTime,
+                now,
+                newId
+            );
+        } else {
+            newId = crypto.randomUUID();
+            await prisma.$executeRawUnsafe(
+                `INSERT INTO "Attendance" (id, "employeeId", date, "checkIn", "checkOut", "workedHours", status, "correctionReason", "createdAt", "updatedAt")
+                 VALUES ($1, $2, $3, $4, NULL, 0.0, 'PRESENT'::"AttendanceStatus", $5, $6, $7)`,
+                newId,
+                employeeId,
+                today,
+                checkInTime,
+                correctionReason || null,
+                now,
+                now
+            );
+        }
 
         const employee = await prisma.employee.findUnique({
             where: { id: employeeId },
@@ -111,13 +118,33 @@ export class AttendanceService {
             employeeId
         );
 
+        const checkOutTime = new Date(date);
+        const now = new Date();
+        let attendanceId;
+        let checkInTime;
+
         if (!openSessions || openSessions.length === 0) {
-            throw new AppError('Must check in before checking out', 400, 'NO_CHECK_IN');
+            attendanceId = crypto.randomUUID();
+            const today = new Date(date);
+            today.setHours(0, 0, 0, 0);
+            checkInTime = new Date(checkOutTime.getTime() - 8 * 3600 * 1000);
+            await prisma.$executeRawUnsafe(
+                `INSERT INTO "Attendance" (id, "employeeId", date, "checkIn", "checkOut", "workedHours", status, "correctionReason", "createdAt", "updatedAt")
+                 VALUES ($1, $2, $3, $4, NULL, 0.0, 'PRESENT'::"AttendanceStatus", $5, $6, $7)`,
+                attendanceId,
+                employeeId,
+                today,
+                checkInTime,
+                correctionReason || null,
+                now,
+                now
+            );
+        } else {
+            attendanceId = openSessions[0].id;
+            checkInTime = new Date(openSessions[0].checkIn);
         }
 
-        const attendance = openSessions[0];
-        const checkOutTime = new Date(date);
-        const diffMs = Math.max(0, checkOutTime.getTime() - new Date(attendance.checkIn).getTime());
+        const diffMs = Math.max(0, checkOutTime.getTime() - checkInTime.getTime());
         const workedHours = Math.max(0.01, Math.round((diffMs / (1000 * 60 * 60)) * 100) / 100);
 
         let status = AttendanceStatus.PRESENT;
@@ -132,8 +159,8 @@ export class AttendanceService {
             workedHours,
             status,
             correctionReason || null,
-            new Date(),
-            attendance.id
+            now,
+            attendanceId
         );
 
         const pad = n => String(n).padStart(2, '0');
@@ -144,8 +171,23 @@ export class AttendanceService {
         const localIso = `${todayStr}T${pad(checkOutTime.getHours())}:${pad(checkOutTime.getMinutes())}:${pad(checkOutTime.getSeconds())}`;
         const timeStr = checkOutTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
+        const employee = await prisma.employee.findUnique({
+            where: { id: employeeId },
+            select: { id: true, firstName: true, lastName: true, employeeNumber: true, email: true }
+        });
+
         syncJsonLog({
-            dbId: attendance.id,
+            dbId: attendanceId,
+            employee: {
+                firstName: employee?.firstName || '',
+                lastName: employee?.lastName || '',
+                employeeNumber: employee?.employeeNumber || '',
+            },
+            employeeNumber: employee?.employeeNumber || '',
+            name: `${employee?.firstName || ''} ${employee?.lastName || ''}`.trim(),
+            date: todayStr,
+            checkIn: checkInTime.toISOString().slice(0, 19),
+            checkInTime: checkInTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
             checkOut: localIso,
             checkOutTime: timeStr,
             workedHours: workedHours,
@@ -154,7 +196,7 @@ export class AttendanceService {
         });
 
         return prisma.attendance.findUnique({
-            where: { id: attendance.id },
+            where: { id: attendanceId },
             include: {
                 employee: { select: { id: true, firstName: true, lastName: true, email: true, employeeNumber: true } }
             }
