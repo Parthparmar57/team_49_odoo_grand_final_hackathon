@@ -3,6 +3,7 @@ import { Modal, Input, Select, Button, Alert, Badge } from '../../../components/
 import { Plus, Edit2, Trash2, Loader2, Code, ArrowLeft } from 'lucide-react';
 import api from '../../../api/client';
 import { useToast } from '../../../context/ToastContext';
+import { useAuth } from '../../../context/AuthContext';
 
 interface SalaryRulesModalProps {
   open: boolean;
@@ -18,6 +19,8 @@ export const SalaryRulesModal: React.FC<SalaryRulesModalProps> = ({
   onRefresh,
 }) => {
   const { toast } = useToast();
+  const { user } = useAuth();
+  const isPayrollUser = user?.role === 'HR_PAYROLL_USER';
   const [rules, setRules] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -234,9 +237,11 @@ export const SalaryRulesModal: React.FC<SalaryRulesModalProps> = ({
                 Rules execute in ascending sequence order. Higher sequence numbers evaluate after lower numbers.
               </p>
             </div>
-            <Button size="sm" onClick={handleOpenAddForm} className="whitespace-nowrap flex-shrink-0">
-              <Plus size={15} /> Add Rule
-            </Button>
+            {!isPayrollUser && (
+              <Button size="sm" onClick={handleOpenAddForm} className="whitespace-nowrap flex-shrink-0">
+                <Plus size={15} /> Add Rule
+              </Button>
+            )}
           </div>
         )}
 
@@ -429,22 +434,26 @@ export const SalaryRulesModal: React.FC<SalaryRulesModalProps> = ({
                             )}
                           </td>
                           <td className="px-4 py-3 text-right">
-                            <div className="flex items-center justify-end gap-1">
-                              <button
-                                onClick={() => handleOpenEditForm(rule)}
-                                className="p-1.5 text-slate-500 hover:text-slate-900 rounded-lg hover:bg-slate-100 transition-colors"
-                                title="Edit Rule"
-                              >
-                                <Edit2 size={15} />
-                              </button>
-                              <button
-                                onClick={() => handleDeleteRule(rule.id)}
-                                className="p-1.5 text-slate-500 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors"
-                                title="Delete Rule"
-                              >
-                                <Trash2 size={15} />
-                              </button>
-                            </div>
+                            {!isPayrollUser ? (
+                              <div className="flex items-center justify-end gap-1">
+                                <button
+                                  onClick={() => handleOpenEditForm(rule)}
+                                  className="p-1.5 text-slate-500 hover:text-slate-900 rounded-lg hover:bg-slate-100 transition-colors"
+                                  title="Edit Rule"
+                                >
+                                  <Edit2 size={15} />
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteRule(rule.id)}
+                                  className="p-1.5 text-slate-500 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors"
+                                  title="Delete Rule"
+                                >
+                                  <Trash2 size={15} />
+                                </button>
+                              </div>
+                            ) : (
+                              <span className="text-slate-300 font-mono text-xs">—</span>
+                            )}
                           </td>
                         </tr>
                       );

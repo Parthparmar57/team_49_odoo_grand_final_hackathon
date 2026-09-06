@@ -449,7 +449,7 @@ export default function TimeOffPage() {
                 <Td className="text-xs text-slate-500 max-w-xs truncate">{r.reason || '—'}</Td>
                 <Td><LeaveStatusBadge status={r.status} /></Td>
                 <Td>
-                  {r.status === 'PENDING' && ['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_MANAGER'].includes(user?.role || '') && (
+                  {r.status === 'PENDING' && ['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER'].includes(user?.role || '') && (
                     <div className="flex gap-2">
                       <button onClick={() => handleApprove(r.id)} className="p-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 rounded-lg text-xs font-bold transition-all flex items-center gap-1">
                         <Check size={14} /> Approve
