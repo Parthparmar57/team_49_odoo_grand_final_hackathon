@@ -24,7 +24,7 @@ By replacing vulnerable web buttons and proxy-prone badge scanners with an **Ope
 
 ## 🎯 Core Problem & Overall Solution Flow
 
-### ❌ Core Problem
+###  Core Problem
 
 Enterprise HR operations suffer from critical vulnerabilities and operational inefficiencies:
 
@@ -42,16 +42,16 @@ PeoplePay360 resolves these operational gaps through an integrated 7-stage archi
 ```mermaid
 flowchart TD
     subgraph "1. Biometric Intake (OpenCV AI)"
-        CAM["📷 HD Webcam Stream (1280x720 @ 30+ FPS)"]
-        IF["🧠 InsightFace ArcFace Engine<br/>512-d Embedding Extraction & Cosine Matching"]
-        KEY["⌨️ Single-Key Action Trigger<br/>[C] Check-In | [O] Check-Out | [R] Register"]
+        CAM[" HD Webcam Stream (1280x720 @ 30+ FPS)"]
+        IF[" InsightFace ArcFace Engine<br/>512-d Embedding Extraction & Cosine Matching"]
+        KEY[" Single-Key Action Trigger<br/>[C] Check-In | [O] Check-Out | [R] Register"]
         CAM --> IF --> KEY
     end
 
     subgraph "2. Real-Time Punch & Backend Sync"
         API["⚡ Express REST API<br/>POST /api/attendance/live-punch"]
-        DB[("🐘 PostgreSQL 15<br/>Prisma ORM Persistence")]
-        LOG["📄 attendance_logs.json<br/>Local Buffer & Audit Sync"]
+        DB[(" PostgreSQL 15<br/>Prisma ORM Persistence")]
+        LOG[" attendance_logs.json<br/>Local Buffer & Audit Sync"]
         KEY --> API
         API --> DB
         API --> LOG
@@ -65,8 +65,8 @@ flowchart TD
     end
 
     subgraph "4. Deterministic Payroll Engine"
-        PAY["💰 Salary Rule Engine<br/>BASIC -> ALLOWANCE -> GROSS -> DEDUCTION -> NET"]
-        PR["📋 Payrun State Machine<br/>DRAFT -> COMPUTED -> VALIDATED -> PAID"]
+        PAY[" Salary Rule Engine<br/>BASIC -> ALLOWANCE -> GROSS -> DEDUCTION -> NET"]
+        PR[" Payrun State Machine<br/>DRAFT -> COMPUTED -> VALIDATED -> PAID"]
         PDF["📄 PDF Payslip Generation<br/>(PDFKit Engine)"]
         GOV --> PAY
         PAY --> PR --> PDF
