@@ -6,8 +6,11 @@ import {
   EmployeeStatusBadge
 } from '../../components/ui';
 import { Plus, Search, Eye, Edit, LayoutGrid, List, Filter, RotateCcw } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
 export default function EmployeesPage() {
+  const { user } = useAuth();
+  const isPayrollUser = user?.role === 'HR_PAYROLL_USER';
   const navigate = useNavigate();
   const [employees, setEmployees] = useState<any[]>([]);
   const [departments, setDepartments] = useState<any[]>([]);
@@ -105,9 +108,11 @@ export default function EmployeesPage() {
             <LayoutGrid size={16} />
           </button>
         </div>
-        <Button onClick={() => navigate('/employees/new')}>
-          <Plus size={16} /> Add Employee
-        </Button>
+        {!isPayrollUser && (
+          <Button onClick={() => navigate('/employees/new')}>
+            <Plus size={16} /> Add Employee
+          </Button>
+        )}
       </PageHeader>
 
       {/* Filter & Search Bar */}
@@ -210,12 +215,14 @@ export default function EmployeesPage() {
               <Td><EmployeeStatusBadge status={emp.status} /></Td>
               <Td>
                 <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
-                  <button onClick={() => navigate(`/employees/${emp.id}`)} className="p-1.5 text-slate-500 hover:text-[#FF5E1E] hover:bg-orange-50 rounded-lg transition-colors">
+                  <button onClick={() => navigate(`/employees/${emp.id}`)} className="p-1.5 text-slate-500 hover:text-[#FF5E1E] hover:bg-orange-50 rounded-lg transition-colors cursor-pointer" title="View Profile">
                     <Eye size={16} />
                   </button>
-                  <button onClick={() => navigate(`/employees/${emp.id}/edit`)} className="p-1.5 text-slate-500 hover:text-[#FF5E1E] hover:bg-orange-50 rounded-lg transition-colors">
-                    <Edit size={16} />
-                  </button>
+                  {!isPayrollUser && (
+                    <button onClick={() => navigate(`/employees/${emp.id}/edit`)} className="p-1.5 text-slate-500 hover:text-[#FF5E1E] hover:bg-orange-50 rounded-lg transition-colors cursor-pointer" title="Edit Profile">
+                      <Edit size={16} />
+                    </button>
+                  )}
                 </div>
               </Td>
             </Tr>

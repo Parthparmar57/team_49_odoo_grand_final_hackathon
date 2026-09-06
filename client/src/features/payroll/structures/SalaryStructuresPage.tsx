@@ -6,9 +6,12 @@ import api from '../../../api/client';
 import SalaryStructureForm from './SalaryStructureForm';
 import SalaryRulesModal from './SalaryRulesModal';
 import { useToast } from '../../../context/ToastContext';
+import { useAuth } from '../../../context/AuthContext';
 
 export const SalaryStructuresPage: React.FC = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
+  const isPayrollUser = user?.role === 'HR_PAYROLL_USER';
   const navigate = useNavigate();
   const [structures, setStructures] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -92,9 +95,11 @@ export const SalaryStructuresPage: React.FC = () => {
         <Button variant="secondary" onClick={() => navigate('/payroll')}>
           <ArrowLeft size={16} /> Back to Payruns
         </Button>
-        <Button onClick={handleOpenCreate}>
-          <Plus size={16} /> New Structure
-        </Button>
+        {!isPayrollUser && (
+          <Button onClick={handleOpenCreate}>
+            <Plus size={16} /> New Structure
+          </Button>
+        )}
       </PageHeader>
 
       {/* Metric Cards */}
@@ -217,13 +222,15 @@ export const SalaryStructuresPage: React.FC = () => {
                     >
                       <Settings size={13} /> Rules
                     </button>
-                    <button
-                      onClick={(e) => handleOpenEdit(structure, e)}
-                      className="p-2 text-slate-400 hover:text-slate-900 rounded-xl hover:bg-slate-100 transition-colors"
-                      title="Edit Structure Details"
-                    >
-                      <Edit3 size={15} />
-                    </button>
+                    {!isPayrollUser && (
+                      <button
+                        onClick={(e) => handleOpenEdit(structure, e)}
+                        className="p-2 text-slate-400 hover:text-slate-900 rounded-xl hover:bg-slate-100 transition-colors"
+                        title="Edit Structure Details"
+                      >
+                        <Edit3 size={15} />
+                      </button>
+                    )}
                   </div>
                 </Td>
               </Tr>

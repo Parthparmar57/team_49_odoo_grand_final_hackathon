@@ -3,8 +3,11 @@ import { useNavigate, useParams, Link } from 'react-router-dom';
 import api from '../../api/client';
 import { Button, LoadingPage, Alert, Card, EmployeeStatusBadge, ContractStatusBadge, LeaveStatusBadge, Modal } from '../../components/ui';
 import { ArrowLeft, Edit, FileText, Clock, CalendarX, User, MapPin, Award, ExternalLink } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
 export default function EmployeeDetail() {
+  const { user } = useAuth();
+  const isPayrollUser = user?.role === 'HR_PAYROLL_USER';
   const { id } = useParams();
   const navigate = useNavigate();
   const [employee, setEmployee] = useState<any>(null);
@@ -56,11 +59,13 @@ export default function EmployeeDetail() {
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Button onClick={() => navigate(`/employees/${id}/edit`)} variant="secondary">
-            <Edit size={16} /> Edit Profile
-          </Button>
-        </div>
+        {!isPayrollUser && (
+          <div className="flex items-center gap-2">
+            <Button onClick={() => navigate(`/employees/${id}/edit`)} variant="secondary">
+              <Edit size={16} /> Edit Profile
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* 4 Smart Buttons with exact live database counts */}

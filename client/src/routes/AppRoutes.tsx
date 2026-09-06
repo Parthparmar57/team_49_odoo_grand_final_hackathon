@@ -176,6 +176,14 @@ export const AppRoutes: React.FC = () => {
           }
         />
         <Route
+          path="/schedules/:id"
+          element={
+            <RoleGuard allowedRoles={['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER']}>
+              <SchedulesPage />
+            </RoleGuard>
+          }
+        />
+        <Route
           path="/attendance"
           element={
             <RoleGuard allowedRoles={['ADMIN', 'HR_MANAGER', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER', 'EMPLOYEE']}>

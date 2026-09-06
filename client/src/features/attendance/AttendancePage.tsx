@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import api from '../../api/client';
 import { PageHeader, Table, Tr, Td, Button, Badge, LoadingPage, Alert, Modal, Input } from '../../components/ui';
-import { Loader2, LogIn, LogOut, Video } from 'lucide-react';
+import { Loader2, LogIn, LogOut, Video, Search, Filter, X } from 'lucide-react';
 import { useToast } from '../../context/ToastContext';
 import { useAuth } from '../../context/AuthContext';
 
@@ -18,6 +18,7 @@ export default function AttendancePage() {
   const [correctForm, setCorrectForm] = useState({ checkIn: '', checkOut: '', correctionReason: '' });
   const [correcting, setSaving] = useState(false);
   const [filterStatus, setFilterStatus] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
   const [liveMode, setLiveMode] = useState(false);
   const [liveLaunching, setLiveLaunching] = useState(false);
@@ -120,12 +121,30 @@ export default function AttendancePage() {
       });
     }
 
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase().trim();
+      result = result.filter(r => {
+        const empName = (r.employee?.firstName ? `${r.employee.firstName} ${r.employee.lastName || ''}` : r.name || '').toLowerCase();
+        const empNum = (r.employee?.employeeNumber || r.employeeNumber || '').toLowerCase();
+        const dateStr = (r.date || '').toLowerCase();
+        const statusStr = (r.status || '').toLowerCase();
+        return empName.includes(q) || empNum.includes(q) || dateStr.includes(q) || statusStr.includes(q);
+      });
+    }
+
     if (filterStatus) {
       result = result.filter(r => r.status === filterStatus);
     }
 
     return result;
-  }, [records, user, filterStatus]);
+  }, [records, user, filterStatus, searchQuery]);
+
+  const hasActiveFilters = Boolean(searchQuery || filterStatus);
+
+  const clearFilters = () => {
+    setSearchQuery('');
+    setFilterStatus('');
+  };
 
   const toggleLiveAttendance = async () => {
     if (!liveMode) {
@@ -272,19 +291,64 @@ export default function AttendancePage() {
       {actionMsg && <Alert message={actionMsg} variant={actionMsg.includes('✅') ? 'success' : 'error'} />}
       {error && <Alert message={error} />}
 
-      {/* Filter */}
-      <div className="flex items-center gap-3">
-        <select
-          value={filterStatus}
-          onChange={e => setFilterStatus(e.target.value)}
-          className="bg-white border border-slate-200 rounded-xl px-3.5 py-2 text-slate-900 text-sm font-semibold focus:outline-none focus:border-[#FF5E1E]"
-        >
-          <option value="">All Statuses</option>
-          <option value="PRESENT">Present</option>
-          <option value="ABSENT">Absent</option>
-          <option value="HALF_DAY">Half Day</option>
-          <option value="CORRECTED">Corrected</option>
-        </select>
+      {/* Search & Filter Bar */}
+      <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-xs">
+        <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+          {/* Search Input */}
+          <div className="relative flex-1">
+            <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Search attendance logs by employee name, ID, date, or status..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-10 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-xs sm:text-sm font-semibold focus:outline-none focus:border-[#FF5E1E] focus:bg-white transition-all placeholder:text-slate-400"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 p-0.5 rounded-full cursor-pointer"
+              >
+                <X size={14} />
+              </button>
+            )}
+          </div>
+
+          {/* Filter Controls */}
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2">
+              <Filter size={14} className="text-slate-400" />
+              <select
+                value={filterStatus}
+                onChange={e => setFilterStatus(e.target.value)}
+                className="bg-transparent text-slate-900 text-xs sm:text-sm font-semibold focus:outline-none cursor-pointer"
+              >
+                <option value="">All Statuses</option>
+                <option value="PRESENT">Present</option>
+                <option value="ABSENT">Absent</option>
+                <option value="HALF_DAY">Half Day</option>
+                <option value="CORRECTED">Corrected</option>
+              </select>
+            </div>
+
+            {hasActiveFilters && (
+              <button
+                onClick={clearFilters}
+                className="px-3 py-2 text-xs font-bold text-slate-600 hover:text-[#FF5E1E] bg-slate-100 hover:bg-orange-50 rounded-xl border border-slate-200 transition-all cursor-pointer"
+              >
+                Clear Filters
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Counter Summary */}
+        <div className="flex items-center justify-between text-xs text-slate-500 font-semibold mt-3 pt-3 border-t border-slate-100">
+          <span>Showing <strong className="text-slate-900">{displayedRecords.length}</strong> of <strong className="text-slate-900">{records.length}</strong> attendance logs</span>
+          {hasActiveFilters && (
+            <span className="text-[#FF5E1E] font-bold">Filtered Results</span>
+          )}
+        </div>
       </div>
 
       {loading ? <LoadingPage /> : (
